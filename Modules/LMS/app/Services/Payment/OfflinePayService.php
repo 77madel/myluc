@@ -5,7 +5,7 @@ namespace Modules\LMS\Services\Payment;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
-class OfflinePayService extends PaymentService
+class OfflinePayService extends PaydunyaService
 {
     protected $gateway;
     protected static $methodName = 'offline';

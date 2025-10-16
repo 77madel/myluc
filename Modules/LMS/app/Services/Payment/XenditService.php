@@ -8,7 +8,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Invoice\CreateInvoiceRequest;
 
 
-class XenditService extends PaymentService
+class XenditService extends PaydunyaService
 {
     protected $gateway;
 

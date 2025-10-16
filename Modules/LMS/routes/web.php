@@ -97,17 +97,71 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     });
 
     Route::get('organizations', [OrganizationController::class, 'index'])->name('organization.list');
-    Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
+    //Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
+    Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
     Route::group(['middleware' => 'auth'], function () {
         Route::post('forum-post', [ForumController::class, 'forumPost']);
         Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');
 
         Route::group(['controller' => CheckoutController::class], function () {
-            Route::post('checkout', 'checkout')->name('checkout');
+            /*Route::post('checkout', 'checkout')->name('checkout');
             Route::get('success', 'transactionSuccess')->name('transaction.success');
             Route::get('payment-form', 'paymentFormRender')->name('payment.form');
             Route::post('enrolled',  'courseEnrolled')->name('course.enrolled');
-            Route::post('subscription/payment', 'subscriptionPayment')->name('subscription.payment');
+            Route::post('subscription/payment', 'subscriptionPayment')->name('subscription.payment');*/
+            // Page de checkout
+
+            // Page de checkout (avec vérification du panier)
+            Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])
+                ->name('checkout.page')
+                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
+
+            // Traitement du checkout
+            Route::post('/checkout/process', [CheckoutController::class, 'checkout'])
+                ->name('checkout.process')
+                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
+
+            // Formulaire de paiement
+            Route::post('/payment/form', [CheckoutController::class, 'paymentFormRender'])
+                ->name('payment.form')
+                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
+
+            // Succès du paiement
+            Route::get('/payment/success/{method}', [PaymentController::class, 'success'])
+                ->name('payment.success');
+
+            // Callback Paydunya (webhook)
+            Route::post('/payment/callback/{method}', [PaymentController::class, 'callback'])
+                ->name('payment.callback');
+
+            // Annulation du paiement
+            Route::get('/payment/cancel', [PaymentController::class, 'cancel'])
+                ->name('payment.cancel');
+
+            // Page de succès de transaction
+            Route::get('/transaction/success/{id?}', [CheckoutController::class, 'transactionSuccess'])
+                ->name('transaction.success')
+                ->middleware('auth');
+
+            // Inscription à un cours
+            Route::post('/course/enroll', [CheckoutController::class, 'courseEnrolled'])
+                ->name('course.enroll')
+                ->middleware('auth');
+
+            // Paiement d'abonnement
+            Route::post('/subscription/payment', [CheckoutController::class, 'subscriptionPayment'])
+                ->name('subscription.payment')
+                ->middleware('auth');
+
+            // Inscription à un cours
+            Route::post('/course/enroll', [CheckoutController::class, 'courseEnrolled'])
+                ->name('course.enroll')
+                ->middleware('auth');
+
+            // Paiement d'abonnement
+            Route::post('/subscription/payment', [CheckoutController::class, 'subscriptionPayment'])
+                ->name('subscription.payment')
+                ->middleware('auth');
         });
         Route::group(['controller' => PaymentController::class], function () {
             Route::get('payment/success/{method}', 'success')->name('payment.success');

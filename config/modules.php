@@ -257,7 +257,6 @@ return [
     'activator' => 'file',
 
     'priority' => [
-        'Test',
         'LMS',
         'ModuleManager',
         'Roles', // EN DERNIER car il a la route {any}

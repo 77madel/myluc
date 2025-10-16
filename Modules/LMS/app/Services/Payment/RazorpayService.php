@@ -6,7 +6,7 @@ use Razorpay\Api\Api;
 use Illuminate\Support\Str;
 use Modules\LMS\Classes\Cart;
 
-class RazorpayService extends PaymentService
+class RazorpayService extends PaydunyaService
 {
     protected $gateway;
     protected static $methodName = 'razorpay';

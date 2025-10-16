@@ -6,7 +6,7 @@ use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Modules\LMS\Classes\Cart;
 
-class StripeService extends PaymentService
+class StripeService extends PaydunyaService
 {
     protected $gateway;
     protected static $methodName = 'stripe';

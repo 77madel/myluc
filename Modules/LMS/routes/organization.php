@@ -1,27 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\LMS\Http\Controllers\Frontend\HomeController;
-use Modules\LMS\Http\Controllers\Organization\SaleController;
-use Modules\LMS\Http\Controllers\Organization\PayoutController;
-use Modules\LMS\Http\Controllers\Organization\ReviewController;
-use Modules\LMS\Http\Controllers\Organization\SettingController;
-use Modules\LMS\Http\Controllers\Organization\SupportController;
 use Modules\LMS\Http\Controllers\Admin\Courses\ChapterController;
-use Modules\LMS\Http\Controllers\Organization\DashboardController;
-use Modules\LMS\Http\Controllers\Organization\InstructorController;
-use Modules\LMS\Http\Controllers\Admin\Localization\StateController;
-use Modules\LMS\Http\Controllers\Organization\Courses\TagController;
-use Modules\LMS\Http\Controllers\Organization\NoticesBoardController;
-use Modules\LMS\Http\Controllers\Organization\NotificationController;
+use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuestionController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizController;
+use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizQuestionController;
+use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizTypeController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Topics\TopicController;
 use Modules\LMS\Http\Controllers\Admin\Localization\CountryController;
-use Modules\LMS\Http\Controllers\Organization\Courses\CourseController;
-use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuestionController;
-use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizTypeController;
-use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizQuestionController;
+use Modules\LMS\Http\Controllers\Admin\Localization\StateController;
 use Modules\LMS\Http\Controllers\Organization\Courses\Bundle\BundleController;
+use Modules\LMS\Http\Controllers\Organization\Courses\CourseController;
+use Modules\LMS\Http\Controllers\Organization\Courses\TagController;
+use Modules\LMS\Http\Controllers\Organization\DashboardController;
+use Modules\LMS\Http\Controllers\Organization\InstructorController;
+use Modules\LMS\Http\Controllers\Organization\NoticesBoardController;
+use Modules\LMS\Http\Controllers\Organization\NotificationController;
+use Modules\LMS\Http\Controllers\Organization\PayoutController;
+use Modules\LMS\Http\Controllers\Organization\ReviewController;
+use Modules\LMS\Http\Controllers\Organization\SaleController;
+use Modules\LMS\Http\Controllers\Organization\SettingController;
+use Modules\LMS\Http\Controllers\Organization\SupportController;
 
 Route::group(
     ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller']],
@@ -30,8 +29,8 @@ Route::group(
         Route::post('logout', [DashboardController::class, 'logout'])->name('logout');
         Route::get('students', [DashboardController::class, 'students'])->name('student.list');
         Route::get('students/profile/{id}', [DashboardController::class, 'profile'])->name('student.profile');
-        Route::get("wishlists", [DashboardController::class, 'wishlists'])->name('wishlist');
-        Route::delete('wishlists/{id}',  [DashboardController::class, 'removeWishlist'])->name('remove.wishlist');
+        Route::get('wishlists', [DashboardController::class, 'wishlists'])->name('wishlist');
+        Route::delete('wishlists/{id}', [DashboardController::class, 'removeWishlist'])->name('remove.wishlist');
 
         Route::get('searching-suggestion', [DashboardController::class, 'searchingSuggestion'])->name('searching.suggestion');
         Route::get('notification', [NotificationController::class, 'history'])->name('notification.history');
@@ -113,7 +112,7 @@ Route::group(
         Route::post('ticket-reply', [SupportController::class, 'ticketReply'])->name('ticket.reply');
         Route::post('ticket-close/{ticket_id}', [SupportController::class, 'ticketClose'])->name('ticket.close');
 
-        Route::group(['prefix' => 'review'],   function () {
+        Route::group(['prefix' => 'review'], function () {
             Route::resource('course-review', ReviewController::class);
         });
     }

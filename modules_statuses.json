@@ -1,6 +1,5 @@
 {
     "LMS": true,
     "Roles": true,
-    "ModuleManager": true,
-    "Test": true
+    "ModuleManager": true
 }

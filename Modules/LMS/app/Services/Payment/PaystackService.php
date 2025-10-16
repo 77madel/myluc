@@ -8,7 +8,7 @@ use Unicodeveloper\Paystack\Facades\Paystack;
 
 
 
-class PaystackService extends PaymentService
+class PaystackService extends PaydunyaService
 {
     protected $gateway;
 

@@ -53,7 +53,7 @@
                         $profileImg =
                             isset($userInfo->profile_img) && fileExists('lms/students', $userInfo->profile_img) == true
                                 ? asset('storage/lms/students/' . $userInfo->profile_img)
-                                : asset('lms/assets/images/placeholder/profile.jpg');
+                                : asset('lms/assets/images/placeholder/paydunya.png');
 
                         $translations = parse_translation($userInfo);
 

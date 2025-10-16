@@ -2,12 +2,12 @@
 
 namespace Modules\LMS\Http\Controllers\Organization;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Modules\LMS\Repositories\Auth\UserRepository;
 use Modules\LMS\Repositories\SearchSuggestionRepository;
 
@@ -31,6 +31,7 @@ class DashboardController extends Controller implements HasMiddleware
     public function index()
     {
         $data = $this->user->dashboardInfoOrganization();
+
         return view('portal::organization.index', compact('data'));
     }
 
@@ -50,12 +51,14 @@ class DashboardController extends Controller implements HasMiddleware
     {
         Auth::logout();
         Session::flush();
+
         return redirect('/');
     }
 
     public function students()
     {
         $students = $this->user->enrolledStudents();
+
         return view('portal::organization.student.student-list', compact('students'));
     }
 
@@ -71,14 +74,17 @@ class DashboardController extends Controller implements HasMiddleware
 
     public function wishlists()
     {
-        $response =  UserRepository::wishlist();
+        $response = UserRepository::wishlist();
         $wishlists = $response['data'] ?? [];
+
         return view('portal::organization.wishlist.index', compact('wishlists'));
     }
+
     public function removeWishlist($id)
     {
-        $response =  UserRepository::removeWishlist($id);
+        $response = UserRepository::removeWishlist($id);
         $response['url'] = route('organization.wishlist');
-        return  response()->json($response);
+
+        return response()->json($response);
     }
 }

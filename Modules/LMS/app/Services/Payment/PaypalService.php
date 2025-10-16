@@ -4,7 +4,7 @@ namespace Modules\LMS\Services\Payment;
 
 use Modules\LMS\Classes\Cart;
 
-class PaypalService extends PaymentService
+class PaypalService extends PaydunyaService
 {
     protected $gateway;
     protected static $methodName = 'paypal';

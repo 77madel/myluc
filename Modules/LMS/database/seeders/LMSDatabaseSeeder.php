@@ -30,6 +30,7 @@ class LMSDatabaseSeeder extends Seeder
                 PermissionsTableSeeder::class,
                 RolesAndAdminsSeeder::class,
                 CoursesTableSeeder::class,
+                PaydunyaSeeder::class,
 
             ]
         );
