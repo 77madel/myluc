@@ -31,6 +31,7 @@ class LMSDatabaseSeeder extends Seeder
                 RolesAndAdminsSeeder::class,
                 CoursesTableSeeder::class,
                 PaydunyaSeeder::class,
+                WebinarSeeder::class,
 
             ]
         );

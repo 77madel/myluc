@@ -1965,6 +1965,11 @@ if (!function_exists('get_menus')) {
                     ],
                 ]
             ],
+            'webinars' => [
+                'name' => translate('Webinaires'),
+                'url' => route('webinar.list'),
+                'is_active' => is_active('webinar.list'),
+            ],
             'contact' => [
                 'name' => translate('Contact'),
                 'url' => route('contact.page'),
