@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auto-Progress System</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .video-container { max-width: 800px; margin: 20px 0; }
+        .debug-log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test du Système de Progression Automatique</h1>
+    
+    <div class="debug-log">
+        <h3>📊 État du Système :</h3>
+        <div id="system-status">Initialisation...</div>
+    </div>
+    
+    <div class="video-container">
+        <h2>🎬 Test Vidéo YouTube</h2>
+        <div class="plyr__video-embed" id="player">
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&showinfo=0" 
+                    allowfullscreen 
+                    allowtransparency 
+                    allow="autoplay"
+                    frameborder="0"
+                    webkitallowfullscreen
+                    mozallowfullscreen>
+            </iframe>
+        </div>
+    </div>
+    
+    <div class="debug-log">
+        <h3>📝 Logs de Debug :</h3>
+        <div id="debug-logs"></div>
+    </div>
+    
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script>
+        // Fonction pour ajouter des logs
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('debug-logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            logs.appendChild(logEntry);
+            console.log(message);
+        }
+        
+        // Mettre à jour le statut
+        function updateStatus(message) {
+            document.getElementById('system-status').textContent = message;
+        }
+        
+        // Simuler l'authentification d'un étudiant
+        const isStudent = true; // Simuler un étudiant connecté
+        updateStatus('✅ Étudiant connecté - Système de progression activé');
+        
+        addLog('🚀 Initialisation du système de progression automatique', 'success');
+        
+        // Initialiser Plyr
+        const player = new Plyr("#player", {
+            settings: ["speed"],
+            seekTime: 0,
+            ratio: "16:7",
+            speed: {
+                selected: 1,
+                options: [0.5, 0.75, 1, 1.25, 1.5]
+            },
+        });
+        
+        addLog('✅ Lecteur Plyr initialisé avec succès', 'success');
+        
+        if (isStudent) {
+            addLog('✅ Étudiant détecté - Initialisation du système de progression automatique', 'success');
+            
+            // Détecter le clic sur play
+            player.on('play', function() {
+                addLog('▶️ Vidéo démarrée - Marquage comme in_progress', 'info');
+                markTopicAsStarted();
+            });
+            
+            // Détecter la fin de vidéo
+            player.on('ended', function() {
+                addLog('🎬 Vidéo terminée - Déclenchement de la progression automatique', 'info');
+                handleVideoCompletion();
+            });
+            
+            // Fonction pour simuler le marquage comme commencé
+            function markTopicAsStarted() {
+                addLog('📝 API: POST /student/topic-progress/start/123', 'info');
+                addLog('✅ Leçon marquée comme in_progress', 'success');
+            }
+            
+            // Fonction pour gérer la fin de vidéo
+            function handleVideoCompletion() {
+                const topicId = 123; // ID simulé
+                addLog('🎯 ID du topic actuel: ' + topicId, 'info');
+                markTopicAsCompleted(topicId);
+            }
+            
+            // Fonction pour marquer comme terminé
+            function markTopicAsCompleted(topicId) {
+                addLog('📝 API: POST /student/topic-progress/complete/' + topicId, 'info');
+                addLog('✅ Leçon marquée comme completed', 'success');
+                showLessonCompletionModal();
+            }
+            
+            // Modal de félicitations pour la leçon
+            function showLessonCompletionModal() {
+                addLog('🎉 Affichage du modal de félicitations pour la leçon', 'success');
+                
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Félicitations !</h3>
+                        <p class="text-gray-600 mb-6">Vous avez terminé cette leçon.</p>
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                            Continuer
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                addLog('✅ Modal de félicitations affiché', 'success');
+            }
+            
+        } else {
+            addLog('❌ Utilisateur non authentifié ou pas un étudiant - Progression automatique désactivée', 'error');
+        }
+        
+        addLog('🎯 Système de test prêt - Cliquez sur play pour tester', 'info');
+    </script>
+</body>
+</html>

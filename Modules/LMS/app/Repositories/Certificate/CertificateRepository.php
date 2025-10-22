@@ -69,6 +69,7 @@ class CertificateRepository extends BaseRepository
             UserCertificate::create([
                 'user_id' => authCheck()->id,
                 'quiz_id' => $id,
+                'course_id' => $exam->course->id, // Ajouter le course_id
                 'certificate_id' =>  random_string(5),
                 'type'  => 'quiz',
                 'subject' => $courseTitle,

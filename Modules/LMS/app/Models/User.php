@@ -90,6 +90,22 @@ class User extends Authenticatable
         return $this->hasMany(CourseBundle::class);
     }
 
+    /**
+     * Relation avec la progression des chapitres
+     */
+    public function chapterProgress(): HasMany
+    {
+        return $this->hasMany(\Modules\LMS\Models\ChapterProgress::class);
+    }
+
+    /**
+     * Relation avec la progression des leçons
+     */
+    public function topicProgress(): HasMany
+    {
+        return $this->hasMany(\Modules\LMS\Models\TopicProgress::class);
+    }
+
     // public function
     /**
      * Get the attributes that should be cast.

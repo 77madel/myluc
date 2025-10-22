@@ -30,3 +30,4 @@ return new class extends Migration
         Schema::dropIfExists('organization_course_purchases');
     }
 };
+

@@ -5,6 +5,8 @@ use Modules\LMS\Http\Controllers\Student\ReviewController;
 use Modules\LMS\Http\Controllers\Student\StudentController;
 use Modules\LMS\Http\Controllers\Student\SupportController;
 use Modules\LMS\Http\Controllers\Student\NotificationController;
+use Modules\LMS\Http\Controllers\Student\ChapterProgressController;
+use Modules\LMS\Http\Controllers\CertificateController;
 
 Route::group(
     ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller']],
@@ -20,7 +22,8 @@ Route::group(
             Route::get('quizzes/my-result', 'quizResult')->name('quiz.result');
             Route::get('assignments', 'assignmentList')->name('assignment.list');
             Route::get("request/certificate/{id}", 'certificateGenerate')->name('generate.certificate');
-            Route::get("certificate/view/{id}", 'certificateDownload')->name('certificate.download');
+Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
+Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
             Route::get("wishlists", 'wishlists')->name('wishlist');
             Route::get("offline/payment", 'offlinePayment')->name('offline.payment');
             Route::delete('wishlists/{id}', 'removeWishlist')->name('remove.wishlist');
@@ -41,6 +44,24 @@ Route::group(
 
         Route::group(['prefix' => 'review'], function () {
             Route::resource('course-review', ReviewController::class)->except('destroy', 'edit', 'show');
+        });
+
+        // Routes pour la progression des chapitres
+        Route::group(['prefix' => 'chapter-progress', 'controller' => ChapterProgressController::class], function () {
+            Route::post('start/{chapterId}', 'markAsStarted')->name('chapter.start');
+            Route::post('complete/{chapterId}', 'markAsCompleted')->name('chapter.complete');
+            Route::get('progress/{chapterId}', 'getChapterProgress')->name('chapter.progress');
+            Route::get('course/{courseId}', 'getCourseProgress')->name('course.progress');
+            Route::get('all', 'getAllProgress')->name('all.progress');
+        });
+
+        // Routes pour la progression des leçons
+        Route::group(['prefix' => 'topic-progress', 'controller' => \Modules\LMS\Http\Controllers\Student\TopicProgressController::class], function () {
+            Route::post('start/{topicId}', 'markAsStarted')->name('topic.start');
+            Route::post('complete/{topicId}', 'markAsCompleted')->name('topic.complete');
+            Route::get('progress/{topicId}', 'getTopicProgress')->name('topic.progress');
+            Route::get('chapter/{chapterId}', 'getChapterTopicsProgress')->name('chapter.topics.progress');
+            Route::get('all', 'getAllProgress')->name('all.topics.progress');
         });
     }
 );

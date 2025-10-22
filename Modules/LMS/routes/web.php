@@ -21,6 +21,7 @@ use Modules\LMS\Http\Controllers\Auth\ForgotPasswordController;
 use Modules\LMS\Http\Controllers\Frontend\InstructorController;
 use Modules\LMS\Http\Controllers\Frontend\OrganizationController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizController;
+use Modules\LMS\Http\Controllers\CertificateControllerSimple as CertificateController;
 
 /*
  *--------------------------------------------------------------------------
@@ -109,11 +110,11 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');
 
         Route::group(['controller' => CheckoutController::class], function () {
-            /*Route::post('checkout', 'checkout')->name('checkout');
+            Route::post('checkout', 'checkout')->name('checkout');
             Route::get('success', 'transactionSuccess')->name('transaction.success');
             Route::get('payment-form', 'paymentFormRender')->name('payment.form');
             Route::post('enrolled',  'courseEnrolled')->name('course.enrolled');
-            Route::post('subscription/payment', 'subscriptionPayment')->name('subscription.payment');*/
+            Route::post('subscription/payment', 'subscriptionPayment')->name('subscription.payment');
             // Page de checkout
 
             // Page de checkout (avec vérification du panier)
@@ -181,6 +182,10 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         Route::get('exam/{type}/{exam_type_id}/{course_id}', [ExamController::class, 'examStart'])->name('exam.start');
         Route::post('exam-store', [ExamController::class, 'store'])->name('exam.store');
         Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');
+        
+        // Routes pour les certificats PDF
+        Route::get('certificate/{id}/download', [CertificateController::class, 'downloadPdf'])->name('certificate.download');
+        Route::get('certificate/{id}/view', [CertificateController::class, 'viewPdf'])->name('certificate.view');
     });
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');

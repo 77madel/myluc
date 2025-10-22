@@ -34,95 +34,6 @@ class LMSServiceProvider extends ServiceProvider
 
     protected string $moduleNameLower = 'lms';
 
-    /**
-     * Boot the application events.
-     */
-/*    public function boot(Kernel $kernel): void
-    {
-        ThemeSetting::observe(ThemeSettingObserver::class);
-
-        $this->app->singleton('options', function () {
-            return get_options();
-        });
-
-        $this->registerCommands();
-        $this->registerCommandSchedules();
-        $this->registerTranslations();
-        $this->registerConfig();
-        $this->registerViews();
-        $this->registerGurads();
-
-        if (alreadyInstalled()) {
-            $this->mailDriverSet();
-            $this->paystackConfigure();
-        }
-
-
-        if (App::environment('production')) {
-            URL::forceScheme('https');
-        }
-
-        $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
-
-        $themes = get_themes();
-        foreach ($themes as $theme) {
-            // Theme sources.
-            $themeSourcePath = system_path($this->moduleName, "resources/themes/{$theme->slug}");
-            $dasboardComponentPath = "{$themeSourcePath}/portals/components";
-            $frontendComponentPath = "{$themeSourcePath}/components";
-            if (file_exists($dasboardComponentPath)) {
-                Blade::anonymousComponentPath($dasboardComponentPath, "{$theme->slug}:portal");
-            }
-            if (file_exists($frontendComponentPath)) {
-                Blade::anonymousComponentPath($frontendComponentPath, "{$theme->slug}:theme");
-            }
-        }
-
-        // Portal sources.
-        $adminPortalComponentPath = module_path($this->moduleName, 'resources/views/portals/components/');
-        // $frontendComponentPath ="{$themeSourcePath}/components";
-        if (file_exists($adminPortalComponentPath)) {
-            Blade::anonymousComponentPath($adminPortalComponentPath, 'portal');
-            Blade::anonymousComponentPath($adminPortalComponentPath, 'default:portal');
-        }
-        // Blade::anonymousComponentPath($frontendComponentPath, 'theme');
-
-        // Fallback sources.
-        // $defaultDashboardPath = module_path($this->moduleName, 'resources/views/components');
-        $defaultFrontendPath = module_path($this->moduleName, 'resources/views/components/');
-        // Blade::anonymousComponentPath($defaultDashboardPath, $this->moduleNameLower);
-        if (file_exists($defaultFrontendPath)) {
-            Blade::anonymousComponentPath($defaultFrontendPath, 'theme');
-            Blade::anonymousComponentPath($defaultFrontendPath, 'default:theme');
-        }
-
-        Blade::component('dashboard-layout', Layout::class);
-        Blade::component('frontend-layout', FrontendLayout::class);
-        Blade::component('auth-layout', AuthenticationLayout::class);
-
-        Gate::before(
-            function ($user, $ability) {
-                return $user->hasRole('Super Admin') ? true : null;
-            }
-        );
-
-        $this->app->singleton(PerformanceMetric::class, function ($app) {
-            return new PerformanceMetric();
-        });
-
-        $this->app->singleton(ResourceMonitor::class, function ($app) {
-            return new ResourceMonitor($app->make(PerformanceMetric::class));
-        });
-
-        $kernel->prependMiddleware(InstallerValidMiddleware::class);
-        $kernel->prependMiddleware(CookieConsentMiddleware::class);
-        $router = $this->app['router'];
-        if (alreadyInstalled() && checkDatabaseConnection()) {
-            // $router->pushMiddlewareToGroup('web', PerformanceMonitor::class);
-            $router->pushMiddlewareToGroup('web', BootstrapMiddleware::class);
-            $router->aliasMiddleware('checkInstaller', LicenseActivationMiddleware::class);
-        }
-    }*/
 
     public function boot(Kernel $kernel): void
     {
@@ -142,6 +53,13 @@ class LMSServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerGurads();
+        
+        // Enregistrer les namespaces
+        $this->registerPortalNamespace();
+        $this->registerThemeNamespace();
+        
+        // Enregistrer les singletons nécessaires
+        $this->registerRequiredSingletons();
 
         // CORRECTION 2 : Conditionner les appels DB dans alreadyInstalled().
         if (alreadyInstalled() && !$this->app->runningInConsole()) {
@@ -261,6 +179,70 @@ class LMSServiceProvider extends ServiceProvider
             $this->loadTranslationsFrom(module_path($this->moduleName, 'lang'), $this->moduleNameLower);
             $this->loadJsonTranslationsFrom(module_path($this->moduleName, 'lang'));
         }
+    }
+
+    /**
+     * Enregistrer le namespace portal
+     */
+    protected function registerPortalNamespace(): void
+    {
+        $sourcePortalPath = module_path($this->moduleName, 'resources/views/portals');
+        if (file_exists($sourcePortalPath)) {
+            $this->app['view']->addNamespace('portal', $sourcePortalPath);
+        }
+        
+        $adminPortalComponentPath = module_path($this->moduleName, 'resources/views/portals/components/');
+        if (file_exists($adminPortalComponentPath)) {
+            Blade::anonymousComponentPath($adminPortalComponentPath, 'portal');
+        }
+    }
+
+    /**
+     * Enregistrer le namespace theme
+     */
+    protected function registerThemeNamespace(): void
+    {
+        $sourceThemePath = module_path($this->moduleName, 'resources/views/theme');
+        if (file_exists($sourceThemePath)) {
+            $this->app['view']->addNamespace('theme', $sourceThemePath);
+        }
+        
+        $sourceComponentsPath = module_path($this->moduleName, 'resources/views/components');
+        if (file_exists($sourceComponentsPath)) {
+            $this->app['view']->addNamespace('theme', $sourceComponentsPath);
+            Blade::anonymousComponentPath($sourceComponentsPath, 'theme');
+        }
+    }
+
+    /**
+     * Enregistrer les singletons nécessaires
+     */
+    protected function registerRequiredSingletons(): void
+    {
+        // Enregistrer default_language avec une valeur par défaut
+        $this->app->singleton('default_language', function () {
+            return config('app.locale', 'en');
+        });
+        
+        // Enregistrer user_role_list avec une valeur par défaut
+        $this->app->singleton('user_role_list', function () {
+            return [];
+        });
+        
+        // Enregistrer languages avec une valeur par défaut
+        $this->app->singleton('languages', function () {
+            return collect([]);
+        });
+        
+        // Enregistrer translations avec une valeur par défaut
+        $this->app->singleton('translations', function () {
+            return [];
+        });
+        
+        // Enregistrer options avec une valeur par défaut
+        $this->app->singleton('options', function () {
+            return [];
+        });
     }
 
     /**

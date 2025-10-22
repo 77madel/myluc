@@ -1,11 +1,48 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        "./Modules/LMS/resources/views/components/**/*.blade.php",
+        /*"./Modules/LMS/resources/views/components/!**!/!*.blade.php",*/
+        "./Modules/LMS/resources/views/**/*.blade.php",  // Capture tous les fichiers
+        "./resources/views/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/themes/**/*.blade.php",
         "./public/lms/frontend/assets/js/*.js",
+
+        // Fichiers JS qui pourraient contenir des références
+        "./Modules/**/resources/js/**/*.js",
+        "./resources/js/**/*.js",
+    ],
+    safelist: [
+        // Ajouter les classes qui pourraient être dynamiques
+        'w-7',
+        'h-7',
+        'w-6',
+        'h-6',
+        'bg-primary-600',
+        'hover:bg-primary-500',
+        'bg-success',
+        'hover:bg-success',
+        'bg-warning',
+        'bg-disable',
+        'border-success',
+        'border-danger',
+        'bg-danger',
+        'rounded-full',
+        'inline-flex',
+        'items-center',
+        'justify-center',
+        'text-white',
+        'text-xs',
+        'font-bold',
+        'focus:outline-none',
+        'focus:ring-2',
+        'focus:ring-offset-2',
+        'focus:ring-primary-500',
+        'transition-all',
+        'duration-200',
+        'hover:scale-110',
+        'border-2',
     ],
     darkMode: "selector",
     mode: "jit",

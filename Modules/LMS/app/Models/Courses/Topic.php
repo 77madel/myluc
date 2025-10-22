@@ -31,4 +31,12 @@ class Topic extends Model
     {
         return $this->belongsTo(Chapter::class, 'chapter_id', 'id');
     }
+
+    /**
+     * Relation avec la progression des leçons
+     */
+    public function progress()
+    {
+        return $this->hasMany(\Modules\LMS\Models\TopicProgress::class);
+    }
 }

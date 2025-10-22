@@ -12,7 +12,9 @@
     <div>
         {!! clean($translations['description'] ?? $course->description ?? '') !!}
     </div>
+
 </article>
+
 
 
 

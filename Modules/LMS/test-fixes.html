@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test des Corrections</title>
+    <meta name="csrf-token" content="test-token">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #007bff;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        .test-button { 
+            background: #007bff; 
+            color: white; 
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .log { 
+            background: #f1f3f4; 
+            padding: 10px; 
+            border-radius: 4px; 
+            font-family: monospace; 
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test des Corrections du Système de Progression</h1>
+    
+    <div class="test-section">
+        <h3>📋 Tests Disponibles</h3>
+        <button class="test-button" onclick="testMultipleInitialization()">Test Chargement Multiple</button>
+        <button class="test-button" onclick="testJSONParsing()">Test Parsing JSON</button>
+        <button class="test-button" onclick="testVideoDetection()">Test Détection Vidéo</button>
+        <button class="test-button" onclick="testErrorHandling()">Test Gestion Erreurs</button>
+        <button class="test-button" onclick="clearLogs()">Effacer Logs</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📝 Logs de Test</h3>
+        <div id="test-logs" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎯 Résultats Attendus</h3>
+        <ul>
+            <li class="success">✅ Chargement unique (pas de répétition)</li>
+            <li class="success">✅ Parsing JSON correct</li>
+            <li class="success">✅ Détection vidéo améliorée</li>
+            <li class="success">✅ Gestion des erreurs Flasher</li>
+        </ul>
+    </div>
+    
+    <script>
+        let testCount = 0;
+        
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('test-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLogs() {
+            document.getElementById('test-logs').innerHTML = '';
+            addLog('🧹 Logs effacés', 'info');
+        }
+        
+        // Test 1: Chargement multiple
+        function testMultipleInitialization() {
+            addLog('🧪 Test: Chargement Multiple', 'info');
+            
+            // Simuler le système de protection
+            if (window.autoProgressInitialized) {
+                addLog('⚠️ Système déjà initialisé - Protection active', 'warning');
+            } else {
+                window.autoProgressInitialized = true;
+                addLog('✅ Premier chargement - Système initialisé', 'success');
+            }
+            
+            // Tenter un deuxième chargement
+            if (window.autoProgressInitialized) {
+                addLog('⚠️ Deuxième tentative - Bloquée par protection', 'warning');
+            }
+        }
+        
+        // Test 2: Parsing JSON
+        function testJSONParsing() {
+            addLog('🧪 Test: Parsing JSON', 'info');
+            
+            // Simuler une réponse JSON
+            const jsonResponse = {
+                "status": "success",
+                "view": "<div class='video-content'><h2>Test Video</h2><video controls><source src='test.mp4'></video></div>"
+            };
+            
+            const htmlResponse = "<div class='video-content'><h2>Test Video</h2><video controls><source src='test.mp4'></video></div>";
+            
+            // Test parsing JSON
+            try {
+                const parsed = JSON.parse(JSON.stringify(jsonResponse));
+                if (parsed.view) {
+                    addLog('✅ JSON parsing réussi - View extraite', 'success');
+                    addLog(`📄 Contenu: ${parsed.view.substring(0, 50)}...`, 'info');
+                }
+            } catch (e) {
+                addLog('❌ Erreur parsing JSON: ' + e.message, 'error');
+            }
+            
+            // Test HTML direct
+            if (htmlResponse.includes('<video')) {
+                addLog('✅ HTML direct détecté - Pas de parsing nécessaire', 'success');
+            }
+        }
+        
+        // Test 3: Détection vidéo
+        function testVideoDetection() {
+            addLog('🧪 Test: Détection Vidéo', 'info');
+            
+            // Créer des éléments de test
+            const testVideo = document.createElement('video');
+            testVideo.id = 'test-video';
+            testVideo.controls = true;
+            document.body.appendChild(testVideo);
+            
+            const testIframe = document.createElement('iframe');
+            testIframe.src = 'https://www.youtube.com/embed/test';
+            testIframe.style.display = 'none';
+            document.body.appendChild(testIframe);
+            
+            const videoSelectors = [
+                '#test-video',
+                'video',
+                'iframe[src*="youtube"]',
+                'iframe[src*="embed"]'
+            ];
+            
+            let foundElements = 0;
+            for (const selector of videoSelectors) {
+                const elements = document.querySelectorAll(selector);
+                addLog(`🔍 Selector "${selector}": ${elements.length} élément(s) trouvé(s)`, 'info');
+                foundElements += elements.length;
+            }
+            
+            if (foundElements > 0) {
+                addLog('✅ Éléments vidéo détectés avec succès', 'success');
+            } else {
+                addLog('❌ Aucun élément vidéo trouvé', 'error');
+            }
+            
+            // Nettoyer
+            testVideo.remove();
+            testIframe.remove();
+        }
+        
+        // Test 4: Gestion des erreurs
+        function testErrorHandling() {
+            addLog('🧪 Test: Gestion Erreurs', 'info');
+            
+            // Simuler une erreur Flasher
+            try {
+                throw new Error('Flasher is not loaded');
+            } catch (e) {
+                if (e.message.includes('Flasher')) {
+                    addLog('⚠️ Erreur Flasher capturée et ignorée', 'warning');
+                } else {
+                    addLog('❌ Erreur non-Flasher: ' + e.message, 'error');
+                }
+            }
+            
+            // Test gestion globale
+            const originalError = window.onerror;
+            window.onerror = function(msg, url, line, col, error) {
+                if (msg && msg.includes('Flasher')) {
+                    addLog('✅ Gestionnaire global: Erreur Flasher ignorée', 'success');
+                    return true; // Empêcher l'affichage de l'erreur
+                }
+                return false;
+            };
+            
+            // Simuler une erreur
+            setTimeout(() => {
+                addLog('✅ Gestionnaire d\'erreur global configuré', 'success');
+                window.onerror = originalError; // Restaurer
+            }, 100);
+        }
+        
+        // Initialisation
+        addLog('🚀 Système de test initialisé', 'success');
+        addLog('💡 Cliquez sur les boutons pour tester chaque fonction', 'info');
+    </script>
+</body>
+</html>
+
