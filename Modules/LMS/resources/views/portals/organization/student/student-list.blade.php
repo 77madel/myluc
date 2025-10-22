@@ -1,101 +1,140 @@
 <x-dashboard-layout>
     <x-slot:title>{{ translate('Étudiants de l\'Organisation') }}</x-slot:title>
-    <div class="card p-6">
-        <h3 class="text-xl font-semibold mb-4">{{ translate('Liste des Étudiants') }}</h3>
+    
+    <div class="card">
+        <form method="get">
+            <div class="grid grid-cols-4 gap-4">
+                <div class="col-span-full md:col-span-2 lg:col-auto">
+                    <input type="text" class="form-input" placeholder="{{ translate('Rechercher par nom') }}" name="name_search" autocomplete="off" value="{{ Request()->name_search ?? '' }}">
+                </div>
+                <div class="col-span-full md:col-span-2 lg:col-auto">
+                    <select class="singleSelect" name="status">
+                        @php
+                            $status = Request()->status ?? '';
+                        @endphp
+                        <option value="all" {{ $status == 'all' ? 'selected' : '' }}>{{ translate('Tous') }}</option>
+                        <option value="active" {{ $status == 'active' ? 'selected' : '' }}>{{ translate('Actif') }}</option>
+                        <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>{{ translate('Inactif') }}</option>
+                    </select>
+                </div>
+                <div class="col-span-full md:col-span-2 lg:col-auto">
+                    <select class="singleSelect" name="verify">
+                        @php
+                            $verify = Request()->verify ?? '';
+                        @endphp
+                        <option value="all" {{ $verify == 'all' ? 'selected' : '' }}>{{ translate('Tous') }}</option>
+                        <option value="verified" {{ $verify == 'verified' ? 'selected' : '' }}>{{ translate('Vérifié') }}</option>
+                        <option value="unverified" {{ $verify == 'unverified' ? 'selected' : '' }}>{{ translate('Non Vérifié') }}</option>
+                    </select>
+                </div>
+                <div class="col-span-full md:col-span-2 lg:col-auto">
+                    <div class="flex items-end">
+                        <button class="btn b-solid btn-info-solid mr-3">{{ translate('Filtrer') }}</button>
+                        <a href="{{ route('organization.students.index') }}" class="btn b-solid btn-info-solid">
+                            {{ translate('Actualiser') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-        <div class="mb-4">
-            <a href="{{ route('organization.students.export') }}" class="btn b-solid btn-primary-solid">
-                {{ translate('Exporter les Étudiants') }}
-            </a>
-        </div>
+    @if ($students->count() > 0)
+        <div class="card">
+            <div class="overflow-x-auto scrollbar-table">
+                <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
+                    <thead>
+                        <tr class="text-primary-500">
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Profil') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Email') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Téléphone') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Cours Inscrits') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Email Vérifié') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
+                                {{ translate('Statut') }}
+                            </th>
+                            <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right w-10">
+                                {{ translate('Actions') }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
+                        @foreach ($students as $student)
+                            @php
+                                $userInfo = $student?->userable ?? null;
+                                $userableTranslations = [];
+                                
+                                if ($userInfo) {
+                                    $userableTranslations = parse_translation($userInfo);
+                                }
+                                
+                                $firstName = $userableTranslations['first_name'] ?? $userInfo?->first_name ?? '';
+                                $lastName = $userableTranslations['last_name'] ?? $userInfo?->last_name ?? '';
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead>
-                    <tr>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Nom') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Email') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Cours Inscrits') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Progression Moyenne') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Statut') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($students as $student)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $student->userable->first_name ?? '' }} {{ $student->userable->last_name ?? '' }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {{ $student->email }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $student->enrolled_courses_count ?? 0 }} {{ translate('cours') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-1 mr-2">
-                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                                 style="width: {{ $student->average_progress ?? 0 }}%"></div>
+                                $profileImg = $userInfo && fileExists('lms/students', $userInfo?->profile_img) == true
+                                    ? asset("storage/lms/students/{$userInfo?->profile_img}")
+                                    : asset('lms/assets/images/placeholder/profile.jpg');
+                            @endphp
+                            <tr>
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center gap-3.5">
+                                        <a href="#" class="size-12 rounded-50 overflow-hidden dk-theme-card-square">
+                                            <img src="{{ $profileImg }}" alt="student" class="size-full object-cover">
+                                        </a>
+                                        <div>
+                                            <h6 class="leading-none text-heading dark:text-white font-semibold capitalize">
+                                                <a href="#">
+                                                    {{ $firstName . ' ' . $lastName }}
+                                                </a>
+                                            </h6>
                                         </div>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ $student->average_progress ?? 0 }}%
+                                </td>
+                                <td class="px-4 py-4">{{ $student?->email }}</td>
+                                <td class="px-4 py-4">{{ $userInfo?->phone }}</td>
+                                <td class="px-4 py-4">{{ $student?->enrollments?->count() }}</td>
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $student?->is_verify == 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        {{ $student?->is_verify == 1 ? translate('Vérifié') : translate('Non Vérifié') }}
                                     </span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    {{ translate('Actif') }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <a href="{{ route('organization.students.progress', $student->id) }}"
-                                       class="btn b-solid btn-success-solid mr-2 text-white hover:text-green-700 dark:text-blue-400">
-                                        {{ translate('Progression') }}
-                                    </a>
-
-                                    <a href="{{ route('organization.student.profile', $student->id) }}"
-                                       class="btn b-solid btn-primary-solid text-gray-600 hover:text-gray-900 dark:text-gray-400">
-                                        {{ translate('Profil') }}
-                                    </a>
-                                </div>
-                            </td>
-                            {{--<td class="px-4 py-3 lg:px-6 lg:py-4 whitespace-nowrap">
-                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
-                                    <a href="{{ route('organization.students.progress', $student->id) }}"
-                                       class="btn b-solid btn-primary-solid inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-800/40 dark:hover:text-blue-200 shadow-sm hover:shadow-md">
-                                        <svg class="w-4 h-4 mr-2 hidden xs:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                        </svg>
-                                        {{ translate('Progression') }}
-                                    </a>
-
-                                    <a href="{{ route('organization.student.profile', $student->id) }}"
-                                       class="btn b-solid btn-primary-solid inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200 shadow-sm hover:shadow-md">
-                                        <svg class="w-4 h-4 mr-2 hidden xs:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                        </svg>
-                                        {{ translate('Profil') }}
-                                    </a>
-                                </div>
-                            </td>--}}
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center">{{ translate('Aucun étudiant inscrit.') }}</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $userInfo && $userInfo?->status == 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        {{ $userInfo && $userInfo?->status == 1 ? translate('Actif') : translate('Inactif') }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center gap-1">
+                                        <a href="{{ route('organization.students.progress', $student->id) }}"
+                                            class="btn-icon btn-primary-icon-light size-8">
+                                            <i class="ri-eye-line text-inherit text-base"></i>
+                                        </a>
+                                        <a href="{{ route('organization.student.profile', $student->id) }}"
+                                            class="btn-icon btn-primary-icon-light size-8">
+                                            <i class="ri-user-line text-inherit text-base"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <!-- Start Pagination -->
+                {{ $students->links('portal::admin.pagination.paginate') }}
+                <!-- End Pagination -->
+            </div>
         </div>
-        <div class="mt-4">
-            {{ $students->links() }}
-        </div>
-    </div>
+    @else
+        <x-portal::admin.empty-card title="Aucun Étudiant" />
+    @endif
 </x-dashboard-layout>

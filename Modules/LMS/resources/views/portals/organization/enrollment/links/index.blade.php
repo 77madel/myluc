@@ -15,29 +15,29 @@
             <div class="text-red-500 mb-4">{{ session('error') }}</div>
         @endif
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <div class="overflow-x-auto scrollbar-table">
+            <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
                 <thead>
-                    <tr>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Nom') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Cours') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Lien') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Inscriptions') }}</th>
-                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Statut') }}</th>
+                    <tr class="text-primary-500">
+                        <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Nom') }}</th>
+                        <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Cours') }}</th>
+                        <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Lien') }}</th>
+                        <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Inscriptions') }}</th>
+                        <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
                     @forelse($enrollmentLinks as $link)
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $link->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $link->course->title ?? 'N/A' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-4">{{ $link->name }}</td>
+                            <td class="px-4 py-4">{{ $link->course->title ?? 'N/A' }}</td>
+                            <td class="px-4 py-4">
                                 <input type="text" value="{{ url('/enroll/' . $link->slug) }}" readonly
-                                    class="form-input text-sm w-48 bg-gray-100 dark:bg-gray-700 border-none">
+                                    class="form-input text-sm w-48 dark:bg-gray-700 border-none">
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $link->current_enrollments }} / {{ $link->max_enrollments ?? 'Illimité' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs rounded-full {{ $link->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <td class="px-4 py-4">{{ $link->current_enrollments }} / {{ $link->max_enrollments ?? 'Illimité' }}</td>
+                            <td class="px-4 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $link->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                     {{ ucfirst($link->status) }}
                                 </span>
                             </td>
@@ -56,8 +56,8 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-4">
-            {{ $enrollmentLinks->links() }}
-        </div>
+        <!-- Start Pagination -->
+        {{ $enrollmentLinks->links('portal::admin.pagination.paginate') }}
+        <!-- End Pagination -->
     </div>
 </x-dashboard-layout>
