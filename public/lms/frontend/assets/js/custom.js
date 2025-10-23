@@ -1,5 +1,6 @@
 (function ($) {
     "use strict";
+    // FORCE CACHE BUST - Version 2025-10-23
     $(".cancel-button").hide();
     $(document).on("submit", ".form", function (e) {
         e.preventDefault();
@@ -32,7 +33,7 @@
                     submitButton.attr("disabled", false);
                     submitButton.html(`${btnText}`);
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["error"](`${data.message}`);
+                        toastr.error(`${data.message}`);
                     }
                     if (data.errors !== "") {
                         logErrorMsg(data.errors);
@@ -55,7 +56,7 @@
                         $(".fixed.inset-0").addClass("hidden");
                     }
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["success"](`${data.message}`);
+                        toastr.success(`${data.message}`);
                     }
                     if (data.hasOwnProperty("type")) {
                         location.reload();
@@ -177,7 +178,7 @@
     });
 
     $(document).on("click", ".auth-login", function () {
-        Command: toastr["error"](`Please Login`);
+        toastr.warning(`Please Login`);
     });
     /** Get Ajax Request
      *
@@ -191,11 +192,11 @@
             success: function (data) {
                 if (data.status == "error") {
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["error"](`${data.message}`);
+                        toastr.error(`${data.message}`);
                     }
                 } else if (data.status == "success") {
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["success"](`${data.message}`);
+                        toastr.success(`${data.message}`);
                     }
                     if (data.hasOwnProperty("coupon")) {
                         couponInformation(data);
@@ -241,7 +242,10 @@
             cache: false,
             contentType: false,
             processData: false,
-            success: function (data) {},
+            success: function (data) {
+                // Score mis à jour seulement après soumission finale
+                // Pas d'affichage en temps réel
+            },
         });
     });
 
@@ -266,6 +270,10 @@
             cache: false,
             contentType: false,
             processData: false,
+            success: function (data) {
+                // Score mis à jour seulement après soumission finale
+                // Pas d'affichage en temps réel
+            },
         });
     });
 
@@ -294,6 +302,9 @@
     let resetForm = (form) => {
         $(form).trigger("reset");
     };
+
+    // Fonction fetchQuizTotalScore supprimée
+    // Le score s'affiche maintenant seulement après soumission finale
 })(jQuery);
 
 /**

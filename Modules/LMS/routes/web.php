@@ -179,6 +179,7 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         Route::post('course-review', [CourseController::class, 'review'])->name('review');
         Route::post('quiz/{id}/store', [QuizController::class, 'quizStoreResult'])->name('quiz.store.result');
         Route::post('user/submit-quiz-answer/{quiz_id}/{type}', [QuizController::class, 'submitQuizAnswer'])->name('user.submit.quiz.answer');
+        Route::get('quiz/score/{quiz_id}', [QuizController::class, 'getQuizScore'])->name('quiz.score');
         Route::get('exam/{type}/{exam_type_id}/{course_id}', [ExamController::class, 'examStart'])->name('exam.start');
         Route::post('exam-store', [ExamController::class, 'store'])->name('exam.store');
         Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');

@@ -2,79 +2,282 @@
 
 namespace Modules\LMS\Http\Controllers\Student;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Modules\LMS\Models\TopicProgress;
+use Illuminate\Http\JsonResponse;
 use Modules\LMS\Models\Courses\Topic;
 use Modules\LMS\Models\Courses\Chapter;
-use Modules\LMS\Models\Courses\Course;
+use Modules\LMS\Models\TopicProgress;
+use Modules\LMS\Models\ChapterProgress;
+use Modules\LMS\Services\CourseValidationService;
+use Modules\LMS\Services\CertificateService;
+use Illuminate\Support\Facades\Log;
 
-class TopicProgressController extends Controller
+class TopicProgressController
 {
+    /**
+     * Mark a reading topic as completed.
+     */
+    public function markReadingAsCompleted(Request $request)
+    {
+        Log::info('markReadingAsCompleted: Request received', $request->all());
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                Log::warning('markReadingAsCompleted: User not authenticated');
+                return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
+            }
+
+            $topicId = $request->input('topic_id');
+            $topicType = $request->input('topic_type');
+            Log::info('markReadingAsCompleted: Processing topic', ['topic_id' => $topicId, 'topic_type' => $topicType]);
+
+            // Trouver le topic directement par son ID
+            $topic = Topic::find($topicId);
+            
+            if (!$topic) {
+                Log::warning('markReadingAsCompleted: Topic not found', ['topic_id' => $topicId]);
+                return response()->json(['status' => 'error', 'message' => 'Topic not found'], 404);
+            }
+            Log::info('markReadingAsCompleted: Topic found', ['topic' => $topic]);
+
+            // Marquer le topic comme commencé et terminé
+            $progress = TopicProgress::where('user_id', $user->id)
+                ->where('topic_id', $topic->id)
+                ->first();
+
+            if (!$progress) {
+                Log::info('markReadingAsCompleted: No progress found, creating new progress');
+                $progress = TopicProgress::create([
+                    'user_id' => $user->id,
+                    'topic_id' => $topic->id,
+                    'chapter_id' => $topic->chapter_id,
+                    'course_id' => $topic->course_id,
+                    'status' => 'not_started',
+                    'started_at' => null,
+                    'completed_at' => null
+                ]);
+                Log::info('markReadingAsCompleted: New progress created', ['progress' => $progress]);
+            }
+            
+            // Marquer comme commencé puis terminé
+            Log::info('markReadingAsCompleted: Marking as started and completed');
+            $progress->markAsStarted();
+            $progress->markAsCompleted();
+            Log::info('markReadingAsCompleted: Progress updated', ['progress' => $progress]);
+
+            // Vérifier si le chapitre est terminé
+            $chapterCompleted = false;
+            $nextChapter = null;
+            
+            if ($topic->chapter) {
+                $courseValidationService = new CourseValidationService();
+                $chapterValidation = $courseValidationService->validateChapter($user->id, $topic->chapter);
+
+                if ($chapterValidation['is_completed']) {
+                    $chapterProgress = ChapterProgress::where('user_id', $user->id)
+                        ->where('chapter_id', $topic->chapter->id)
+                        ->first();
+
+                    if (!$chapterProgress) {
+                        $chapterProgress = ChapterProgress::create([
+                            'user_id' => $user->id,
+                            'chapter_id' => $topic->chapter->id,
+                            'course_id' => $topic->course_id,
+                            'status' => 'not_started',
+                            'started_at' => null,
+                            'completed_at' => null
+                        ]);
+                        // Marquer comme commencé puis terminé
+                        $chapterProgress->markAsStarted();
+                        $chapterProgress->markAsCompleted();
+                    } else {
+                        $chapterProgress->markAsCompleted();
+                    }
+                    $chapterCompleted = true;
+                }
+                
+                // Trouver le chapitre suivant
+                $nextChapter = Chapter::where('course_id', $topic->course_id)
+                    ->where('order', '>', $topic->chapter->order)
+                    ->orderBy('order')
+                    ->first();
+            }
+
+            // Vérifier si le cours est éligible pour un certificat
+            $certificateGenerated = false;
+            $courseCompleted = false;
+            
+            // Vérifier si le cours est complètement terminé
+            try {
+                $courseValidationService = new CourseValidationService();
+                $courseValidation = $courseValidationService->validateCourse($user->id, $topic->course_id);
+                
+                Log::info("🔍 Validation du cours", [
+                    'course_id' => $topic->course_id,
+                    'is_completed' => $courseValidation['is_completed'] ?? false,
+                    'completion_percentage' => $courseValidation['completion_percentage'] ?? 0
+                ]);
+                
+                $courseCompleted = isset($courseValidation['is_completed']) && $courseValidation['is_completed'];
+                
+                // Si le cours est complètement terminé, générer le certificat
+                if ($courseCompleted) {
+                    $certificate = CertificateService::generateCertificate($user->id, $topic->course_id);
+                    $certificateGenerated = $certificate !== null;
+                    
+                    if ($certificateGenerated) {
+                        Log::info("🎓 Certificat généré automatiquement pour l'utilisateur {$user->id} et le cours {$topic->course_id}");
+                    } else {
+                        Log::info("⚠️ Le cours est terminé mais le certificat n'a pas pu être généré");
+                    }
+                } else {
+                    Log::info("📚 Le cours n'est pas encore complètement terminé");
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ Erreur lors de la génération du certificat: " . $e->getMessage());
+                $courseCompleted = false;
+                $certificateGenerated = false;
+            }
+
+            // Récupérer la leçon suivante
+            $nextTopic = $this->getNextTopic($topic);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Topic marked as completed',
+                'progress' => $progress,
+                'chapter_completed' => $chapterCompleted,
+                'course_completed' => $courseCompleted,
+                'certificate_generated' => $certificateGenerated,
+                'next_chapter' => $nextChapter ? [
+                    'id' => $nextChapter->id,
+                    'title' => $nextChapter->title,
+                    'url' => route('play.course', [
+                        'slug' => $topic->course->slug,
+                        'chapter_id' => $nextChapter->id
+                    ])
+                ] : null,
+                'next_topic' => $nextTopic ? [
+                    'id' => $nextTopic->id,
+                    'title' => $nextTopic->title,
+                    'url' => route('play.course', [
+                        'slug' => $topic->course->slug,
+                        'topic_id' => $nextTopic->id,
+                        'type' => $nextTopic->topicable?->topic_type?->slug,
+                        'chapter_id' => $nextTopic->chapter_id
+                    ])
+                ] : null,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("❌ Erreur dans markReadingAsCompleted: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors du traitement',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get the next topic in the course sequence.
+     */
+    private function getNextTopic($currentTopic)
+    {
+        try {
+            // Récupérer tous les topics du cours, ordonnés par chapitre puis par ordre
+            $allTopics = Topic::where('course_id', $currentTopic->course_id)
+                ->with(['chapter', 'topicable.topic_type'])
+                ->orderBy('chapter_id')
+                ->orderBy('order')
+                ->get();
+            
+            // Trouver l'index du topic actuel
+            $currentIndex = $allTopics->search(function ($topic) use ($currentTopic) {
+                return $topic->id === $currentTopic->id;
+            });
+            
+            // Si on trouve l'index et qu'il n'est pas le dernier
+            if ($currentIndex !== false && $currentIndex < $allTopics->count() - 1) {
+                $nextTopic = $allTopics[$currentIndex + 1];
+                
+                Log::info("Next topic found", [
+                    'current_topic_id' => $currentTopic->id,
+                    'next_topic_id' => $nextTopic->id,
+                    'next_topic_title' => $nextTopic->title,
+                    'next_chapter_id' => $nextTopic->chapter_id
+                ]);
+                
+                return $nextTopic;
+            }
+            
+            Log::info("No next topic found", [
+                'current_topic_id' => $currentTopic->id,
+                'total_topics' => $allTopics->count(),
+                'current_index' => $currentIndex
+            ]);
+            
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::error("Error getting next topic: " . $e->getMessage(), [
+                'current_topic_id' => $currentTopic->id,
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine()
+            ]);
+            
+            return null;
+        }
+    }
+
     /**
      * Mark a topic as started.
      */
     public function markAsStarted(int $topicId)
     {
-        \Log::info('TopicProgressController::markAsStarted called with topicId: ' . $topicId);
-        
-        $user = Auth::user();
-        \Log::info('Current user: ' . ($user ? $user->id . ' (guard: ' . $user->guard . ')' : 'null'));
-        
-        if (!$user || $user->guard !== 'student') {
-            \Log::warning('Unauthorized access attempt');
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        }
-
-        $topic = Topic::find($topicId);
-        \Log::info('Looking for topic with ID: ' . $topicId);
-        \Log::info('Topic found: ' . ($topic ? 'YES' : 'NO'));
-        if (!$topic) {
-            \Log::info('Topic not found by ID, trying topicable_id: ' . $topicId);
-            $topic = Topic::where('topicable_id', $topicId)->first();
-            \Log::info('Topic found by topicable_id: ' . ($topic ? 'YES' : 'NO'));
-            if (!$topic) {
-                \Log::warning('Topic not found with ID or topicable_id: ' . $topicId);
-                return response()->json(['status' => 'error', 'message' => 'Topic not found'], 404);
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
             }
+
+            $progress = TopicProgress::where('user_id', $user->id)
+                ->where('topic_id', $topicId)
+                ->first();
+
+            if (!$progress) {
+                $topic = Topic::find($topicId);
+                $progress = TopicProgress::create([
+                    'user_id' => $user->id,
+                    'topic_id' => $topicId,
+                    'chapter_id' => $topic->chapter_id,
+                    'course_id' => $topic->course_id,
+                    'started_at' => now()
+                ]);
+            } else {
+                $progress->markAsStarted();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Topic marked as started',
+                'progress' => $progress
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("❌ Erreur dans markAsStarted: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors du traitement'
+            ], 500);
         }
-
-        // Check if the student is enrolled in the course
-        $isEnrolled = $user->enrollments()->where('course_id', $topic->course_id)->exists();
-        \Log::info('Is enrolled check: ' . ($isEnrolled ? 'YES' : 'NO'));
-        \Log::info('Course ID: ' . $topic->course_id);
-        \Log::info('User enrollments count: ' . $user->enrollments()->count());
-        
-        // Skip enrollment check for testing - will be re-enabled later
-        // if (!$isEnrolled) {
-        //     return response()->json(['status' => 'error', 'message' => 'Student not enrolled in this course'], 403);
-        // }
-
-        // Check if previous topics are completed - DISABLED FOR TESTING
-        // if (!TopicProgress::canAccessTopic($user->id, $topicId)) {
-        //     return response()->json([
-        //         'status' => 'error', 
-        //         'message' => 'Vous devez terminer les leçons précédentes avant de commencer celle-ci'
-        //     ], 403);
-        // }
-
-        $progress = TopicProgress::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'topic_id' => $topic->id, // Use the actual Topic ID, not the content ID
-                'chapter_id' => $topic->chapter_id,
-                'course_id' => $topic->course_id,
-            ],
-            [
-                'status' => 'not_started',
-            ]
-        );
-
-        $progress->markAsStarted();
-
-        return response()->json(['status' => 'success', 'message' => 'Topic marked as started', 'progress' => $progress]);
     }
 
     /**
@@ -82,125 +285,44 @@ class TopicProgressController extends Controller
      */
     public function markAsCompleted(int $topicId)
     {
-        \Log::info('TopicProgressController::markAsCompleted called with topicId: ' . $topicId);
-        
-        $user = Auth::user();
-        \Log::info('Current user: ' . ($user ? $user->id . ' (guard: ' . $user->guard . ')' : 'null'));
-        
-        if (!$user || $user->guard !== 'student') {
-            \Log::warning('Unauthorized access attempt');
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        }
-
-        $topic = Topic::find($topicId);
-        \Log::info('Looking for topic with ID: ' . $topicId);
-        \Log::info('Topic found: ' . ($topic ? 'YES' : 'NO'));
-        if (!$topic) {
-            \Log::info('Topic not found by ID, trying topicable_id: ' . $topicId);
-            $topic = Topic::where('topicable_id', $topicId)->first();
-            \Log::info('Topic found by topicable_id: ' . ($topic ? 'YES' : 'NO'));
-            if (!$topic) {
-                \Log::warning('Topic not found with ID or topicable_id: ' . $topicId);
-                return response()->json(['status' => 'error', 'message' => 'Topic not found'], 404);
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
             }
-        }
 
-        // Check if the student is enrolled in the course
-        $isEnrolled = $user->enrollments()->where('course_id', $topic->course_id)->exists();
-        \Log::info('Is enrolled check: ' . ($isEnrolled ? 'YES' : 'NO'));
-        \Log::info('Course ID: ' . $topic->course_id);
-        \Log::info('User enrollments count: ' . $user->enrollments()->count());
-        
-        // Skip enrollment check for testing - will be re-enabled later
-        // if (!$isEnrolled) {
-        //     return response()->json(['status' => 'error', 'message' => 'Student not enrolled in this course'], 403);
-        // }
-
-        $progress = TopicProgress::where('user_id', $user->id)
-            ->where('topic_id', $topic->id) // Use the actual Topic ID, not the content ID
-            ->first();
-
-        if (!$progress) {
-            // If no progress exists, create it and mark as completed directly
-            $progress = TopicProgress::create([
-                'user_id' => $user->id,
-                'topic_id' => $topic->id, // Use the actual Topic ID, not the content ID
-                'chapter_id' => $topic->chapter_id,
-                'course_id' => $topic->course_id,
-                'status' => 'not_started', // Will be updated by markAsCompleted
-            ]);
-        }
-
-        $progress->markAsCompleted();
-
-        // Check if all topics in the chapter are completed
-        $chapterTopics = Topic::where('chapter_id', $topic->chapter_id)->get();
-        $completedTopics = TopicProgress::where('user_id', $user->id)
-            ->where('chapter_id', $topic->chapter_id)
-            ->where('status', 'completed')
-            ->count();
-
-        $chapterCompleted = $completedTopics >= $chapterTopics->count();
-
-        // If chapter is completed, mark it as completed
-        if ($chapterCompleted) {
-            $chapterProgress = \Modules\LMS\Models\ChapterProgress::where('user_id', $user->id)
-                ->where('chapter_id', $topic->chapter_id)
+            $progress = TopicProgress::where('user_id', $user->id)
+                ->where('topic_id', $topicId)
                 ->first();
 
-            if (!$chapterProgress) {
-                // Create chapter progress if it doesn't exist
-                $chapterProgress = \Modules\LMS\Models\ChapterProgress::create([
+            if (!$progress) {
+                $topic = Topic::find($topicId);
+                $progress = TopicProgress::create([
                     'user_id' => $user->id,
+                    'topic_id' => $topicId,
                     'chapter_id' => $topic->chapter_id,
                     'course_id' => $topic->course_id,
-                    'status' => 'not_started',
+                    'started_at' => now(),
+                    'completed_at' => now()
                 ]);
+            } else {
+                $progress->markAsStarted();
+                $progress->markAsCompleted();
             }
-            
-            $chapterProgress->markAsCompleted();
-        }
 
-        // Obtenir les informations du chapitre suivant si le chapitre actuel est terminé
-        $nextChapter = null;
-        if ($chapterCompleted && $topic->chapter && $topic->chapter->order !== null) {
-            $nextChapter = \Modules\LMS\Models\Courses\Chapter::where('course_id', $topic->course_id)
-                ->where('order', '>', $topic->chapter->order)
-                ->orderBy('order')
-                ->first();
-        }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Topic marked as completed',
+                'progress' => $progress
+            ]);
 
-        // Vérifier si le cours est éligible pour un certificat
-        $certificateGenerated = false;
-        if ($chapterCompleted) {
-            try {
-                $certificateService = new \Modules\LMS\Services\CertificateService();
-                $certificate = $certificateService::generateCertificate($user->id, $topic->course_id);
-                $certificateGenerated = $certificate !== null;
-                
-                if ($certificateGenerated) {
-                    \Log::info("🎓 Certificat généré automatiquement pour l'utilisateur {$user->id} et le cours {$topic->course_id}");
-                }
-            } catch (\Exception $e) {
-                \Log::error("❌ Erreur lors de la génération du certificat: " . $e->getMessage());
-            }
+        } catch (\Exception $e) {
+            Log::error("❌ Erreur dans markAsCompleted: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors du traitement'
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Topic marked as completed',
-            'progress' => $progress,
-            'chapter_completed' => $chapterCompleted,
-            'certificate_generated' => $certificateGenerated,
-            'next_chapter' => $nextChapter ? [
-                'id' => $nextChapter->id,
-                'title' => $nextChapter->title,
-                'url' => route('play.course', [
-                    'slug' => $topic->course->slug,
-                    'chapter_id' => $nextChapter->id
-                ])
-            ] : null,
-        ]);
     }
 
     /**
@@ -208,71 +330,62 @@ class TopicProgressController extends Controller
      */
     public function getTopicProgress(int $topicId)
     {
-        $user = Auth::user();
-        if (!$user || $user->guard !== 'student') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
         }
 
         $progress = TopicProgress::where('user_id', $user->id)
             ->where('topic_id', $topicId)
             ->first();
 
-        return response()->json(['status' => 'success', 'progress' => $progress]);
+        if (!$progress) {
+            return response()->json(['status' => 'error', 'message' => 'Progress not found'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'progress' => $progress
+        ]);
     }
 
     /**
-     * Get the progress for all topics in a chapter.
+     * Get chapter topics progress.
      */
     public function getChapterTopicsProgress(int $chapterId)
     {
-        $user = Auth::user();
-        if (!$user || $user->guard !== 'student') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
         }
 
-        $chapter = Chapter::find($chapterId);
-        if (!$chapter) {
-            return response()->json(['status' => 'error', 'message' => 'Chapter not found'], 404);
-        }
-
-        $topics = Topic::where('chapter_id', $chapterId)
-            ->orderBy('order')
+        $progress = TopicProgress::where('user_id', $user->id)
+            ->whereHas('topic', function($query) use ($chapterId) {
+                $query->where('chapter_id', $chapterId);
+            })
             ->get();
 
-        $progress = [];
-        foreach ($topics as $topic) {
-            $topicProgress = TopicProgress::where('user_id', $user->id)
-                ->where('topic_id', $topic->id)
-                ->first();
-
-            $progress[] = [
-                'topic_id' => $topic->id,
-                'title' => $topic->topicable->title ?? 'N/A',
-                'status' => $topicProgress ? $topicProgress->status : 'not_started',
-                'can_access' => TopicProgress::canAccessTopic($user->id, $topic->id),
-                'started_at' => $topicProgress ? $topicProgress->started_at : null,
-                'completed_at' => $topicProgress ? $topicProgress->completed_at : null,
-            ];
-        }
-
-        return response()->json(['status' => 'success', 'progress' => $progress]);
+        return response()->json([
+            'status' => 'success',
+            'progress' => $progress
+        ]);
     }
 
     /**
-     * Get all topic progress for the authenticated student.
+     * Get all progress.
      */
     public function getAllProgress()
     {
-        $user = Auth::user();
-        if (!$user || $user->guard !== 'student') {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
         }
 
-        $allProgress = TopicProgress::where('user_id', $user->id)
-            ->with('topic', 'chapter', 'course')
-            ->get();
+        $progress = TopicProgress::where('user_id', $user->id)->get();
 
-        return response()->json(['status' => 'success', 'progress' => $allProgress]);
+        return response()->json([
+            'status' => 'success',
+            'progress' => $progress
+        ]);
     }
 }
-

@@ -6,18 +6,18 @@
     $backendSetting = get_theme_option(key: 'backend_general') ?? null;
     $currency = $backendSetting['currency'] ?? 'USD-$';
     $currencySymbol = get_currency_symbol($currency);
-    
+
     // Statistiques pour l'organisation
     $totalPurchasedCourses = $organization ? DB::table('purchases')
         ->where('organization_id', $organization->id)
         ->where('purchase_type', 'organization_course')
         ->count() : 0;
-    
+
     $totalStudents = $organization ? \Modules\LMS\Models\User::where('organization_id', $organization->id)
         ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
         ->count() : 0;
     $totalEnrollmentLinks = $organization ? $organization->enrollmentLinks()->count() : 0;
-    
+
     // Récupérer les cours achetés avec leurs détails
     $purchasedCourses = $organization ? DB::table('purchases')
         ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
@@ -28,14 +28,14 @@
         ->latest('purchases.created_at')
         ->take(5)
         ->get() : collect();
-    
+
     $recentEnrollmentLinks = $organization ? $organization->enrollmentLinks()->with('course')->latest()->take(5)->get() : collect();
 @endphp
 
 <x-dashboard-layout>
     <x-slot:title> {{ translate('dashboard') }} </x-slot:title>
-    
-    
+
+
     <div class="grid grid-cols-12 gap-x-4">
         <!-- Start Instructor Profile -->
         <div class="col-span-full lg:col-span-4 card p-0">
@@ -157,27 +157,27 @@
                         {{ translate('Voir Tous') }}
                     </a>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="overflow-x-auto scrollbar-table">
+                    <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
                         <thead>
-                            <tr>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Nom') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Cours') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Lien') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Statut') }}</th>
+                            <tr class="text-primary-500">
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Nom') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Cours') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Lien') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
                             @foreach($recentEnrollmentLinks as $link)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $link->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $link->course->title ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4">{{ $link->name }}</td>
+                                    <td class="px-4 py-4">{{ $link->course->title ?? 'N/A' }}</td>
+                                    <td class="px-4 py-4">
                                         <input type="text" value="{{ url('/enroll/' . $link->slug) }}" readonly
-                                            class="form-input text-sm w-48 bg-gray-100 dark:bg-gray-700 border-none">
+                                            class="form-input text-sm w-48  dark:bg-gray-700 border-none">
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 text-xs rounded-full {{ $link->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $link->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                             {{ ucfirst($link->status) }}
                                         </span>
                                     </td>
@@ -198,41 +198,41 @@
                         {{ translate('Acheter Plus') }}
                     </a>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="overflow-x-auto scrollbar-table">
+                    <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
                         <thead>
-                            <tr>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Cours') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Prix') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Date d\'Achat') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Statut') }}</th>
-                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">{{ translate('Actions') }}</th>
+                            <tr class="text-primary-500">
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Cours') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Prix') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Date d\'Achat') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Actions') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
                             @foreach($purchasedCourses as $purchase)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center gap-3.5">
                                             <img src="{{ fileExists('lms/courses/thumbnails', $purchase->thumbnail) ? asset('storage/lms/courses/thumbnails/' . $purchase->thumbnail) : asset('lms/assets/images/placeholder/thumbnail612.jpg') }}"
-                                                alt="{{ $purchase->course_title }}" class="w-10 h-10 rounded-md object-cover mr-3">
+                                                alt="{{ $purchase->course_title }}" class="w-10 h-10 rounded-md object-cover">
                                             <div>
                                                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $purchase->course_title }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    <td class="px-4 py-4 text-sm text-gray-900 dark:text-white">
                                         {{ $currencySymbol }}{{ number_format($purchase->price, 0) }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         {{ \Carbon\Carbon::parse($purchase->created_at)->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 text-xs rounded-full {{ $purchase->status === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $purchase->status === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                             {{ ucfirst($purchase->status) }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <td class="px-4 py-4 text-sm font-medium">
                                         <a href="{{ route('organization.courses.show', $purchase->course_id) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400">
                                             {{ translate('Voir') }}
                                         </a>

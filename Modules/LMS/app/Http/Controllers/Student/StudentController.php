@@ -89,6 +89,54 @@ class StudentController extends Controller
         return view('portal::student.quiz.quiz-result-list', compact('userQuizzes'));
     }
 
+    /**
+     * Afficher les détails d'un quiz spécifique
+     */
+    public function quizDetails($userQuizId)
+    {
+        try {
+            $userQuiz = \Modules\LMS\Models\Auth\UserCourseExam::with([
+                'quiz.questions.questionAnswers.answer',
+                'quiz.questions.question',
+                'course'
+            ])->where('id', $userQuizId)
+              ->where('user_id', authCheck()->id)
+              ->first();
+
+            if (!$userQuiz) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quiz non trouvé'
+                ]);
+            }
+
+            // Récupérer les réponses de l'utilisateur
+            $takeAnswers = \Modules\LMS\Models\TakeAnswer::where('user_course_exam_id', $userQuizId)
+                ->with(['quizQuestion.question'])
+                ->get()
+                ->keyBy('quiz_question_id');
+
+            // Récupérer les scores des questions
+            $questionScores = \Modules\LMS\Models\QuestionScore::where('quiz_id', $userQuiz->quiz_id)
+                ->get()
+                ->keyBy('question_id');
+
+            $html = view('portal::student.quiz.quiz-details', compact('userQuiz', 'takeAnswers', 'questionScores'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in quizDetails: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du chargement des détails'
+            ]);
+        }
+    }
+
     public function assignmentList()
     {
 
