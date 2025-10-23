@@ -352,7 +352,7 @@
                             modal.style.display = 'none';
                             // Afficher le modal de completion du cours
                             setTimeout(() => {
-                                showCourseCompleteModal(data.certificate_generated);
+                                window.showCourseCompleteModal(data.certificate_generated);
                             }, 500);
                         } else {
                             // Message simple de confirmation pour la leçon
@@ -406,8 +406,8 @@
             };
         }
 
-        // Fonction pour afficher le modal de completion du cours
-        function showCourseCompleteModal(certificateGenerated) {
+        // Fonction pour afficher le modal de completion du cours (scope global)
+        window.showCourseCompleteModal = function(certificateGenerated) {
             const courseCompleteModal = document.getElementById('course-complete-modal');
             const courseCompleteMessage = document.getElementById('course-complete-message');
             const courseCompleteCertificate = document.getElementById('course-complete-certificate');
@@ -515,6 +515,15 @@
                                 ->first();
                             
                             $topicAlreadyCompleted = $topicProgress !== null;
+                            
+                            // Debug logs pour vérifier le statut
+                            \Log::info('Topic Completion Check', [
+                                'user_id' => auth()->id(),
+                                'topic_id' => $quizTopic->id,
+                                'topic_progress_found' => $topicProgress ? true : false,
+                                'topic_progress_status' => $topicProgress ? $topicProgress->status : null,
+                                'topic_already_completed' => $topicAlreadyCompleted
+                            ]);
                         }
                         
                         // Debug logs
@@ -694,7 +703,7 @@
                             // Vérifier si le cours est complètement terminé
                             if (data.course_completed || data.certificate_generated) {
                                 // Afficher le modal de completion du cours
-                                showCourseCompleteModal(data.certificate_generated);
+                                window.showCourseCompleteModal(data.certificate_generated);
                             } else {
                                 // Mettre à jour le modal normal
                                 if (data.is_last_topic_in_chapter) {
@@ -727,7 +736,7 @@
                         }
                     })
                     .catch(error => {
-                        alert('Erreur: ' + error.message);
+                        console.error('Erreur: ' + error.message);
                         
                         // Réactiver le bouton en cas d'erreur
                         markButton.disabled = false;

@@ -111,6 +111,29 @@ class TopicProgressController
                 Log::info('markReadingAsCompleted: Progress updated', ['progress' => $progress]);
             }
 
+            // Pour les quiz, marquer directement le chapitre comme terminé
+            if ($topicType === 'quiz' && $topic->chapter) {
+                Log::info('markReadingAsCompleted: Marking chapter as completed for quiz');
+                $chapterProgress = ChapterProgress::where('user_id', $user->id)
+                    ->where('chapter_id', $topic->chapter->id)
+                    ->first();
+
+                if (!$chapterProgress) {
+                    $chapterProgress = ChapterProgress::create([
+                        'user_id' => $user->id,
+                        'chapter_id' => $topic->chapter->id,
+                        'course_id' => $topic->course_id,
+                        'status' => 'completed',
+                        'started_at' => now(),
+                        'completed_at' => now()
+                    ]);
+                    Log::info('markReadingAsCompleted: New chapter progress created', ['chapter_progress' => $chapterProgress]);
+                } else {
+                    $chapterProgress->markAsCompleted();
+                    Log::info('markReadingAsCompleted: Chapter progress updated', ['chapter_progress' => $chapterProgress]);
+                }
+            }
+
             // Vérifier si le chapitre est terminé
             $chapterCompleted = false;
             $nextChapter = null;
