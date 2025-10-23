@@ -485,38 +485,80 @@
             <!-- Bouton Marquer comme terminé pour les quiz -->
             @if(auth()->check() && auth()->user()->guard === 'student')
                 @php
-                    // Vérifier si le quiz est déjà terminé
-                    $topicProgress = null;
+                    // Trouver le topic correspondant au quiz
+                    $quizTopic = \Modules\LMS\Models\Courses\Topic::where('topicable_id', $data->id)
+                        ->where('topicable_type', 'Modules\\LMS\\Models\\Courses\\Topics\\Quiz')
+                        ->first();
+                    
+                    // Vérifier si le quiz a été soumis (score >= pass_mark)
+                    $quizSubmitted = false;
+                    $quizPassed = false;
+                    $userQuiz = null;
+                    $topicAlreadyCompleted = false;
+                    
                     if (auth()->check()) {
-                        $topic = \Modules\LMS\Models\Courses\Topic::where('topicable_id', $data->id)
-                            ->where('topicable_type', 'Modules\\LMS\\Models\\Courses\\Topics\\Quiz')
+                        $userQuiz = \Modules\LMS\Models\Auth\UserCourseExam::where('user_id', auth()->id())
+                            ->where('quiz_id', $data->id)
+                            ->whereNotNull('score')
                             ->first();
                         
-                        if ($topic) {
-                            $topicProgress = \Modules\LMS\Models\TopicProgress::where('user_id', auth()->id())
-                                ->where('topic_id', $topic->id)
-                                ->first();
+                        if ($userQuiz) {
+                            $quizSubmitted = true;
+                            $quizPassed = $userQuiz->score >= $data->pass_mark;
                         }
+                        
+                        // Vérifier si le topic est déjà marqué comme terminé
+                        if ($quizTopic) {
+                            $topicProgress = \Modules\LMS\Models\TopicProgress::where('user_id', auth()->id())
+                                ->where('topic_id', $quizTopic->id)
+                                ->where('status', 'completed')
+                                ->first();
+                            
+                            $topicAlreadyCompleted = $topicProgress !== null;
+                        }
+                        
+                        // Debug logs
+                        \Log::info('Quiz Debug Info', [
+                            'user_id' => auth()->id(),
+                            'quiz_id' => $data->id,
+                            'quiz_topic_id' => $quizTopic ? $quizTopic->id : null,
+                            'quiz_pass_mark' => $data->pass_mark,
+                            'userQuiz_found' => $userQuiz ? true : false,
+                            'userQuiz_score' => $userQuiz ? $userQuiz->score : null,
+                            'quizSubmitted' => $quizSubmitted,
+                            'quizPassed' => $quizPassed
+                        ]);
                     }
-                    $isCompleted = $topicProgress && $topicProgress->isCompleted();
                 @endphp
                 
                 <div class="mt-4">
-                    @if($isCompleted)
-                        <!-- Icône de validation si terminé -->
+                    @if($topicAlreadyCompleted)
+                        <!-- Topic déjà terminé - Afficher le statut de completion -->
                         <div class="flex items-center gap-2 text-green-600 bg-green-100 px-4 py-2 rounded-md">
                             <i class="ri-check-double-line"></i>
-                            <span>{{ translate('Quiz terminé') }}</span>
+                            <span>{{ translate('Quiz terminé avec succès') }}</span>
                         </div>
-                    @else
-                        <!-- Bouton pour marquer comme terminé -->
+                    @elseif($quizSubmitted && $quizPassed)
+                        <!-- Quiz soumis et réussi - Afficher le bouton pour marquer comme terminé -->
                         <button id="mark-quiz-complete" 
                                 class="btn b-solid btn-success-solid flex items-center gap-2"
-                                data-topic-id="{{ $topic['id'] }}"
+                                data-topic-id="{{ $quizTopic ? $quizTopic->id : request('topic_id') }}"
                                 data-topic-type="quiz">
                             <i class="ri-check-line"></i>
                             {{ translate('Marquer comme terminé') }}
                         </button>
+                    @elseif($quizSubmitted && !$quizPassed)
+                        <!-- Quiz soumis mais échoué -->
+                        <div class="flex items-center gap-2 text-red-600 bg-red-100 px-4 py-2 rounded-md">
+                            <i class="ri-close-line"></i>
+                            <span>{{ translate('Quiz échoué - Score: ') }}{{ $userQuiz->score ?? 0 }}/{{ $data->total_mark ?? 100 }}</span>
+                        </div>
+                    @else
+                        <!-- Quiz pas encore soumis - Cacher le bouton -->
+                        <div class="flex items-center gap-2 text-gray-500 bg-gray-100 px-4 py-2 rounded-md">
+                            <i class="ri-lock-line"></i>
+                            <span>{{ translate('Soumettez d\'abord le quiz pour le marquer comme terminé') }}</span>
+                        </div>
                     @endif
                 </div>
             @endif

@@ -41,13 +41,13 @@
                 </div>
             </div>
         </form>
-    </div>
+        </div>
 
     @if ($students->count() > 0)
         <div class="card">
             <div class="overflow-x-auto scrollbar-table">
                 <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
-                    <thead>
+                <thead>
                         <tr class="text-primary-500">
                             <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">
                                 {{ translate('Profil') }}
@@ -70,8 +70,8 @@
                             <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right w-10">
                                 {{ translate('Actions') }}
                             </th>
-                        </tr>
-                    </thead>
+                    </tr>
+                </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
                         @foreach ($students as $student)
                             @php
@@ -128,15 +128,15 @@
                                             <i class="ri-user-line text-inherit text-base"></i>
                                         </a>
                                     </div>
-                                </td>
-                            </tr>
+                            </td>
+                        </tr>
                         @endforeach
-                    </tbody>
-                </table>
+                </tbody>
+            </table>
                 <!-- Start Pagination -->
                 {{ $students->links('portal::admin.pagination.paginate') }}
                 <!-- End Pagination -->
-            </div>
+        </div>
         </div>
     @else
         <x-portal::admin.empty-card title="Aucun Étudiant" />

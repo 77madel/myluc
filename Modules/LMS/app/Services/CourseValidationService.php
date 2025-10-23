@@ -174,18 +174,20 @@ class CourseValidationService
         }
         
         elseif ($topic->topicable_type === 'Modules\\LMS\\Models\\Courses\\Topics\\Quiz') {
-            // Vérifier si le quiz est marqué comme terminé dans TopicProgress
-            $progress = TopicProgress::where('user_id', $userId)
-                ->where('topic_id', $topic->id)
-                ->where('status', 'completed')
+            // Vérifier si le quiz est validé
+            $quiz = $topic->topicable;
+            $attempt = UserCourseExam::where('user_id', $userId)
+                ->where('quiz_id', $quiz->id)
+                ->where('score', '>=', $quiz->pass_mark)
+                ->orderBy('created_at', 'desc')
                 ->first();
                 
-            $result['is_completed'] = $progress !== null;
+            $result['is_completed'] = $attempt !== null;
             $result['details'] = [
-                'progress_id' => $progress?->id,
-                'completed_at' => $progress?->completed_at,
-                'time_spent' => $progress?->time_spent,
-                'status' => $progress?->status
+                'attempt_id' => $attempt?->id,
+                'score' => $attempt?->score,
+                'pass_mark' => $quiz->pass_mark,
+                'attempted_at' => $attempt?->created_at
             ];
         }
         

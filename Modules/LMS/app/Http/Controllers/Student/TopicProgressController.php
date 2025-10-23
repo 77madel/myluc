@@ -11,6 +11,7 @@ use Modules\LMS\Models\ChapterProgress;
 use Modules\LMS\Services\CourseValidationService;
 use Modules\LMS\Services\CertificateService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TopicProgressController
 {
@@ -21,7 +22,7 @@ class TopicProgressController
     {
         Log::info('markReadingAsCompleted: Request received', $request->all());
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             if (!$user) {
                 Log::warning('markReadingAsCompleted: User not authenticated');
                 return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
@@ -40,6 +41,52 @@ class TopicProgressController
             }
             Log::info('markReadingAsCompleted: Topic found', ['topic' => $topic]);
 
+            // Vérifier si c'est un quiz et s'il a été soumis avec succès
+            if ($topicType === 'quiz') {
+                $quiz = $topic->topicable;
+                if (!$quiz) {
+                    Log::warning('markReadingAsCompleted: Quiz not found for topic', ['topic_id' => $topic->id]);
+                    return response()->json(['status' => 'error', 'message' => 'Quiz not found'], 404);
+                }
+                
+                // Vérifier si l'utilisateur a soumis le quiz avec un score suffisant
+                $userQuiz = \Modules\LMS\Models\Auth\UserCourseExam::where('user_id', $user->id)
+                    ->where('quiz_id', $quiz->id)
+                    ->whereNotNull('score')
+                    ->first();
+                
+                if (!$userQuiz) {
+                    Log::warning('markReadingAsCompleted: Quiz not submitted by user', [
+                        'user_id' => $user->id,
+                        'quiz_id' => $quiz->id
+                    ]);
+                    return response()->json([
+                        'status' => 'error', 
+                        'message' => 'Vous devez d\'abord soumettre le quiz avant de le marquer comme terminé'
+                    ], 400);
+                }
+                
+                if ($userQuiz->score < $quiz->pass_mark) {
+                    Log::warning('markReadingAsCompleted: Quiz failed by user', [
+                        'user_id' => $user->id,
+                        'quiz_id' => $quiz->id,
+                        'score' => $userQuiz->score,
+                        'pass_mark' => $quiz->pass_mark
+                    ]);
+                    return response()->json([
+                        'status' => 'error', 
+                        'message' => 'Vous devez réussir le quiz (score >= ' . $quiz->pass_mark . '%) avant de le marquer comme terminé'
+                    ], 400);
+                }
+                
+                Log::info('markReadingAsCompleted: Quiz validation passed', [
+                    'user_id' => $user->id,
+                    'quiz_id' => $quiz->id,
+                    'score' => $userQuiz->score,
+                    'pass_mark' => $quiz->pass_mark
+                ]);
+            }
+
             // Marquer le topic comme commencé et terminé
             $progress = TopicProgress::where('user_id', $user->id)
                 ->where('topic_id', $topic->id)
@@ -52,18 +99,17 @@ class TopicProgressController
                     'topic_id' => $topic->id,
                     'chapter_id' => $topic->chapter_id,
                     'course_id' => $topic->course_id,
-                    'status' => 'not_started',
-                    'started_at' => null,
-                    'completed_at' => null
+                    'status' => 'completed',
+                    'started_at' => now(),
+                    'completed_at' => now()
                 ]);
                 Log::info('markReadingAsCompleted: New progress created', ['progress' => $progress]);
+            } else {
+                Log::info('markReadingAsCompleted: Progress found, updating progress');
+                $progress->markAsStarted();
+                $progress->markAsCompleted();
+                Log::info('markReadingAsCompleted: Progress updated', ['progress' => $progress]);
             }
-            
-            // Marquer comme commencé puis terminé
-            Log::info('markReadingAsCompleted: Marking as started and completed');
-            $progress->markAsStarted();
-            $progress->markAsCompleted();
-            Log::info('markReadingAsCompleted: Progress updated', ['progress' => $progress]);
 
             // Vérifier si le chapitre est terminé
             $chapterCompleted = false;
@@ -83,13 +129,9 @@ class TopicProgressController
                             'user_id' => $user->id,
                             'chapter_id' => $topic->chapter->id,
                             'course_id' => $topic->course_id,
-                            'status' => 'not_started',
-                            'started_at' => null,
-                            'completed_at' => null
+                            'started_at' => now(),
+                            'completed_at' => now()
                         ]);
-                        // Marquer comme commencé puis terminé
-                        $chapterProgress->markAsStarted();
-                        $chapterProgress->markAsCompleted();
                     } else {
                         $chapterProgress->markAsCompleted();
                     }
@@ -243,7 +285,7 @@ class TopicProgressController
     public function markAsStarted(int $topicId)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             if (!$user) {
                 return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
             }
@@ -286,7 +328,7 @@ class TopicProgressController
     public function markAsCompleted(int $topicId)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             if (!$user) {
                 return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
             }
