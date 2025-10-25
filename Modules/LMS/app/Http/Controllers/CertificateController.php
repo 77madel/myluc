@@ -81,7 +81,7 @@ class CertificateController extends Controller
             // Template HTML du certificat
             $html = '
             <div class="certificate-template-container" id="certificateImg" style="
-                background: url(\'https://edulab.hivetheme.com/lms/assets/images/certificate-template.jpg\'); 
+                background: url(\'{{ Storage::url('lms/certificates/lms-4r2zef1Gkv.png') }}\'); 
                 background-repeat: no-repeat; 
                 background-size: 100% 100%;
                 width: 800px;
@@ -339,7 +339,7 @@ class CertificateController extends Controller
             // Template HTML du certificat
             $html = '
             <div class="certificate-template-container" id="certificateImg" style="
-                background: url(\'https://edulab.hivetheme.com/lms/assets/images/certificate-template.jpg\'); 
+                background: url(\'{{ Storage::url('lms/certificates/lms-4r2zef1Gkv.png') }}\'); 
                 background-repeat: no-repeat; 
                 background-size: 100% 100%;
                 width: 800px;

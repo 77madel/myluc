@@ -26,74 +26,116 @@ class CertificateControllerSimple extends Controller
                 return redirect()->back()->with('error', 'Ce certificat a déjà été téléchargé et ne peut plus être téléchargé.');
             }
 
-            // Préparer les données pour le PDF
+            // Préparer les données
             $user = authCheck();
-            $completion_date = $certificate->certificated_date ? $certificate->certificated_date->format('d/m/Y') : date('d/m/Y');
-
-            // Utiliser la relation directe avec le cours
+            
+            // Formater la date en français (ex: 25 Octobre 2025)
+            $moisFr = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            if ($certificate->certificated_date) {
+                $jour = $certificate->certificated_date->format('d');
+                $mois = $moisFr[(int)$certificate->certificated_date->format('m')];
+                $annee = $certificate->certificated_date->format('Y');
+                $completion_date = $jour . ' ' . $mois . ' ' . $annee;
+            } else {
+                $jour = date('d');
+                $mois = $moisFr[(int)date('m')];
+                $annee = date('Y');
+                $completion_date = $jour . ' ' . $mois . ' ' . $annee;
+            }
+            
             $course = $certificate->course;
             $course_title = $course ? $course->title : ($certificate->subject ?? 'Formation');
-
             $instructor_name = 'Instructeur';
-            \Log::info('Debug certificat - course_id:', ['course_id' => $certificate->course_id]);
 
-            if ($course) {
-                \Log::info('Debug certificat - cours trouvé via relation directe:', ['course_id' => $course->id, 'course_title' => $course->title]);
-
-                $instructors = $course->instructors;
-                \Log::info('Debug certificat - instructeurs trouvés:', ['count' => $instructors->count()]);
-
-                if ($instructors->count() > 0) {
-                    $instructor = $instructors->first();
-                    \Log::info('Debug certificat - instructeur:', [
-                        'instructor_id' => $instructor->id,
-                        'userable_type' => $instructor->userable_type,
-                        'userable_id' => $instructor->userable_id,
-                    ]);
-
-                    if ($instructor && $instructor->userable) {
-                        // L'instructeur est un User avec userable_type = 'Instructor'
-                        $instructor_name = ($instructor->userable->first_name ?? '').' '.($instructor->userable->last_name ?? '');
-                        \Log::info('Debug certificat - nom instructeur:', ['instructor_name' => $instructor_name]);
-                    } else {
-                        \Log::warning('Debug certificat - userable null:', ['instructor' => $instructor ? 'exists' : 'null']);
-                    }
-                } else {
-                    \Log::warning('Debug certificat - aucun instructeur trouvé pour le cours');
+            if ($course && $course->instructors->count() > 0) {
+                $instructor = $course->instructors->first();
+                if ($instructor && $instructor->userable) {
+                    $instructor_name = ($instructor->userable->first_name ?? '').' '.($instructor->userable->last_name ?? '');
                 }
-            } else {
-                \Log::warning('Debug certificat - aucun cours trouvé via relation directe');
             }
 
-            // Utiliser la vue pdf-template.blade.php
-            $html = view('portal::certificate.pdf-template', compact('certificate', 'user', 'instructor_name', 'completion_date', 'course_title'))->render();
-
-            // Utiliser DomPDF pour convertir le HTML en PDF
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
-            $pdf->setPaper('A4', 'landscape');
-            $pdf->setOptions([
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-                'defaultFont' => 'DejaVu Sans',
-            ]);
+            // NOUVELLE APPROCHE: Créer une image complète avec GD
+            $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
+            $studentName = ($user->userable->first_name ?? 'Utilisateur') . ' ' . ($user->userable->last_name ?? '');
+            
+            // Charger l'image de fond
+            $image = imagecreatefromjpeg($imagePath);
+            $width = imagesx($image);   // 2340px
+            $height = imagesy($image);  // 1654px
+            
+            // Taille de référence du conteneur HTML
+            $htmlWidth = 800;   // Largeur du conteneur HTML
+            $htmlHeight = 600;  // Hauteur du conteneur HTML
+            
+            // Définir les couleurs (selon votre CSS)
+            $colorBlue = imagecolorallocate($image, 26, 58, 82);      // #1a3a52
+            $colorDarkBlue = imagecolorallocate($image, 44, 82, 130);  // #2c5282
+            $colorPurple = imagecolorallocate($image, 87, 37, 113);    // #572571 (date)
+            $colorBlack = imagecolorallocate($image, 0, 0, 0);         // #000000
+            
+            // === POSITIONS EXACTES SELON VOTRE VUE HTML ===
+            
+            // 1. NOM ÉTUDIANT: left: 50%, top: 40%
+            $fontSize = 5; // Taille max
+            $x = ($width / 2) - (strlen($studentName) * 12);  // Centré
+            $y = ($htmlHeight * 0.40) * ($height / $htmlHeight);  // top: 40%
+            imagestring($image, $fontSize, $x, $y, $studentName, $colorBlue);
+            
+            // 2. TITRE DU COURS: left: 50%, top: 50%
+            $fontSize = 4;
+            $x = ($width / 2) - (strlen($course_title) * 6);  // Centré
+            $y = ($htmlHeight * 0.50) * ($height / $htmlHeight);  // top: 50%
+            imagestring($image, $fontSize, $x, $y, substr($course_title, 0, 60), $colorDarkBlue);
+            
+            // 3. N° CERTIFICAT: left: 525px, top: 524px
+            $fontSize = 3;
+            $x = 525 * ($width / $htmlWidth);   // Convertir 525px HTML → pixels image
+            $y = 524 * ($height / $htmlHeight); // Convertir 524px HTML → pixels image
+            imagestring($image, $fontSize, $x, $y, $certificate->certificate_id, $colorBlack);
+            
+            // 4. DATE: left: 60%, bottom: 33% (= top: 67%)
+            $fontSize = 3;
+            $dateText = 'Fait à Bamako, le ' . $completion_date;
+            $x = $width * 0.60;  // left: 60%
+            $y = ($htmlHeight * 0.67) * ($height / $htmlHeight);  // bottom: 33% = top: 67%
+            imagestring($image, $fontSize, $x, $y, $dateText, $colorPurple);
+            
+            // 5. INSTRUCTEUR: right: 377px, bottom: 29% (= top: 71%)
+            $fontSize = 3;
+            // right: 377px signifie left: 800px - 377px = 423px
+            $x = (423) * ($width / $htmlWidth);  // Convertir 423px HTML → pixels image
+            $y = ($htmlHeight * 0.71) * ($height / $htmlHeight);  // bottom: 29% = top: 71%
+            imagestring($image, $fontSize, $x, $y, $instructor_name, $colorBlack);
+            
+            // Sauvegarder l'image temporaire
+            $tempImagePath = storage_path('app/temp_cert_' . $certificate->id . '.png');
+            imagepng($image, $tempImagePath, 9);
+            imagedestroy($image);
+            
+            // Créer le PDF avec cette image
+            $pdf = new \TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetMargins(0, 0, 0);
+            $pdf->SetAutoPageBreak(false, 0);
+            $pdf->AddPage();
+            
+            // Insérer l'image complète
+            $pdf->Image($tempImagePath, 0, 0, 297, 210, 'PNG', '', '', false, 300, '', false, false, 0);
+            
+            // Nettoyer
+            if (file_exists($tempImagePath)) {
+                unlink($tempImagePath);
+            }
 
             // Générer le PDF
-            $pdfOutput = $pdf->output();
-
-            // Vérifier que le contenu généré est bien un PDF
-            if (strpos($pdfOutput, '%PDF') !== 0) {
-                \Log::error('Le contenu généré n\'est pas un PDF valide');
-
-                return response()->json(['error' => 'Erreur de génération PDF'], 500);
-            }
-
-            // Nom du fichier
+            $pdfOutput = $pdf->Output('', 'S');
             $filename = 'Certificat_'.preg_replace('/[^a-zA-Z0-9_-]/', '_', $course_title).'_'.date('Y-m-d').'.pdf';
 
-            // Marquer le certificat comme téléchargé
+            // Marquer comme téléchargé
             $certificate->markAsDownloaded();
 
-            // Retourner le PDF en téléchargement
+            // Retourner le PDF
             return response($pdfOutput, 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename="'.$filename.'"',
@@ -104,13 +146,12 @@ class CertificateControllerSimple extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Erreur lors de la génération du PDF: '.$e->getMessage());
-
             return redirect()->back()->with('error', 'Erreur lors de la génération du certificat PDF.');
         }
     }
 
     /**
-     * Afficher le certificat en PDF
+     * Afficher le certificat en HTML (pas de PDF)
      */
     public function viewPdf($certificateId)
     {
@@ -123,9 +164,22 @@ class CertificateControllerSimple extends Controller
                 abort(403, 'Vous n\'avez pas le droit de voir ce certificat.');
             }
 
-            // Préparer les données pour le PDF
+            // Préparer les données
             $user = authCheck();
-            $completion_date = $certificate->certificated_date ? $certificate->certificated_date->format('d/m/Y') : date('d/m/Y');
+            
+            // Formater la date en français (ex: 25 Octobre 2025)
+            $moisFr = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            if ($certificate->certificated_date) {
+                $jour = $certificate->certificated_date->format('d');
+                $mois = $moisFr[(int)$certificate->certificated_date->format('m')];
+                $annee = $certificate->certificated_date->format('Y');
+                $completion_date = $jour . ' ' . $mois . ' ' . $annee;
+            } else {
+                $jour = date('d');
+                $mois = $moisFr[(int)date('m')];
+                $annee = date('Y');
+                $completion_date = $jour . ' ' . $mois . ' ' . $annee;
+            }
 
             // Utiliser la relation directe avec le cours
             $course = $certificate->course;
@@ -140,31 +194,18 @@ class CertificateControllerSimple extends Controller
                     $instructor = $instructors->first();
 
                     if ($instructor && $instructor->userable) {
-                        // L'instructeur est un User avec userable_type = 'Instructor'
                         $instructor_name = ($instructor->userable->first_name ?? '').' '.($instructor->userable->last_name ?? '');
                     }
                 }
             }
 
-            // Utiliser la vue pdf-template.blade.php
-            $html = view('portal::certificate.pdf-template', compact('certificate', 'user', 'instructor_name', 'completion_date', 'course_title'))->render();
-
-            // Utiliser DomPDF pour convertir le HTML en PDF
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
-            $pdf->setPaper('A4', 'landscape');
-            $pdf->setOptions([
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-                'defaultFont' => 'DejaVu Sans',
-            ]);
-
-            // Retourner le PDF en stream
-            return $pdf->stream('certificat.pdf');
+            // Retourner la vue HTML directement (pas de PDF)
+            return view('portal::certificate.certificate-view-html', compact('certificate', 'user', 'instructor_name', 'completion_date', 'course_title'));
 
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de l\'affichage du PDF: '.$e->getMessage());
+            \Log::error('Erreur lors de l\'affichage du certificat: '.$e->getMessage());
 
-            return redirect()->back()->with('error', 'Erreur lors de l\'affichage du certificat PDF.');
+            return redirect()->back()->with('error', 'Erreur lors de l\'affichage du certificat.');
         }
     }
 }
