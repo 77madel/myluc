@@ -20,6 +20,7 @@ use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuestionController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizTypeController;
 use Modules\LMS\Http\Controllers\Instructor\Courses\Bundle\BundleController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizQuestionController;
+use Modules\LMS\Http\Controllers\Instructor\WebinarController;
 
 Route::group(
     ['prefix' => 'instructor', 'as' => 'instructor.', 'middleware' => ['auth:web',  'role:Instructor', 'checkInstaller']],
@@ -124,5 +125,19 @@ Route::group(
         );
         /* Notification */
         Route::resource('noticeboard', NoticesBoardController::class);
+
+        /* Webinars */
+        Route::group(['prefix' => 'webinars', 'as' => 'webinars.'], function () {
+            Route::get('/', [WebinarController::class, 'index'])->name('index');
+            Route::get('/create', [WebinarController::class, 'create'])->name('create');
+            Route::post('/', [WebinarController::class, 'store'])->name('store');
+            Route::get('/{id}', [WebinarController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [WebinarController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [WebinarController::class, 'update'])->name('update');
+            Route::delete('/{id}', [WebinarController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/publish', [WebinarController::class, 'publish'])->name('publish');
+            Route::post('/{id}/unpublish', [WebinarController::class, 'unpublish'])->name('unpublish');
+            Route::post('/{id}/generate-meeting-link', [WebinarController::class, 'generateMeetingLink'])->name('generate-meeting-link');
+        });
     }
 );

@@ -22,6 +22,8 @@ use Modules\LMS\Http\Controllers\Frontend\InstructorController;
 use Modules\LMS\Http\Controllers\Frontend\OrganizationController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizController;
 use Modules\LMS\Http\Controllers\CertificateControllerSimple as CertificateController;
+use Modules\LMS\Http\Controllers\Frontend\WebinarController;
+use Modules\LMS\Http\Controllers\Admin\WebinarController as AdminWebinarController;
 
 /*
  *--------------------------------------------------------------------------
@@ -72,7 +74,7 @@ Route::group(['middleware' => ['checkInstaller']], function () {
 
         Route::get('register',  'registerForm')->name('register.page');
         Route::post('register',  'register')->name('auth.register');
-        
+
         // Inscription via lien d'organisation - utilise le même formulaire
         Route::get('enroll/{slug}', 'registerForm')->name('organization.enrollment.form');
         Route::post('enroll/{slug}', 'register')->name('organization.enrollment.process');
@@ -103,6 +105,11 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     });
 
     Route::get('organizations', [OrganizationController::class, 'index'])->name('organization.list');
+
+    // Webinars - Public viewing only
+    Route::get('webinars', [WebinarController::class, 'index'])->name('webinar.list');
+    Route::get('webinars/{slug}', [WebinarController::class, 'show'])->name('webinar.detail');
+
     //Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
     Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
     Route::group(['middleware' => 'auth'], function () {
@@ -183,10 +190,21 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         Route::get('exam/{type}/{exam_type_id}/{course_id}', [ExamController::class, 'examStart'])->name('exam.start');
         Route::post('exam-store', [ExamController::class, 'store'])->name('exam.store');
         Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');
-        
-        // Routes pour les certificats PDF
         Route::get('certificate/{id}/download', [CertificateController::class, 'downloadPdf'])->name('certificate.download');
         Route::get('certificate/{id}/view', [CertificateController::class, 'viewPdf'])->name('certificate.view');
+        Route::get('exam/{type}/{exam_type_id}/{course_id}', [ExamController::class, 'examStart'])->name('exam.start');
+        Route::post('exam-store', [ExamController::class, 'store'])->name('exam.store');
+        Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');
+
+        // Webinar authenticated routes
+        Route::post('webinars/{id}/enroll', [WebinarController::class, 'enroll'])->name('webinar.enroll');
+        Route::post('webinars/{id}/cancel', [WebinarController::class, 'cancelEnrollment'])->name('webinar.cancel');
+        Route::get('my-webinars', [WebinarController::class, 'myWebinars'])->name('webinar.my');
+        Route::get('webinars/{id}/join', [WebinarController::class, 'join'])->name('webinar.join');
+        Route::post('webinars/{id}/attendance', [WebinarController::class, 'markAttendance'])->name('webinar.attendance');
+
+        // Logout route
+        Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');

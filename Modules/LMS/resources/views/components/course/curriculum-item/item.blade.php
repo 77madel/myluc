@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Erreur lors du démarrage
         });
     }
-    
+
     function markAsCompleted(topicId) {
         fetch(`{{ route('student.topic.complete', '') }}/${topicId}`, {
             method: 'POST',

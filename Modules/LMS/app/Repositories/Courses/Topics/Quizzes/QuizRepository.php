@@ -152,7 +152,7 @@ class QuizRepository extends BaseRepository
                 'user_id' => authCheck()->id,
                 'error' => $e->getTraceAsString()
             ]);
-            
+
             return ['status' => false, 'message' => translate('An error occurred while processing your answer.')];
         }
     }
@@ -185,7 +185,7 @@ class QuizRepository extends BaseRepository
             'attempt_number' => $userQuiz->attempt_number += 1,
             'score' => $totalScore,
         ])) {
-            
+
             // Vérifier si le cours est éligible pour un certificat après completion du quiz
             try {
                 \Log::info("🔍 Vérification de l'éligibilité au certificat après completion du quiz", [
@@ -193,26 +193,26 @@ class QuizRepository extends BaseRepository
                     'quiz_id' => $userQuiz->quiz_id,
                     'course_id' => $userQuiz->course_id
                 ]);
-                
+
                 // Récupérer le cours depuis le quiz
                 $quiz = \Modules\LMS\Models\Courses\Topics\Quiz::find($userQuiz->quiz_id);
                 if ($quiz && $quiz->topic && $quiz->topic->course) {
                     $courseId = $quiz->topic->course->id;
-                    
+
                     // Vérifier si le cours est complètement terminé
                     $courseValidationService = new \Modules\LMS\Services\CourseValidationService();
                     $courseValidation = $courseValidationService->validateCourse($userQuiz->user_id, $courseId);
-                    
+
                     \Log::info("🔍 Validation du cours après quiz", [
                         'course_id' => $courseId,
                         'is_completed' => $courseValidation['is_completed'] ?? false,
                         'completion_percentage' => $courseValidation['completion_percentage'] ?? 0
                     ]);
-                    
+
                     // Si le cours est complètement terminé, générer le certificat
                     if (isset($courseValidation['is_completed']) && $courseValidation['is_completed']) {
                         $certificate = CertificateService::generateCertificate($userQuiz->user_id, $courseId);
-                        
+
                         if ($certificate) {
                             \Log::info("🎓 Certificat généré automatiquement après completion du quiz pour l'utilisateur {$userQuiz->user_id} et le cours {$courseId}");
                         } else {
@@ -225,7 +225,7 @@ class QuizRepository extends BaseRepository
             } catch (\Exception $e) {
                 \Log::error("❌ Erreur lors de la vérification de l'éligibilité au certificat: " . $e->getMessage());
             }
-            
+
             return ['status' => 'success'];
         }
     }
@@ -370,7 +370,7 @@ class QuizRepository extends BaseRepository
             foreach ($request->answers as $answerIndex => $userAnswer) {
                 // Find the corresponding correct answer
                 $correctAnswer = $correctAnswers->where('id', $answerIndex)->first();
-                
+
                 if ($correctAnswer) {
                     // Compare the user's answer to the correct answer (case-insensitive)
                     if (strtolower(trim($userAnswer)) === strtolower(trim($correctAnswer->answer->name))) {
@@ -418,7 +418,7 @@ class QuizRepository extends BaseRepository
 
         // Mettre à jour le score total de l'utilisateur
         $this->updateUserQuizScore($quizId);
-        
+
         return $mark; // Return calculated score
     }
 
@@ -434,12 +434,12 @@ class QuizRepository extends BaseRepository
         $totalScore = \Modules\LMS\Models\QuestionScore::where('quiz_id', $quizId)
             ->where('status', 1)
             ->sum('score');
-        
+
         // Mettre à jour le score dans UserCourseExam
         \Modules\LMS\Models\Auth\UserCourseExam::where('quiz_id', $quizId)
             ->where('user_id', authCheck()->id)
             ->update(['score' => $totalScore]);
-            
+
         return $totalScore;
     }
 }

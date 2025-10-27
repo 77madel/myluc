@@ -125,6 +125,11 @@
                 </div>
                 <!-- Instructor Course -->
                 <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+        <!-- Start Instructor Overview -->
+        <div class="col-span-full lg:col-span-8 card">
+            <div class="grid grid-cols-12 gap-4 mb-4">
+                <!-- Instructor Course -->
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Total Course') }} </h6>
@@ -142,7 +147,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Total Bundles') }} </h6>
@@ -162,7 +167,93 @@
                 </div>
             </div>
         </div>
-        <!-- End Instructor Earning Overview -->
+        <!-- End Instructor Overview -->
+
+        <!-- Start Webinar Statistics -->
+        <div class="col-span-full card">
+            <div class="flex-center-between mb-6">
+                <h6 class="card-title">{{ translate('Statistiques des Webinaires') }}</h6>
+                <a href="{{ route('instructor.webinars.index') }}" class="btn b-solid btn-primary-solid btn-sm dk-theme-card-square">
+                    {{ translate('Voir tous') }}
+                </a>
+            </div>
+            <div class="grid grid-cols-12 gap-4 mb-4">
+                <!-- Total Webinaires -->
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Total Webinaires') }}
+                        </h6>
+                    </div>
+                    <div class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    <span class="counter-value" data-value="{{ $data['webinar_stats']['total'] }}">{{ translate('0') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webinaires Publiés -->
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Publiés') }}
+                        </h6>
+                    </div>
+                    <div class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    <span class="counter-value" data-value="{{ $data['webinar_stats']['published'] }}">{{ translate('0') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brouillons -->
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Brouillons') }}
+                        </h6>
+                    </div>
+                    <div class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    <span class="counter-value" data-value="{{ $data['webinar_stats']['drafts'] }}">{{ translate('0') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participants -->
+                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Participants') }}
+                        </h6>
+                    </div>
+                    <div class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    <span class="counter-value" data-value="{{ $data['webinar_stats']['participants'] }}">{{ translate('0') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Webinar Statistics -->
+
+>>>>>>> famorydev
 
         <!-- Start Instructor Best Selling Course Table -->
 

@@ -55,7 +55,7 @@
                                 </svg>
                                 {{ translate('View') }}
                             </a>
-                            
+
                             @if($certificate->isDownloaded())
                                 <!-- Certificat déjà téléchargé -->
                                 <div class="flex items-center gap-1">

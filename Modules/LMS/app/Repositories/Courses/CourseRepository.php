@@ -1141,7 +1141,7 @@ class CourseRepository extends BaseRepository
                 'type' => $type,
                 'id' => $id
             ]);
-            
+
             switch ($type) {
                 case 'video':
                     $result = Video::find($id);
@@ -1165,16 +1165,16 @@ class CourseRepository extends BaseRepository
                 default:
                     $result = null;
             }
-            
+
             \Log::info("🔍 fetchContentByType result", [
                 'type' => $type,
                 'id' => $id,
                 'result_found' => $result !== null,
                 'result_title' => $result ? $result->title : null
             ]);
-            
+
             return $result;
-            
+
         } catch (\Exception $e) {
             \Log::error("❌ Error in fetchContentByType", [
                 'type' => $type,

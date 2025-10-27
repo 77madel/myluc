@@ -1,6 +1,6 @@
 (function ($) {
     "use strict";
-    // FORCE CACHE BUST - Version 2025-10-23
+
     $(".cancel-button").hide();
     $(document).on("submit", ".form", function (e) {
         e.preventDefault();
@@ -23,7 +23,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
                         <path fill="currentColor" d="M304 48a48 48 0 1 0-96 0a48 48 0 1 0 96 0m0 416a48 48 0 1 0-96 0a48 48 0 1 0 96 0M48 304a48 48 0 1 0 0-96a48 48 0 1 0 0 96m464-48a48 48 0 1 0-96 0a48 48 0 1 0 96 0M142.9 437A48 48 0 1 0 75 369.1a48 48 0 1 0 67.9 67.9m0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437a48 48 0 1 0 67.9-67.9a48 48 0 1 0-67.9 67.9"/>
                         </svg>
-                        
+
                     </div> ${btnText}`);
                 submitButton.attr("disabled", true);
             },
@@ -33,7 +33,8 @@
                     submitButton.attr("disabled", false);
                     submitButton.html(`${btnText}`);
                     if (data.hasOwnProperty("message")) {
-                        toastr.error(`${data.message}`);
+
+                        Command: toastr["error"](`${data.message}`);
                     }
                     if (data.errors !== "") {
                         logErrorMsg(data.errors);
@@ -56,7 +57,7 @@
                         $(".fixed.inset-0").addClass("hidden");
                     }
                     if (data.hasOwnProperty("message")) {
-                        toastr.success(`${data.message}`);
+                        Command: toastr["success"](`${data.message}`);
                     }
                     if (data.hasOwnProperty("type")) {
                         location.reload();
@@ -178,7 +179,7 @@
     });
 
     $(document).on("click", ".auth-login", function () {
-        toastr.warning(`Please Login`);
+        Command: toastr["error"](`Please Login`);
     });
     /** Get Ajax Request
      *
@@ -192,11 +193,11 @@
             success: function (data) {
                 if (data.status == "error") {
                     if (data.hasOwnProperty("message")) {
-                        toastr.error(`${data.message}`);
+                        Command: toastr["error"](`${data.message}`);
                     }
                 } else if (data.status == "success") {
                     if (data.hasOwnProperty("message")) {
-                        toastr.success(`${data.message}`);
+                        Command: toastr["success"](`${data.message}`);
                     }
                     if (data.hasOwnProperty("coupon")) {
                         couponInformation(data);
@@ -242,10 +243,7 @@
             cache: false,
             contentType: false,
             processData: false,
-            success: function (data) {
-                // Score mis à jour seulement après soumission finale
-                // Pas d'affichage en temps réel
-            },
+            success: function (data) {},
         });
     });
 
@@ -270,10 +268,6 @@
             cache: false,
             contentType: false,
             processData: false,
-            success: function (data) {
-                // Score mis à jour seulement après soumission finale
-                // Pas d'affichage en temps réel
-            },
         });
     });
 
@@ -302,9 +296,6 @@
     let resetForm = (form) => {
         $(form).trigger("reset");
     };
-
-    // Fonction fetchQuizTotalScore supprimée
-    // Le score s'affiche maintenant seulement après soumission finale
 })(jQuery);
 
 /**

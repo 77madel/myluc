@@ -21,6 +21,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('webinar.list') }}" aria-label="Menu link" class="inline-block w-full py-3 hover:text-primary [&.active]:text-primary custom-transition">
+                        {{ translate('Webinaires') }}
+                    </a>
+                </li>
+                <li>
                     <a href="#" class="inline-block w-full py-3 hover:text-primary [&.active]:text-primary custom-transition">
                         {{ translate('Pages') }}
                     </a>

@@ -53,11 +53,11 @@ class LMSServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerGurads();
-        
+
         // Enregistrer les namespaces
         $this->registerPortalNamespace();
         $this->registerThemeNamespace();
-        
+
         // Enregistrer les singletons nécessaires
         $this->registerRequiredSingletons();
 
@@ -142,20 +142,16 @@ class LMSServiceProvider extends ServiceProvider
         // CORRECTION 3 : Appliquer la même condition ici.
         if (alreadyInstalled() && checkDatabaseConnection() && !$this->app->runningInConsole()) {
             // $router->pushMiddlewareToGroup('web', PerformanceMonitor::class);
-            $router->pushMiddlewareToGroup('web', BootstrapMiddleware::class);
             $router->aliasMiddleware('checkInstaller', LicenseActivationMiddleware::class);
             $router->aliasMiddleware('verify-org-access', \Modules\LMS\Http\Middleware\VerifyOrganizationAccess::class);
         }
-    }
-
-    private function setupInitialState()
     {
         config([
             'lms.monitoring.init_time' => Carbon::now(),
             'lms.monitoring.user_context' => 'system'
         ]);
     }
-
+    }
     /**
      * Register the service provider.
      */
@@ -190,7 +186,7 @@ class LMSServiceProvider extends ServiceProvider
         if (file_exists($sourcePortalPath)) {
             $this->app['view']->addNamespace('portal', $sourcePortalPath);
         }
-        
+
         $adminPortalComponentPath = module_path($this->moduleName, 'resources/views/portals/components/');
         if (file_exists($adminPortalComponentPath)) {
             Blade::anonymousComponentPath($adminPortalComponentPath, 'portal');
@@ -206,7 +202,7 @@ class LMSServiceProvider extends ServiceProvider
         if (file_exists($sourceThemePath)) {
             $this->app['view']->addNamespace('theme', $sourceThemePath);
         }
-        
+
         $sourceComponentsPath = module_path($this->moduleName, 'resources/views/components');
         if (file_exists($sourceComponentsPath)) {
             $this->app['view']->addNamespace('theme', $sourceComponentsPath);
@@ -223,22 +219,22 @@ class LMSServiceProvider extends ServiceProvider
         $this->app->singleton('default_language', function () {
             return config('app.locale', 'en');
         });
-        
+
         // Enregistrer user_role_list avec une valeur par défaut
         $this->app->singleton('user_role_list', function () {
             return [];
         });
-        
+
         // Enregistrer languages avec une valeur par défaut
         $this->app->singleton('languages', function () {
             return collect([]);
         });
-        
+
         // Enregistrer translations avec une valeur par défaut
         $this->app->singleton('translations', function () {
             return [];
         });
-        
+
         // Enregistrer options avec une valeur par défaut
         $this->app->singleton('options', function () {
             return [];

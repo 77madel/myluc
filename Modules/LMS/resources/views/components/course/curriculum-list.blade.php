@@ -8,7 +8,7 @@
         $select_chapter_id = $data['chapter_id'] ?? null;
         $start_topic_id = $data['topic_id'] ?? null;
         $showClass = $select_chapter_id == $chapterId ? 'panel-show' : ($loop->first ? 'panel-show' : '');
-        
+
     @endphp
     <!-- CHAPTER ITEM -->
     <div class="bg-white border-y border-border rounded-sm lms-accordion select-none chapter-item" data-chapter-id="{{ $chapterId }}">
@@ -23,7 +23,7 @@
                     <div class="text-xs text-primary font-light mt-1.5 leading-none">
                         {{ $chapter?->topics?->count() . ' ' . translate('Lesson') }}
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -65,7 +65,7 @@
                         :purchaseCheck=$purchaseCheck />
                 @endif
             @endforeach
-            
+
         </div>
     </div>
 @endforeach

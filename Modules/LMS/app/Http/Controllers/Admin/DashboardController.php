@@ -15,6 +15,7 @@ use Modules\LMS\Models\General\ThemeSetting;
 use Modules\LMS\Repositories\DashboardRepository;
 use Modules\Roles\Repositories\Staff\StaffRepository;
 use Modules\LMS\Repositories\SearchSuggestionRepository;
+use Modules\LMS\Models\Webinar;
 
 class DashboardController extends Controller
 {
