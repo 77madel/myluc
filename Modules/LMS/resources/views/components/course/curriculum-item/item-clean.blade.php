@@ -62,19 +62,11 @@
                                     ->where('topic_id', $realTopicId)
                                     ->first();
 
-                                // Debug: afficher le statut pour vérifier
-                                if ($topicProgress) {
-                                    \Log::info("Topic Progress Debug - Topic ID: {$realTopicId}, Status: {$topicProgress->status}");
-                                } else {
-                                    \Log::info("Topic Progress Debug - Aucun progress trouvé pour Topic ID: {$realTopicId}");
-                                }
+                                    // Vérifier le statut de progression
 
-                                // Debug: afficher directement dans le HTML
-                                $debugInfo = $topicProgress ? "Status: {$topicProgress->status}" : "No progress found for ID: {$realTopicId}";
                             } catch (\Exception $e) {
                                 $topicProgress = null;
                                 \Log::error("Erreur lors de la récupération du topic progress: " . $e->getMessage());
-                                $debugInfo = "Error: " . $e->getMessage();
                             }
                         @endphp
 

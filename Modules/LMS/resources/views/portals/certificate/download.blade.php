@@ -44,8 +44,21 @@
             @endif
 
         <div id="certificate-builder-area" class="certificate-builder-area text-align-justify !overflow-x-auto">
+                @php
+                    // Chemin absolu vers l'image du certificat (JPEG plus léger)
+                    $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
+                    $imageData = '';
+                    
+                    // Vérifier si le fichier existe
+                    if (file_exists($imagePath)) {
+                        // Lire le fichier et l'encoder en base64 pour l'affichage
+                        $imageData = base64_encode(file_get_contents($imagePath));
+                        $imageType = pathinfo($imagePath, PATHINFO_EXTENSION);
+                        $imageData = "data:image/{$imageType};base64,{$imageData}";
+                    }
+                @endphp
                 <div class="certificate-template-container" id="certificateImg" style="
-                    background: url('https://edulab.hivetheme.com/lms/assets/images/certificate-template.jpg');
+                    background: url('{{ $imageData }}');
                     background-repeat: no-repeat;
                     background-size: 100% 100%;
                     width: 800px;

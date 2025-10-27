@@ -90,7 +90,7 @@
                                 </svg>';
                 @endphp
                 <x-theme::exam.card.single-card-one icon="{!! $icon !!}"
-                    title="{{ $userQuiz->score ?? translate('Pending') }}" description="Your Score" />
+                    title="<span class='quiz-score-display'>{{ $userQuiz->score ?? translate('Pending') }}</span>" description="Your Score" />
                 @php
                     $icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
                                     <path opacity="0.969" fill-rule="evenodd" clip-rule="evenodd" d="M10.8281 0.640381C11.4531 0.640381 12.0781 0.640381 12.7031 0.640381C12.7031 2.20288 12.7031 3.76538 12.7031 5.32788C13.1563 5.32788 13.6094 5.32788 14.0625 5.32788C14.0625 4.32788 14.0625 3.32788 14.0625 2.32788C15.4844 2.32788 16.9063 2.32788 18.3281 2.32788C18.3281 3.74975 18.3281 5.17163 18.3281 6.59351C19.2656 6.59351 20.2031 6.59351 21.1406 6.59351C21.1406 7.1404 21.1406 7.68724 21.1406 8.23413C22.0937 8.23413 23.0469 8.23413 24 8.23413C24 10.0623 24 11.8904 24 13.7185C23.3997 18.2567 21.056 21.5457 16.9688 23.5857C15.6768 24.1586 14.3331 24.5102 12.9375 24.6404C12.2969 24.6404 11.6563 24.6404 11.0156 24.6404C6.34875 24.0585 2.99717 21.6523 0.960938 17.4216C0.455879 16.2293 0.135566 14.995 0 13.7185C0 12.9998 0 12.281 0 11.5623C0.624577 6.8981 3.06208 3.56217 7.3125 1.55444C8.45025 1.09428 9.62212 0.78959 10.8281 0.640381ZM11.1094 2.09351C11.1562 2.09351 11.2031 2.09351 11.25 2.09351C11.2578 5.53104 11.25 8.96852 11.2266 12.406C9.09375 15.0466 6.96094 17.6873 4.82812 20.3279C2.3519 17.9705 1.23471 15.0799 1.47656 11.656C1.93226 8.03126 3.72132 5.28906 6.84375 3.42944C8.18386 2.70399 9.60572 2.25868 11.1094 2.09351ZM15.5156 3.78101C15.9688 3.78101 16.4219 3.78101 16.875 3.78101C16.875 6.49976 16.875 9.21851 16.875 11.9373C16.4219 11.9373 15.9688 11.9373 15.5156 11.9373C15.5156 9.21851 15.5156 6.49976 15.5156 3.78101ZM12.7031 6.78101C13.1563 6.78101 13.6094 6.78101 14.0625 6.78101C14.0625 8.49977 14.0625 10.2185 14.0625 11.9373C13.6094 11.9373 13.1563 11.9373 12.7031 11.9373C12.7031 10.2185 12.7031 8.49977 12.7031 6.78101ZM18.3281 8.04663C18.7813 8.04663 19.2344 8.04663 19.6875 8.04663C19.6875 9.34352 19.6875 10.6404 19.6875 11.9373C19.2344 11.9373 18.7813 11.9373 18.3281 11.9373C18.3281 10.6404 18.3281 9.34352 18.3281 8.04663ZM21.1406 9.68726C21.625 9.68726 22.1094 9.68726 22.5938 9.68726C22.5938 10.4373 22.5938 11.1873 22.5938 11.9373C22.1094 11.9373 21.625 11.9373 21.1406 11.9373C21.1406 11.1873 21.1406 10.4373 21.1406 9.68726ZM12.7031 13.3435C15.9844 13.3435 19.2656 13.3435 22.5469 13.3435C22.1049 17.4718 20.0268 20.4484 16.3125 22.2732C15.1631 22.789 13.9599 23.0937 12.7031 23.1873C12.7031 19.906 12.7031 16.6248 12.7031 13.3435ZM11.2031 14.7498C11.25 17.5543 11.2656 20.3668 11.25 23.1873C9.31008 23.0293 7.54444 22.3965 5.95312 21.2888C7.70916 19.112 9.45914 16.9323 11.2031 14.7498Z" fill="#5F3EED"/>
@@ -129,7 +129,11 @@
                 </div>
 
                 @if ($attempt_number >= 1 && $attempt_number !== $quiz->total_retake && !$again && !isInstructor())
-                    <div class="flex justify-end mt-10">
+                    <div class="flex justify-between items-center mt-10">
+                        <button type="button" id="show-answers-btn" class="btn b-solid btn-info-solid h-12">
+                            <i class="ri-eye-line mr-2"></i>
+                            {{ translate('Voir les Réponses') }}
+                        </button>
                         <a class="quiz-btn btn b-solid btn-primary-solid h-12"
                             href="{{ route('exam.start', ['type' => $type, 'exam_type_id' => $exam_type_id, 'course_id' => $data['course_id'], 'status' => 'try']) }}">
                             {{ translate('Try Again') }}
@@ -159,4 +163,46 @@
         </div>
     </div>
     <!-- END INNER CONTENT AREA -->
+    
+    <!-- JavaScript pour afficher les réponses -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const showAnswersBtn = document.getElementById('show-answers-btn');
+        if (showAnswersBtn) {
+            showAnswersBtn.addEventListener('click', function() {
+                // Afficher toutes les réponses correctes
+                const questions = document.querySelectorAll('.question-options');
+                questions.forEach(function(questionContainer) {
+                    const options = questionContainer.querySelectorAll('.option');
+                    options.forEach(function(option) {
+                        const input = option.querySelector('input');
+                        const label = option.querySelector('label');
+                        const span = option.querySelector('span');
+                        
+                        if (input && label && span) {
+                            // Vérifier si c'est une bonne réponse (vous devrez adapter selon votre structure)
+                            const isCorrect = input.getAttribute('data-correct') === '1';
+                            
+                            if (isCorrect) {
+                                label.classList.add('bg-green-50', 'border-green-200');
+                                if (!span.querySelector('.ri-check-line')) {
+                                    const icon = document.createElement('i');
+                                    icon.className = 'ri-check-line text-green-600 text-lg ml-2';
+                                    icon.title = 'Bonne réponse';
+                                    span.appendChild(icon);
+                                }
+                            }
+                        }
+                    });
+                });
+                
+                // Changer le bouton
+                this.innerHTML = '<i class="ri-eye-off-line mr-2"></i> {{ translate("Masquer les Réponses") }}';
+                this.onclick = function() {
+                    location.reload();
+                };
+            });
+        }
+    });
+    </script>
 </x-frontend-layout>

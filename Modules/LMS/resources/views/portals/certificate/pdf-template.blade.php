@@ -1,14 +1,32 @@
+@php
+    // Chemin absolu vers l'image du certificat (JPEG plus léger)
+    $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
+    $imageData = '';
+    
+    // Vérifier si le fichier existe et l'encoder en base64
+    if (file_exists($imagePath)) {
+        $imageContent = file_get_contents($imagePath);
+        $imageData = base64_encode($imageContent);
+        $imageData = "data:image/jpeg;base64,{$imageData}";
+    }
+@endphp
+
 <div class="certificate-template-container" id="certificateImg" style="
-    background: url('https://edulab.hivetheme.com/lms/assets/images/certificate-template.jpg');
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
     width: 800px;
     height: 600px;
     margin: 0 auto;
     position: relative;
     font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 ">
+    <!-- Image de fond en tant que balise IMG (meilleur support TCPDF) -->
+    <img src="{{ $imageData }}" style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    " />
 
     <!-- Texte "Ce certificat est décerné à" - Introduction -->
     <div style="

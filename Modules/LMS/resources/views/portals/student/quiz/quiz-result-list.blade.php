@@ -73,11 +73,13 @@
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('exam.start', ['type' => $userQuiz->exam_type, 'exam_type_id' => $userQuiz->quiz_id, 'course_id' => $userQuiz->course_id]) }}"
                                             class="btn b-solid btn-info-solid btn-sm" title="{{ translate('View Result') }}">
+                                            <i class="ri-eye-line mr-1"></i>
                                             {{ translate('View Result') }}
                                         </a>
 
                                         <a href="{{ route('course.detail', $userQuiz?->course?->slug) }}"
-                                            class="btn b-solid btn-info-solid btn-sm" title="{{ translate('Go Course') }}">
+                                            class="btn b-solid btn-primary-solid btn-sm" title="{{ translate('Go Course') }}">
+                                            <i class="ri-book-open-line mr-1"></i>
                                             {{ translate('Go Course') }}
                                         </a>
                                     </div>

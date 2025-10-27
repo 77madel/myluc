@@ -40,8 +40,8 @@
 @endif
 
 @stack('js')
-<script src="{{ edulab_asset('lms/frontend/assets/js/main.js') }}"></script>
-<script src="{{ edulab_asset('lms/frontend/assets/js/custom.js') }}"></script>
+<script src="{{ edulab_asset('lms/frontend/assets/js/main.js') }}?v={{ time() }}"></script>
+<script src="{{ edulab_asset('lms/frontend/assets/js/custom.js') }}?v={{ time() }}"></script>
 
 @if ($customJs)
     <script>

@@ -1136,19 +1136,54 @@ class CourseRepository extends BaseRepository
      */
     private function fetchContentByType(string $type, int $id)
     {
-        switch ($type) {
-            case 'video':
-                return Video::find($id);
-            case 'reading':
-                return Reading::find($id);
-            case 'supplement':
-                return Supplement::with('topic')->find($id);
-            case 'assignment':
-                return Assignment::with('topic')->find($id);
-            case 'quiz':
-                return Quiz::with('topic')->find($id);
-            default:
-                return;
+        try {
+            \Log::info("🔍 fetchContentByType called", [
+                'type' => $type,
+                'id' => $id
+            ]);
+            
+            switch ($type) {
+                case 'video':
+                    $result = Video::find($id);
+                    break;
+                case 'reading':
+                    $result = Reading::find($id);
+                    break;
+                case 'supplement':
+                    $result = Supplement::with('topic')->find($id);
+                    break;
+                case 'assignment':
+                    $result = Assignment::with('topic')->find($id);
+                    break;
+                case 'quiz':
+                    $result = Quiz::with('topic')->find($id);
+                    \Log::info("🔍 Quiz found", [
+                        'quiz' => $result ? $result->toArray() : null,
+                        'topic' => $result && $result->topic ? $result->topic->toArray() : null
+                    ]);
+                    break;
+                default:
+                    $result = null;
+            }
+            
+            \Log::info("🔍 fetchContentByType result", [
+                'type' => $type,
+                'id' => $id,
+                'result_found' => $result !== null,
+                'result_title' => $result ? $result->title : null
+            ]);
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            \Log::error("❌ Error in fetchContentByType", [
+                'type' => $type,
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            throw $e;
         }
     }
 

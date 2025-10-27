@@ -20,6 +20,7 @@ Route::group(
             Route::get('bundle-course', 'bundleCourse')->name('bundle.index');
             Route::get('certificate', 'certificate')->name('certificate.index');
             Route::get('quizzes/my-result', 'quizResult')->name('quiz.result');
+            Route::get('quiz-details/{userQuizId}', 'quizDetails')->name('quiz.details');
             Route::get('assignments', 'assignmentList')->name('assignment.list');
             Route::get("request/certificate/{id}", 'certificateGenerate')->name('generate.certificate');
 Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
@@ -59,6 +60,7 @@ Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\Certifica
         Route::group(['prefix' => 'topic-progress', 'controller' => \Modules\LMS\Http\Controllers\Student\TopicProgressController::class], function () {
             Route::post('start/{topicId}', 'markAsStarted')->name('topic.start');
             Route::post('complete/{topicId}', 'markAsCompleted')->name('topic.complete');
+            Route::post('mark-completed', 'markReadingAsCompleted')->name('topic.mark-completed');
             Route::get('progress/{topicId}', 'getTopicProgress')->name('topic.progress');
             Route::get('chapter/{chapterId}', 'getChapterTopicsProgress')->name('chapter.topics.progress');
             Route::get('all', 'getAllProgress')->name('all.topics.progress');

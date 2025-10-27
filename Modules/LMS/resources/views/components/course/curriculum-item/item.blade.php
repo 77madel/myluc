@@ -3,9 +3,9 @@
     $auth = $auth ?? '';
     $purchaseCheck = $purchaseCheck ?? '';
 
-    // Utiliser le contenu (topic) au lieu du vrai Topic pour la compatibilité
+    // Utiliser l'ID du topic pour la progression
     $realTopic = $chapterTopic ?? null;
-    $realTopicId = $topic->id; // Utiliser l'ID du topic (111) pour la progression
+    $realTopicId = $topic->id; // ID du topic (ex: 209)
 
     if ($auth && $purchaseCheck !== false) {
         $route = route('play.course', [
@@ -49,6 +49,7 @@
                 class="flex flex-col gap-2 leading-none cursor-pointer {{ $sideBarShow == 'video-play' ? 'video-lesson-item' : '' }}"
                 aria-label="{{ $topic->title }}" data-type="{{ $sideBarShow == 'video-play' ? $topic->topic_type?->slug : '' }}"
                 data-id="{{ $sideBarShow == 'video-play' ? $realTopicId : '' }}"
+                data-topicable-id="{{ $sideBarShow == 'video-play' ? $topic->topicable_id : '' }}"
                 data-action="{{ $sideBarShow == 'video-play' ? route('learn.course.topic') . '?course_id=' . $course->id . '&chapter_id=' . $realTopic?->chapter_id . '&topic_id=' . $realTopicId : '' }}"
                 data-topic-id="{{ $realTopicId }}">
                 <div class="flex items-center gap-2">
@@ -60,19 +61,11 @@
                                         ->where('topic_id', $realTopicId)
                                         ->first();
 
-                                    // Debug: afficher le statut pour vérifier
-                                    if ($topicProgress) {
-                                        \Log::info("Topic Progress Debug - Topic ID: {$realTopicId}, Status: {$topicProgress->status}");
-                                    } else {
-                                        \Log::info("Topic Progress Debug - Aucun progress trouvé pour Topic ID: {$realTopicId}");
-                                    }
+                                    // Vérifier le statut de progression
 
-                                    // Debug: afficher directement dans le HTML
-                                    $debugInfo = $topicProgress ? "Status: {$topicProgress->status}" : "No progress found for ID: {$realTopicId}";
                                 } catch (\Exception $e) {
                                     $topicProgress = null;
                                     \Log::error("Erreur lors de la récupération du topic progress: " . $e->getMessage());
-                                    $debugInfo = "Error: " . $e->getMessage();
                                 }
                             @endphp
 
@@ -150,7 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (videoLink) {
             const topicId = videoLink.getAttribute('data-id') ||
                            videoLink.getAttribute('data-topic-id');
+            const topicableId = videoLink.getAttribute('data-topicable-id');
             const type = videoLink.getAttribute('data-type');
+            const action = videoLink.getAttribute('data-action');
+
+            const response = await fetch(`${action}&type=${type}&id=${topicableId}`, {
 
 
             if (topicId) {
@@ -794,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         .then(response => {
                             if (response.ok) {
                                 return response.text();
-                            } else {
+        } else {
                                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                             }
                         })

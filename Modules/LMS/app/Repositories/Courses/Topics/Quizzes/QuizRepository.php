@@ -11,6 +11,7 @@ use Modules\LMS\Models\Courses\TopicType;
 use Modules\LMS\Models\QuestionScore;
 use Modules\LMS\Models\TakeAnswer;
 use Modules\LMS\Repositories\BaseRepository;
+use Modules\LMS\Services\CertificateService;
 
 class QuizRepository extends BaseRepository
 {
@@ -109,30 +110,51 @@ class QuizRepository extends BaseRepository
      */
     public function submitQuizAnswer($quizId, $type, $request)
     {
+        try {
+            $checkUserQuiz = UserCourseExam::with('quiz')->where(['user_id' => authCheck()->id, 'quiz_id' => $quizId])->first();
+            $total_retake = $checkUserQuiz?->quiz?->total_retake ?? 1;
+            $attempt_number = $checkUserQuiz->attempt_number ?? 0;
 
-        $checkUserQuiz = UserCourseExam::with('quiz')->where(['user_id' => authCheck()->id, 'quiz_id' => $quizId])->first();
-        $total_retake = $checkUserQuiz?->quiz?->total_retake ?? 1;
-        $attempt_number = $checkUserQuiz->attempt_number ?? 0;
+            if ($total_retake > $attempt_number) {
+                $userQuiz = $this->examStore($quizId, $request);
+                $questionId = $request->question_id;
 
-        if ($total_retake > $attempt_number) {
-            $userQuiz = $this->examStore($quizId, $request);
-            $questionId = $request->question_id;
+                // Initialize the score
+                $score = 0;
 
-            // Initialize the score
-            $score = 0;
+                // Process the quiz based on type using switch
+                switch ($type) {
+                    case 'multiple-choice':
+                    case 'multiple_choice':
+                        $score = $this->handleMultipleChoice($request, $questionId, $quizId, $userQuiz);
+                        break;
+                    case 'single-choice':
+                    case 'single_choice':
+                        $score = $this->handleSingleChoice($request, $questionId, $quizId, $userQuiz);
+                        break;
+                    case 'fill-in-blank':
+                    case 'fill_in_blank':
+                        $score = $this->handleFillInBlank($request, $questionId, $quizId, $userQuiz);
+                        break;
+                    default:
+                        $score = ['status' => 'error', 'message' => translate('Invalid question type.')];
+                        break;
+                }
 
-            // Process the quiz based on type using match
-            $score = match ($type) {
-                'multiple-choice' => $this->handleMultipleChoice($request, $questionId, $quizId, $userQuiz),
-                'single-choice' => $this->handleSingleChoice($request, $questionId, $quizId, $userQuiz),
-                'fill-in-blank' => $this->handleFillInBlank($request, $questionId, $quizId, $userQuiz),
-                default => ['status' => 'error',  'message' => translate('Invalid question type.')],
-            };
+                return ['status' => true, 'score' => $score, 'message' => 'Réponse enregistrée avec succès'];
+            }
 
-            return ['status' => true, 'score' => $score];
+            return ['status' => false, 'message' => translate('Maximum attempts reached.')];
+        } catch (\Exception $e) {
+            \Log::error('Quiz submission error: ' . $e->getMessage(), [
+                'quiz_id' => $quizId,
+                'type' => $type,
+                'user_id' => authCheck()->id,
+                'error' => $e->getTraceAsString()
+            ]);
+            
+            return ['status' => false, 'message' => translate('An error occurred while processing your answer.')];
         }
-
-        return ['status' => false];
     }
 
     /**
@@ -163,6 +185,47 @@ class QuizRepository extends BaseRepository
             'attempt_number' => $userQuiz->attempt_number += 1,
             'score' => $totalScore,
         ])) {
+            
+            // Vérifier si le cours est éligible pour un certificat après completion du quiz
+            try {
+                \Log::info("🔍 Vérification de l'éligibilité au certificat après completion du quiz", [
+                    'user_id' => $userQuiz->user_id,
+                    'quiz_id' => $userQuiz->quiz_id,
+                    'course_id' => $userQuiz->course_id
+                ]);
+                
+                // Récupérer le cours depuis le quiz
+                $quiz = \Modules\LMS\Models\Courses\Topics\Quiz::find($userQuiz->quiz_id);
+                if ($quiz && $quiz->topic && $quiz->topic->course) {
+                    $courseId = $quiz->topic->course->id;
+                    
+                    // Vérifier si le cours est complètement terminé
+                    $courseValidationService = new \Modules\LMS\Services\CourseValidationService();
+                    $courseValidation = $courseValidationService->validateCourse($userQuiz->user_id, $courseId);
+                    
+                    \Log::info("🔍 Validation du cours après quiz", [
+                        'course_id' => $courseId,
+                        'is_completed' => $courseValidation['is_completed'] ?? false,
+                        'completion_percentage' => $courseValidation['completion_percentage'] ?? 0
+                    ]);
+                    
+                    // Si le cours est complètement terminé, générer le certificat
+                    if (isset($courseValidation['is_completed']) && $courseValidation['is_completed']) {
+                        $certificate = CertificateService::generateCertificate($userQuiz->user_id, $courseId);
+                        
+                        if ($certificate) {
+                            \Log::info("🎓 Certificat généré automatiquement après completion du quiz pour l'utilisateur {$userQuiz->user_id} et le cours {$courseId}");
+                        } else {
+                            \Log::info("⚠️ Le cours est terminé mais le certificat n'a pas pu être généré");
+                        }
+                    } else {
+                        \Log::info("📚 Le cours n'est pas encore complètement terminé après le quiz");
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error("❌ Erreur lors de la vérification de l'éligibilité au certificat: " . $e->getMessage());
+            }
+            
             return ['status' => 'success'];
         }
     }
@@ -300,14 +363,17 @@ class QuizRepository extends BaseRepository
         // Clear previous answers for the question
         $this->takeAnswerDelete($questionId);
 
-        foreach ($request->answers as $key => $answer) {
-            foreach ($answer as $index => $value) {
-                $value = implode(',', $value);
-                $questionAnswer = QuestionAnswer::with('answer')->where(['quiz_question_id' => $key, 'id' => $index])->first();
+        // Get correct answers for this question
+        $correctAnswers = QuestionAnswer::where(['quiz_question_id' => $questionId, 'correct' => true])->get();
 
-                if ($questionAnswer) {
-                    // Compare the user's answer to the correct answer
-                    if ($questionAnswer->answer->name === $value) {
+        if (!empty($request->answers)) {
+            foreach ($request->answers as $answerIndex => $userAnswer) {
+                // Find the corresponding correct answer
+                $correctAnswer = $correctAnswers->where('id', $answerIndex)->first();
+                
+                if ($correctAnswer) {
+                    // Compare the user's answer to the correct answer (case-insensitive)
+                    if (strtolower(trim($userAnswer)) === strtolower(trim($correctAnswer->answer->name))) {
                         $rightCount++;
                     } else {
                         $wrongCount++;
@@ -316,9 +382,9 @@ class QuizRepository extends BaseRepository
                     // Save the user's answer
                     $this->takeAnswer([
                         'user_quiz_id' => $userQuiz->id,
-                        'quiz_question_id' => $key,
-                        'question_answer' => $index,
-                        'value' => $value,
+                        'quiz_question_id' => $questionId,
+                        'question_answer' => $answerIndex,
+                        'value' => $userAnswer,
                     ]);
                 } else {
                     // Count as wrong if answer is missing
@@ -350,12 +416,30 @@ class QuizRepository extends BaseRepository
             $this->questionScoreUpdate($questionId);
         }
 
+        // Mettre à jour le score total de l'utilisateur
+        $this->updateUserQuizScore($quizId);
+        
         return $mark; // Return calculated score
     }
 
     private function getMarkForQuestion($questionId)
     {
-        $question = QuestionAnswer::with('quizQuestion')->where('id', $questionId)->first();
-        return $question ? $question->quizQuestion->mark : 0;
+        $question = \Modules\LMS\Models\Courses\Topics\Quizzes\QuizQuestion::find($questionId);
+        return $question ? $question->mark : 0;
+    }
+
+    private function updateUserQuizScore($quizId)
+    {
+        // Calculer le score total de l'utilisateur pour ce quiz
+        $totalScore = \Modules\LMS\Models\QuestionScore::where('quiz_id', $quizId)
+            ->where('status', 1)
+            ->sum('score');
+        
+        // Mettre à jour le score dans UserCourseExam
+        \Modules\LMS\Models\Auth\UserCourseExam::where('quiz_id', $quizId)
+            ->where('user_id', authCheck()->id)
+            ->update(['score' => $totalScore]);
+            
+        return $totalScore;
     }
 }
