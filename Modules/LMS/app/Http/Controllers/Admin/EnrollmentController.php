@@ -64,4 +64,29 @@ class EnrollmentController extends Controller
         $enrollment['url'] = route('enrollment.index');
         return response()->json($enrollment);
     }
+
+    /**
+     * Réinscrire un étudiant (déverrouiller l'accès)
+     */
+    public function reEnroll(Request $request)
+    {
+        // Vérifier les permissions
+        if (!has_permissions($request->user(), ['add.enrollment'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Vous n\'avez pas la permission de réinscrire des étudiants.'
+            ]);
+        }
+
+        // Valider les données
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'course_id' => 'required|exists:courses,id',
+        ]);
+
+        // Réinscrire l'étudiant
+        $result = $this->purchase->reEnrollStudent($request->user_id, $request->course_id);
+
+        return response()->json($result);
+    }
 }
