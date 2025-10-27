@@ -77,7 +77,8 @@
                                                 {{ translate('Description Courte') }}
                                             </label>
                                             <textarea class="form-control w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('short_description') border-red-500 @enderror"
-                                                      id="short_description" name="short_description" rows="2">{{ old('short_description', $webinar->short_description) }}</textarea>
+                                                      id="short_description" name="short_description" rows="2"
+>{{ old('short_description', $webinar->short_description) }}</textarea>
                                             @error('short_description')
                                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                             @enderror
@@ -90,7 +91,8 @@
                                                 </label>
                                                 <input type="datetime-local"
                                                        class="form-control w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('start_date') border-red-500 @enderror"
-                                                       id="start_date" name="start_date" value="{{ old('start_date', $webinar->start_date ? \Carbon\Carbon::parse($webinar->start_date)->format('Y-m-d\TH:i') : '') }}" required>
+                                                       id="start_date" name="start_date" value="{{ old('start_date', $webinar->start_date ? \Carbon\Carbon::parse($webinar->start_date)->format('Y-m-d\TH:i') : '') }}" required
+>
                                                 @error('start_date')
                                                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                                 @enderror
@@ -101,7 +103,8 @@
                                                 </label>
                                                 <input type="datetime-local"
                                                        class="form-control w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('end_date') border-red-500 @enderror"
-                                                       id="end_date" name="end_date" value="{{ old('end_date', $webinar->end_date ? \Carbon\Carbon::parse($webinar->end_date)->format('Y-m-d\TH:i') : '') }}" required>
+                                                       id="end_date" name="end_date" value="{{ old('end_date', $webinar->end_date ? \Carbon\Carbon::parse($webinar->end_date)->format('Y-m-d\TH:i') : '') }}" required
+>
                                                 @error('end_date')
                                                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                                 @enderror
@@ -115,7 +118,8 @@
                                                 </label>
                                                 <input type="url"
                                                        class="form-control w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('meeting_url') border-red-500 @enderror"
-                                                       id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $webinar->meeting_url) }}">
+                                                       id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $webinar->meeting_url) }}"
+>
                                                 @error('meeting_url')
                                                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                                 @enderror
@@ -126,7 +130,8 @@
                                                 </label>
                                                 <input type="number"
                                                        class="form-control w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('max_participants') border-red-500 @enderror"
-                                                       id="max_participants" name="max_participants" value="{{ old('max_participants', $webinar->max_participants) }}" min="1">
+                                                       id="max_participants" name="max_participants" value="{{ old('max_participants', $webinar->max_participants) }}" min="1"
+>
                                                 @error('max_participants')
                                                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                                 @enderror
@@ -151,12 +156,15 @@
                                                 {{ translate('Instructeur') }} <span class="text-red-500">*</span>
                                             </label>
                                             <select class="form-select w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('instructor_id') border-red-500 @enderror"
-                                                    id="instructor_id" name="instructor_id" required>
+                                                    id="instructor_id" name="instructor_id" required
+>
                                                 <option value="">{{ translate('Sélectionner un instructeur') }}</option>
                                                 @foreach($instructors as $instructor)
-                                                    <option value="{{ $instructor->id }}" {{ old('instructor_id', $webinar->instructor_id) == $instructor->id ? 'selected' : '' }}>
-                                                        {{ $instructor->username ?? 'Instructeur' }} ({{ $instructor->email }})
-                                                    </option>
+                                                    @if($instructor->user)
+                                                        <option value="{{ $instructor->user->id }}" {{ old('instructor_id', $webinar->instructor_id) == $instructor->user->id ? 'selected' : '' }}>
+                                                            {{ $instructor->user->full_name ?? $instructor->user->username ?? 'Instructeur' }} ({{ $instructor->user->email }})
+                                                        </option>
+                                                    @endif
                                                 @endforeach
                                             </select>
                                             @error('instructor_id')
@@ -169,7 +177,8 @@
                                                 {{ translate('Catégorie') }}
                                             </label>
                                             <select class="form-select w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('category_id') border-red-500 @enderror"
-                                                    id="category_id" name="category_id">
+                                                    id="category_id" name="category_id"
+>
                                                 <option value="">{{ translate('Sélectionner une catégorie') }}</option>
                                                 @foreach($categories as $category)
                                                     <option value="{{ $category->id }}" {{ old('category_id', $webinar->category_id) == $category->id ? 'selected' : '' }}>
@@ -187,7 +196,7 @@
                                                 {{ translate('Statut') }}
                                             </label>
                                             <select class="form-select w-full px-3 py-2 border border-gray-300 dark:border-dark-border-three rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent @error('status') border-red-500 @enderror"
-                                                    id="status" name="status" style="position: relative; z-index: 1; background-color: white;">
+                                                    id="" name="status" style="position: relative; z-index: 1; background-color: transparent !important; border-color: #4b5563 !important; color: #ffffff !important;">
                                                 <option value="draft" {{ old('status', $webinar->status) == 'draft' ? 'selected' : '' }}>{{ translate('Brouillon') }}</option>
                                                 <option value="scheduled" {{ old('status', $webinar->status) == 'scheduled' ? 'selected' : '' }}>{{ translate('Programmé') }}</option>
                                                 <option value="published" {{ old('status', $webinar->status) == 'published' ? 'selected' : '' }}>{{ translate('Publié') }}</option>
@@ -203,8 +212,10 @@
                                             <div class="flex items-center">
                                                 <input type="checkbox" id="is_free" name="is_free" value="1"
                                                        class="form-checkbox h-4 w-4 text-primary-600 transition duration-150 ease-in-out"
-                                                       checked disabled>
-                                                <label for="is_free" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                                       checked disabled
+                                                       style="background-color: transparent !important; border-color: #4b5563 !important;">
+                                                <label for="is_free" class="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+>
                                                     {{ translate('Webinaire Gratuit') }} <span class="text-green-600 font-medium">(Toujours gratuit)</span>
                                                 </label>
                                             </div>
@@ -212,8 +223,10 @@
                                             <div class="flex items-center">
                                                 <input type="checkbox" id="is_recorded" name="is_recorded" value="1"
                                                        class="form-checkbox h-4 w-4 text-primary-600 transition duration-150 ease-in-out"
-                                                       {{ old('is_recorded', $webinar->is_recorded) ? 'checked' : '' }}>
-                                                <label for="is_recorded" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                                       {{ old('is_recorded', $webinar->is_recorded) ? 'checked' : '' }}
+                                                       style="background-color: transparent !important; border-color: #4b5563 !important;">
+                                                <label for="is_recorded" class="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+>
                                                     {{ translate('Enregistrement Autorisé') }}
                                                 </label>
                                             </div>
@@ -221,8 +234,10 @@
                                             <div class="flex items-center">
                                                 <input type="checkbox" id="is_published" name="is_published" value="1"
                                                        class="form-checkbox h-4 w-4 text-primary-600 transition duration-150 ease-in-out"
-                                                       {{ old('is_published', $webinar->is_published) ? 'checked' : '' }}>
-                                                <label for="is_published" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                                       {{ old('is_published', $webinar->is_published) ? 'checked' : '' }}
+                                                       style="background-color: transparent !important; border-color: #4b5563 !important;">
+                                                <label for="is_published" class="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+>
                                                     {{ translate('Publié') }}
                                                 </label>
                                             </div>
@@ -250,6 +265,38 @@
 </x-dashboard-layout>
 
 <style>
+/* CORRECTION MODE SOMBRE - FORMULAIRE DE MODIFICATION */
+/* Forcer la transparence en mode sombre */
+.dark .form-control,
+.dark .form-select,
+.dark input,
+.dark textarea,
+.dark select {
+    background-color: transparent !important;
+    border-color: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+.dark .form-checkbox {
+    background-color: transparent !important;
+    border-color: #4b5563 !important;
+}
+
+.dark label {
+    color: #d1d5db !important;
+}
+
+/* Protection du mode clair */
+html:not(.dark) .form-control,
+html:not(.dark) .form-select,
+html:not(.dark) input,
+html:not(.dark) textarea,
+html:not(.dark) select {
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+}
+
 /* Correction du positionnement des selects */
 .form-select {
     position: relative;

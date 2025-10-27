@@ -63,64 +63,64 @@
                                         <div class="card-body p-4">
                                             <div class="section-box mb-4">
                                             <div class="section-heading mb-3">
-                                                <h5 class="mb-1"><i class="fas fa-edit me-2 text-primary"></i>{{ translate('Détails du webinaire') }}</h5>
-                                                <small class="text-muted">{{ translate('Ajoutez un titre clair et une description engageante') }}</small>
+                                                <h5 class="mb-1 dark:text-white"><i class="fas fa-edit me-2 text-primary"></i>{{ translate('Détails du webinaire') }}</h5>
+                                                <small class="text-muted dark:text-gray-400">{{ translate('Ajoutez un titre clair et une description engageante') }}</small>
                                             </div>
 
                                             <div class="mb-4">
-                                                <label for="title" class="form-label fw-semibold">{{ translate('Titre du Webinaire') }} <span class="text-danger">*</span></label>
+                                                <label for="title" class="form-label fw-semibold dark:text-gray-300">{{ translate('Titre du Webinaire') }} <span class="text-danger">*</span></label>
                                                 <div class="input-group input-group-lg">
-                                                    <span class="input-group-text bg-white"><i class="fas fa-heading text-muted"></i></span>
-                                                    <input type="text" class="form-control" id="title" name="title"
+                                                    <span class="input-group-text bg-white dark:bg-gray-700 dark:border-gray-600"><i class="fas fa-heading text-muted dark:text-gray-400"></i></span>
+                                                    <input type="text" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="title" name="title"
                                                            value="{{ old('title') }}" required placeholder="Ex: Introduction à la programmation Python">
                                                 </div>
-                                                <div class="form-text mt-2">{{ translate('Choisissez un titre accrocheur et descriptif') }}</div>
+                                                <div class="form-text mt-2 dark:text-gray-400">{{ translate('Choisissez un titre accrocheur et descriptif') }}</div>
                                             </div>
 
                                     <div class="mb-4">
-                                        <label for="short_description" class="form-label fw-bold">{{ translate('Description courte') }} <span class="text-danger">*</span></label>
-                                            <textarea class="form-control sleek" id="short_description" name="short_description"
+                                        <label for="short_description" class="form-label fw-bold dark:text-gray-300">{{ translate('Description courte') }} <span class="text-danger">*</span></label>
+                                            <textarea class="form-control sleek dark:bg-transparent dark:text-white dark:border-gray-600" id="short_description" name="short_description"
                                                       rows="3" maxlength="500" required
                                                       placeholder="Résumé en quelques lignes de ce que vous allez couvrir dans ce webinaire...">{{ old('short_description') }}</textarea>
                                             <div class="d-flex justify-content-between align-items-center mt-1">
-                                                <div class="form-text">{{ translate('Maximum 500 caractères - Cette description apparaîtra dans la liste des webinaires') }}</div>
-                                                <span class="badge rounded-pill bg-light text-secondary border" id="short-desc-counter">0/500</span>
+                                                <div class="form-text dark:text-gray-400">{{ translate('Maximum 500 caractères - Cette description apparaîtra dans la liste des webinaires') }}</div>
+                                                <span class="badge rounded-pill bg-light text-secondary border dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" id="short-desc-counter">0/500</span>
                                             </div>
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="description" class="form-label fw-bold">{{ translate('Description complète') }} <span class="text-danger">*</span></label>
-                                            <textarea class="form-control form-control-lg sleek" id="description" name="description"
+                                        <label for="description" class="form-label fw-bold dark:text-gray-300">{{ translate('Description complète') }} <span class="text-danger">*</span></label>
+                                            <textarea class="form-control form-control-lg sleek dark:bg-transparent dark:text-white dark:border-gray-600" id="description" name="description"
                                                       rows="8" required
                                                       placeholder="Décrivez en détail le contenu de votre webinaire, les objectifs d'apprentissage, le programme...">{{ old('description') }}</textarea>
-                                        <div class="form-text">{{ translate('Cette description détaillée sera visible par les participants') }}</div>
+                                        <div class="form-text dark:text-gray-400">{{ translate('Cette description détaillée sera visible par les participants') }}</div>
                                     </div>
                                     </div>
 
                                         <div class="section-divider"></div>
                                         <div class="section-box mb-4">
                                         <div class="section-heading mb-3">
-                                            <h5 class="mb-1"><i class="fas fa-calendar-alt me-2 text-primary"></i>{{ translate('Planification') }}</h5>
-                                            <small class="text-muted">{{ translate('Définissez les dates et la durée') }}</small>
+                                            <h5 class="mb-1 dark:text-white"><i class="fas fa-calendar-alt me-2 text-primary"></i>{{ translate('Planification') }}</h5>
+                                            <small class="text-muted dark:text-gray-400">{{ translate('Définissez les dates et la durée') }}</small>
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-6">
                                             <div class="mb-3">
-                                                    <label for="start_date" class="form-label fw-semibold">{{ translate('Date de début') }} <span class="text-danger">*</span></label>
+                                                    <label for="start_date" class="form-label fw-semibold dark:text-gray-300">{{ translate('Date de début') }} <span class="text-danger">*</span></label>
                                                     <div class="input-group">
-                                                        <span class="input-group-text bg-white"><i class="far fa-clock text-muted"></i></span>
-                                                        <input type="datetime-local" class="form-control" id="start_date" name="start_date"
+                                                        <span class="input-group-text bg-white dark:bg-gray-700 dark:border-gray-600"><i class="far fa-clock text-muted dark:text-gray-400"></i></span>
+                                                        <input type="datetime-local" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="start_date" name="start_date"
                                                                value="{{ old('start_date') }}" required>
                                                     </div>
                                             </div>
                                             </div>
                                             <div class="col-md-6">
                                             <div class="mb-3">
-                                                    <label for="end_date" class="form-label fw-semibold">{{ translate('Date de fin') }} <span class="text-danger">*</span></label>
+                                                    <label for="end_date" class="form-label fw-semibold dark:text-gray-300">{{ translate('Date de fin') }} <span class="text-danger">*</span></label>
                                                     <div class="input-group">
-                                                        <span class="input-group-text bg-white"><i class="far fa-calendar text-muted"></i></span>
-                                                        <input type="datetime-local" class="form-control" id="end_date" name="end_date"
+                                                        <span class="input-group-text bg-white dark:bg-gray-700 dark:border-gray-600"><i class="far fa-calendar text-muted dark:text-gray-400"></i></span>
+                                                        <input type="datetime-local" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="end_date" name="end_date"
                                                                value="{{ old('end_date') }}" required>
                                                     </div>
                                             </div>
@@ -130,17 +130,17 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                             <div class="mb-3">
-                                                    <label for="duration" class="form-label fw-semibold">{{ translate('Durée (minutes)') }} <span class="text-danger">*</span></label>
-                                                    <input type="number" class="form-control" id="duration" name="duration"
+                                                    <label for="duration" class="form-label fw-semibold dark:text-gray-300">{{ translate('Durée (minutes)') }} <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="duration" name="duration"
                                                            value="{{ old('duration') }}" min="15" required>
                                             </div>
                                             </div>
                                             <div class="col-md-6">
                                             <div class="mb-3">
-                                                    <label for="max_participants" class="form-label fw-semibold">{{ translate('Participants maximum') }}</label>
-                                                    <input type="number" class="form-control" id="max_participants" name="max_participants"
+                                                    <label for="max_participants" class="form-label fw-semibold dark:text-gray-300">{{ translate('Participants maximum') }}</label>
+                                                    <input type="number" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="max_participants" name="max_participants"
                                                            value="{{ old('max_participants') }}" min="1">
-                                                    <div class="form-text">{{ translate('Laisser vide pour illimité') }}</div>
+                                                    <div class="form-text dark:text-gray-400">{{ translate('Laisser vide pour illimité') }}</div>
                                             </div>
                                             </div>
                                         </div>
@@ -149,13 +149,13 @@
                                         <div class="section-divider"></div>
                                         <div class="section-box">
                                         <div class="section-heading mb-3">
-                                            <h5 class="mb-1"><i class="fas fa-tags me-2 text-primary"></i>{{ translate('Catégorie et média') }}</h5>
-                                            <small class="text-muted">{{ translate('Aidez les étudiants à trouver votre webinaire') }}</small>
+                                            <h5 class="mb-1 dark:text-white"><i class="fas fa-tags me-2 text-primary"></i>{{ translate('Catégorie et média') }}</h5>
+                                            <small class="text-muted dark:text-gray-400">{{ translate('Aidez les étudiants à trouver votre webinaire') }}</small>
                                         </div>
 
                                     <div class="mb-3">
-                                            <label for="category_id" class="form-label fw-semibold">{{ translate('Catégorie') }} <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="category_id" name="category_id" required>
+                                            <label for="category_id" class="form-label fw-semibold dark:text-gray-300">{{ translate('Catégorie') }} <span class="text-danger">*</span></label>
+                                        <select class="form-select dark:bg-transparent dark:text-white dark:border-gray-600" id="category_id" name="category_id" required>
                                             <option value="">{{ translate('Sélectionner une catégorie') }}</option>
                                             @foreach($categories as $category)
                                                 <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -166,25 +166,25 @@
                                     </div>
 
                                         <div class="mb-3">
-                                            <label for="meeting_url" class="form-label fw-semibold">{{ translate('URL de la réunion (collez votre lien)') }}</label>
-                                            <input type="url" class="form-control" id="meeting_url" name="meeting_url" value="{{ old('meeting_url') }}" placeholder="https://...">
-                                            <div class="form-text">{{ translate('Créez votre réunion sur Teams, Zoom ou Google Meet puis collez le lien ici.') }}</div>
+                                            <label for="meeting_url" class="form-label fw-semibold dark:text-gray-300">{{ translate('URL de la réunion (collez votre lien)') }}</label>
+                                            <input type="url" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="meeting_url" name="meeting_url" value="{{ old('meeting_url') }}" placeholder="https://...">
+                                            <div class="form-text dark:text-gray-400">{{ translate('Créez votre réunion sur Teams, Zoom ou Google Meet puis collez le lien ici.') }}</div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="image" class="form-label fw-semibold">{{ translate('Image du webinaire') }}</label>
-                                            <input type="file" class="form-control" id="image" name="image"
+                                            <label for="image" class="form-label fw-semibold dark:text-gray-300">{{ translate('Image du webinaire') }}</label>
+                                            <input type="file" class="form-control dark:bg-transparent dark:text-white dark:border-gray-600" id="image" name="image"
                                                    accept="image/jpeg,image/png,image/jpg,image/gif">
-                                            <div class="form-text">{{ translate('Formats acceptés: JPEG, PNG, JPG, GIF (max 2MB)') }}</div>
+                                            <div class="form-text dark:text-gray-400">{{ translate('Formats acceptés: JPEG, PNG, JPG, GIF (max 2MB)') }}</div>
                                             <div class="mt-3">
-                                                <img id="image-preview" class="img-fluid rounded d-none" alt="preview" />
+                                                <img id="image-preview" class="img-fluid rounded d-none dark:border-gray-600" alt="preview" />
                                             </div>
                                         </div>
 
                                         <div class="mb-0">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="is_recorded" name="is_recorded"
+                                                <input class="form-check-input dark:bg-transparent dark:border-gray-600" type="checkbox" id="is_recorded" name="is_recorded"
                                                        {{ old('is_recorded') ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="is_recorded">
+                                                <label class="form-check-label dark:text-gray-300" for="is_recorded">
                                                     {{ translate('Enregistrer le webinaire') }}
                                                 </label>
                                             </div>
@@ -195,40 +195,40 @@
                                 </div>
 
                                 <div class="col-lg-4">
-                                    <div class="card border-0 shadow-sm bg-gradient-light sticky-side">
-                                        <div class="card-header bg-transparent border-0">
-                                            <h6 class="mb-0 fw-bold text-dark">
+                                    <div class="card border-0 shadow-sm bg-gradient-light dark:bg-gray-800 sticky-side">
+                                        <div class="card-header bg-transparent dark:bg-gray-900 border-0 dark:border-gray-700">
+                                            <h6 class="mb-0 fw-bold text-dark dark:text-white">
                                                 <i class="fas fa-info-circle text-primary me-2"></i>
                                                 {{ translate('Informations') }}
                                             </h6>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body dark:bg-gray-800">
                                             <div class="mb-4">
-                                                <label class="form-label fw-bold">{{ translate('Type de webinaire') }}</label>
+                                                <label class="form-label fw-bold dark:text-gray-300">{{ translate('Type de webinaire') }}</label>
                                                 <div class="d-flex align-items-center">
                                                     <span class="badge bg-success rounded-pill px-3 py-2 me-2">
                                                         <i class="fas fa-gift me-1"></i>
                                                         {{ translate('Gratuit') }}
                                                     </span>
                                                 </div>
-                                                <div class="form-text">{{ translate('Les webinaires d\'instructeur sont toujours gratuits') }}</div>
+                                                <div class="form-text dark:text-gray-400">{{ translate('Les webinaires d\'instructeur sont toujours gratuits') }}</div>
                                             </div>
 
                                             <div class="mb-4">
-                                                <label class="form-label fw-bold">{{ translate('Statut') }}</label>
+                                                <label class="form-label fw-bold dark:text-gray-300">{{ translate('Statut') }}</label>
                                                 <div class="d-flex align-items-center">
                                                     <span class="badge bg-warning rounded-pill px-3 py-2 me-2">
                                                         <i class="fas fa-edit me-1"></i>
                                                         {{ translate('Brouillon') }}
                                                     </span>
                                                 </div>
-                                                <div class="form-text">{{ translate('Le webinaire sera en brouillon jusqu\'à publication') }}</div>
+                                                <div class="form-text dark:text-gray-400">{{ translate('Le webinaire sera en brouillon jusqu\'à publication') }}</div>
                                             </div>
 
 
 
-                                            <div class="alert alert-info border-0">
-                                                <i class="fas fa-lightbulb text-info me-2"></i>
+                                            <div class="alert alert-info border-0 dark:bg-blue-900 dark:border-blue-800 dark:text-blue-200">
+                                                <i class="fas fa-lightbulb text-info dark:text-blue-400 me-2"></i>
                                                 <small>{{ translate('Conseil: Publiez votre webinaire au moins 24h avant la date prévue pour permettre aux étudiants de s\'inscrire.') }}</small>
                                             </div>
                                         </div>
@@ -236,9 +236,9 @@
                                 </div>
                             </div>
 
-                            <div class="action-bar">
+                            <div class="action-bar dark:bg-gray-800 dark:border-gray-700">
                                 <div class="container-fluid px-0 d-flex justify-content-between align-items-center">
-                                    <a href="{{ route('instructor.webinars.index') }}" class="btn btn-secondary">
+                                    <a href="{{ route('instructor.webinars.index') }}" class="btn btn-secondary dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
                                         <i class="fas fa-arrow-left"></i> {{ translate('Retour') }}
                                     </a>
                                     <button type="submit" class="btn btn-primary">
@@ -450,5 +450,150 @@
 
         /* Counter badge styling */
         #short-desc-counter{ background:var(--slate-100); color:var(--slate-600); border:1px solid var(--slate-200); }
+
+        /* MODE SOMBRE - FORMULAIRE INSTRUCTEUR */
+        .dark .form-control,
+        .dark .form-select,
+        .dark input,
+        .dark textarea,
+        .dark select {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+
+        .dark .form-control::placeholder,
+        .dark input::placeholder,
+        .dark textarea::placeholder {
+            color: #9ca3af !important;
+        }
+
+        .dark .input-group-text {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #d1d5db !important;
+        }
+
+        .dark .form-label,
+        .dark label {
+            color: #d1d5db !important;
+        }
+
+        .dark .form-text {
+            color: #9ca3af !important;
+        }
+
+        .dark .card {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+
+        .dark .section-heading h5 {
+            color: #f3f4f6 !important;
+        }
+
+        .dark .section-heading small {
+            color: #9ca3af !important;
+        }
+
+        .dark .badge {
+            background-color: #374151 !important;
+            color: #d1d5db !important;
+            border-color: #4b5563 !important;
+        }
+
+        .dark .alert {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f3f4f6 !important;
+        }
+
+        /* Renforcement des styles pour tous les éléments */
+        .dark .section-heading h5 {
+            color: #f3f4f6 !important;
+        }
+
+        .dark .section-heading small {
+            color: #9ca3af !important;
+        }
+
+        .dark .input-group-text {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #d1d5db !important;
+        }
+
+        .dark .input-group-text i {
+            color: #9ca3af !important;
+        }
+
+        /* Fond des cartes et sections en mode sombre */
+        .dark .card,
+        .dark .form-section,
+        .dark .card-body {
+            background-color: #1f2937 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .dark .section-box {
+            background-color: #1f2937 !important;
+        }
+
+        .dark .section-divider {
+            border-color: #374151 !important;
+        }
+
+        /* Barre d'action */
+        .dark .action-bar {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+
+        .dark .btn-secondary {
+            background-color: #4b5563 !important;
+            border-color: #6b7280 !important;
+            color: #e5e7eb !important;
+        }
+
+        .dark .btn-secondary:hover {
+            background-color: #6b7280 !important;
+            border-color: #9ca3af !important;
+        }
+
+        /* Card header */
+        .dark .card-header {
+            background-color: #111827 !important;
+            border: none !important;
+        }
+
+        .dark .card-header h6 {
+            color: #f3f4f6 !important;
+        }
+
+        /* Supprimer tous les bordures et ombres blanches */
+        .dark .sticky-side {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .dark .bg-gradient-light {
+            background: #1f2937 !important;
+        }
+
+        /* Action bar */
+        .dark .action-bar {
+            border-top-color: #374151 !important;
+        }
+
+        /* Protection du mode clair */
+        html:not(.dark) .form-control,
+        html:not(.dark) input,
+        html:not(.dark) textarea,
+        html:not(.dark) select {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
     </style>
 </x-dashboard-layout>

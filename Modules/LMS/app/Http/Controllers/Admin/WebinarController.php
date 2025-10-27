@@ -11,6 +11,7 @@ use Modules\LMS\Models\Webinar;
 use Modules\LMS\Models\WebinarEnrollment;
 use Modules\LMS\Models\Category;
 use Modules\LMS\Models\User;
+use Modules\LMS\Models\Auth\Instructor;
 use Illuminate\Support\Facades\Storage;
 
 class WebinarController extends Controller
@@ -54,7 +55,13 @@ class WebinarController extends Controller
         }
 
         $webinars = $query->orderBy('start_date', 'desc')->paginate(15);
-        $instructors = DB::table('users')->where('guard', 'instructor')->get();
+        // Récupérer les instructeurs depuis la table instructors avec leur relation user
+        $instructors = Instructor::with('user')->get()->map(function ($instructor) {
+            if ($instructor->user) {
+                $instructor->user->full_name = $instructor->user->first_name . ' ' . $instructor->user->last_name;
+            }
+            return $instructor;
+        });
         $categories = Category::where('status', 1)->get();
 
         return view('lms::portals.admin.webinars.index', compact('webinars', 'instructors', 'categories'));
@@ -65,7 +72,13 @@ class WebinarController extends Controller
      */
     public function create()
     {
-        $instructors = DB::table('users')->where('guard', 'instructor')->get();
+        // Récupérer les instructeurs depuis la table instructors avec leur relation user
+        $instructors = Instructor::with('user')->get()->map(function ($instructor) {
+            if ($instructor->user) {
+                $instructor->user->full_name = $instructor->user->first_name . ' ' . $instructor->user->last_name;
+            }
+            return $instructor;
+        });
         $categories = Category::where('status', 1)->get();
 
         return view('lms::portals.admin.webinars.create', compact('instructors', 'categories'));
@@ -157,7 +170,13 @@ class WebinarController extends Controller
     public function edit($id)
     {
         $webinar = Webinar::findOrFail($id);
-        $instructors = DB::table('users')->where('guard', 'instructor')->get();
+        // Récupérer les instructeurs depuis la table instructors avec leur relation user
+        $instructors = Instructor::with('user')->get()->map(function ($instructor) {
+            if ($instructor->user) {
+                $instructor->user->full_name = $instructor->user->first_name . ' ' . $instructor->user->last_name;
+            }
+            return $instructor;
+        });
         $categories = Category::where('status', 1)->get();
 
         return view('lms::portals.admin.webinars.edit', compact('webinar', 'instructors', 'categories'));

@@ -40,7 +40,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="card-body p-0">
                         @if(session('success'))
                             <div class="alert alert-success alert-dismissible fade show m-3 m-md-4 rounded-3 glass-alert" role="alert">
@@ -280,8 +280,8 @@
                                                                 <i class="fas fa-calendar-alt text-white" style="font-size: 0.9rem;"></i>
                                                             </div>
                                                             <div>
-                                                                <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Date et heure') }}</small>
-                                                                <strong class="text-dark" style="font-size: 0.9rem;">
+                                                                <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Date et heure') }}</small>
+                                                                <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">
                                                                     {{ $webinar->start_date->format('d/m/Y') }} à {{ $webinar->start_date->format('H:i') }}
                                                                 </strong>
                                                             </div>
@@ -293,8 +293,8 @@
                                                                 <i class="fas fa-clock text-white" style="font-size: 0.9rem;"></i>
                                                             </div>
                                                             <div>
-                                                                <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Durée') }}</small>
-                                                                <strong class="text-dark" style="font-size: 0.9rem;">{{ $webinar->duration }} {{ translate('minutes') }}</strong>
+                                                                <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Durée') }}</small>
+                                                                <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">{{ $webinar->duration }} {{ translate('minutes') }}</strong>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -304,8 +304,8 @@
                                                                 <i class="fas fa-users text-white" style="font-size: 0.9rem;"></i>
                                                             </div>
                                                             <div>
-                                                                <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Participants') }}</small>
-                                                                <strong class="text-dark" style="font-size: 0.9rem;">
+                                                                <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Participants') }}</small>
+                                                                <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">
                                                                     {{ $webinar->current_participants }}/{{ $webinar->max_participants ?? '∞' }}
                                                                 </strong>
                                                             </div>
@@ -525,6 +525,113 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* MODE SOMBRE - INDEX INSTRUCTEUR */
+        .dark .card {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+
+        .dark .card-body {
+            background-color: #1f2937 !important;
+        }
+
+        .dark .webinar-card {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+        }
+
+        .dark .webinar-card:hover {
+            background-color: #4b5563 !important;
+        }
+
+        .dark .webinar-title {
+            color: #f3f4f6 !important;
+        }
+
+        .dark .webinar-description,
+        .dark .text-muted {
+            color: #9ca3af !important;
+        }
+
+        .dark .badge {
+            background-color: #374151 !important;
+            color: #d1d5db !important;
+            border-color: #4b5563 !important;
+        }
+
+        .dark .alert {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f3f4f6 !important;
+        }
+
+        .dark .form-control,
+        .dark .form-select,
+        .dark input,
+        .dark select {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+
+        .dark .btn-outline-secondary {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #d1d5db !important;
+        }
+
+        .dark .btn-outline-secondary:hover {
+            background-color: #374151 !important;
+            border-color: #6b7280 !important;
+        }
+
+        /* Textes dans les cartes info */
+        .dark .text-muted {
+            color: #d1d5db !important;
+        }
+
+        .dark .text-dark {
+            color: #ffffff !important;
+        }
+
+        .dark .card-title {
+            color: #f3f4f6 !important;
+        }
+
+        .dark .card-text {
+            color: #d1d5db !important;
+        }
+
+        .dark .info-item {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+        }
+
+        .dark .info-item small {
+            color: #d1d5db !important;
+        }
+
+        .dark .info-item strong {
+            color: #ffffff !important;
+        }
+
+        .dark .icon-circle {
+            background-color: #6366f1 !important;
+        }
+
+        /* Protection du mode clair */
+        html:not(.dark) .card {
+            background-color: #ffffff !important;
+        }
+
+        html:not(.dark) .text-muted {
+            color: #6c757d !important;
+        }
+
+        html:not(.dark) .text-dark {
+            color: #343a40 !important;
         }
     </style>
 

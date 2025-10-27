@@ -167,3 +167,6 @@ Les logs sont dans `storage/logs/laravel.log` :
 - Erreurs d'API trackées
 - Performance des APIs
 
+
+
+

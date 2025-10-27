@@ -28,7 +28,7 @@
                         </div>
                         <div>
                             <a href="{{ route('webinars.create') }}"
-                               class="inline-flex items-center gap-3 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                               class="create-webinar-btn inline-flex items-center gap-3 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                                 <i class="fas fa-plus text-lg"></i>
                                 {{ translate('Créer un Webinaire') }}
                             </a>
@@ -61,21 +61,89 @@
     @endif
 
     <!-- Filtres avec design moderne et élégant -->
-    <div class="bg-white dark:bg-dark-card rounded-2xl shadow-lg border border-gray-100 dark:border-dark-border-three mb-8 overflow-hidden">
-        <!-- Header du filtre avec gradient -->
-        <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mb-8 overflow-hidden" style="background-color: white;">
+        <style>
+            .dark .bg-white {
+                background-color: #1f2937 !important;
+            }
+            .dark .border-gray-100 {
+                border-color: #374151 !important;
+            }
+            .dark .text-gray-700 {
+                color: #d1d5db !important;
+            }
+            /* Forcer le mode sombre pour les boutons */
+            .dark .bg-gray-100 {
+                background-color: #4b5563 !important;
+            }
+            .dark .hover\:bg-gray-200:hover {
+                background-color: #6b7280 !important;
+            }
+            .dark .text-gray-700 {
+                color: #e5e7eb !important;
+            }
+            /* Forcer le mode sombre pour le bouton Actions */
+            .dark .btn-outline-secondary {
+                background-color: #4b5563 !important;
+                border-color: #6b7280 !important;
+                color: #e5e7eb !important;
+            }
+            .dark .btn-outline-secondary:hover {
+                background-color: #6b7280 !important;
+                border-color: #9ca3af !important;
+            }
+            /* Forcer le mode sombre pour le bouton Supprimer */
+            .dark .btn-danger {
+                background-color: #dc2626 !important;
+                border-color: #dc2626 !important;
+                color: #ffffff !important;
+            }
+            .dark .btn-danger:hover {
+                background-color: #b91c1c !important;
+                border-color: #b91c1c !important;
+            }
+            /* Forcer le mode sombre pour le bouton "Créer un Webinaire" */
+            .dark .create-webinar-btn {
+                background-color: #ffffff !important;
+                color: #1f2937 !important;
+            }
+            .dark .create-webinar-btn:hover {
+                background-color: #f3f4f6 !important;
+                color: #111827 !important;
+            }
+            /* Forcer la couleur du texte dans le header des filtres */
+            .dark .text-blue-100 {
+                color: #dbeafe !important;
+            }
+            /* Couleur adaptative pour le titre des filtres */
+            .filter-title {
+                color: #1f2937 !important; /* Gris foncé pour mode clair */
+            }
+            .dark .filter-title {
+                color: #ffffff !important; /* Blanc pour mode sombre */
+            }
+            /* Couleur adaptative pour le sous-titre des filtres */
+            .filter-subtitle {
+                color: #1e40af !important; /* Bleu foncé pour mode clair */
+            }
+            .dark .filter-subtitle {
+                color: #dbeafe !important; /* Bleu clair pour mode sombre */
+            }
+        </style>
+        <!-- Header du filtre -->
+        <div class="filter-header px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mr-3">
-                        <i class="fas fa-filter text-white text-lg"></i>
+                    <div class="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-xl flex items-center justify-center mr-3">
+                        <i class="fas fa-filter text-gray-700 dark:text-white text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-white">{{ translate('Filtres Avancés') }}</h3>
-                        <p class="text-blue-100 text-sm">{{ translate('Affinez votre recherche') }}</p>
+                        <h3 class="filter-title text-xl font-bold text-white">{{ translate('Filtres Avancés') }}</h3>
+                        <p class="filter-subtitle text-sm">{{ translate('Affinez votre recherche') }}</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span class="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <span class="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded-full text-sm font-medium">
                         {{ $webinars->total() }} {{ translate('webinaires') }}
                     </span>
                 </div>
@@ -95,11 +163,11 @@
                         <div class="relative">
                             <input type="text"
                                    name="search"
-                                   class="w-full pl-4 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                                   class="w-full pl-4 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                                    placeholder="{{ translate('Rechercher...') }}"
                                    value="{{ request('search') }}">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <i class="fas fa-search text-gray-400"></i>
+                                <i class="fas fa-search text-gray-400 dark:text-gray-500"></i>
                             </div>
                         </div>
                     </div>
@@ -109,7 +177,7 @@
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                             <i class="fas fa-flag text-green-500 mr-2"></i>{{ translate('Statut') }}
                         </label>
-                        <select name="status" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+                        <select name="status" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                             <option value="">{{ translate('Tous les statuts') }}</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>{{ translate('Brouillon') }}</option>
                             <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>{{ translate('Publié') }}</option>
@@ -123,12 +191,14 @@
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                             <i class="fas fa-user-tie text-purple-500 mr-2"></i>{{ translate('Instructeur') }}
                         </label>
-                        <select name="instructor" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+                        <select name="instructor" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                             <option value="">{{ translate('Tous les instructeurs') }}</option>
                             @foreach($instructors as $instructor)
-                                <option value="{{ $instructor->id }}" {{ request('instructor') == $instructor->id ? 'selected' : '' }}>
-                                    {{ $instructor->username ?? 'Instructeur' }} ({{ $instructor->email }})
-                                </option>
+                                @if($instructor->user)
+                                    <option value="{{ $instructor->user->id }}" {{ request('instructor') == $instructor->user->id ? 'selected' : '' }}>
+                                        {{ $instructor->user->full_name ?? $instructor->user->username ?? 'Instructeur' }} ({{ $instructor->user->email }})
+                                    </option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -141,7 +211,7 @@
                         <i class="fas fa-search mr-2"></i>{{ translate('Filtrer') }}
                     </button>
                     <a href="{{ route('webinars.index') }}"
-                       class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-3 px-8 rounded-xl transition-all duration-200">
+                       class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 font-semibold py-3 px-8 rounded-xl transition-all duration-200">
                         <i class="fas fa-times mr-2"></i>{{ translate('Effacer') }}
                     </a>
                 </div>
@@ -192,6 +262,10 @@
                 border: 1px solid rgba(0,0,0,0.05);
                 background: #fff;
             }
+            .dark .webinar-card {
+                background: #374151;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
             .webinar-card:hover {
                 transform: translateY(-8px) scale(1.02);
                 box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
@@ -210,9 +284,22 @@
                 border: 1px solid rgba(0,0,0,0.05);
                 transition: all 0.3s ease;
             }
+            .dark .info-item {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
             .info-item:hover {
                 background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
                 transform: translateX(4px);
+            }
+            .dark .info-item:hover {
+                background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            }
+            .dark .info-item small {
+                color: #d1d5db !important;
+            }
+            .dark .info-item strong {
+                color: #ffffff !important;
             }
             .icon-circle {
                 width: 32px;
@@ -244,6 +331,11 @@
                 box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
                 padding: 8px !important;
                 display: none !important;
+                background-color: white !important;
+            }
+            .dark .dropdown-menu {
+                background-color: #374151 !important;
+                border: 1px solid #4b5563 !important;
             }
             .dropdown:hover .dropdown-menu {
                 display: block !important;
@@ -256,10 +348,18 @@
                 margin: 2px 0 !important;
                 padding: 10px 16px !important;
                 transition: all 0.2s ease !important;
+                color: #374151 !important;
+            }
+            .dark .dropdown-item {
+                color: #d1d5db !important;
             }
             .dropdown-item:hover {
                 background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
                 transform: translateX(4px) !important;
+            }
+            .dark .dropdown-item:hover {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
+                color: #f9fafb !important;
             }
         </style>
         @forelse($webinars as $webinar)
@@ -320,8 +420,8 @@
 
                     <!-- Card Body -->
                     <div class="card-body d-flex flex-column p-3" style="padding-top: 12px !important;">
-                        <h5 class="card-title fw-bold text-dark mb-1" style="font-size: 1.1rem; line-height: 1.3;">{{ $webinar->title }}</h5>
-                        <p class="card-text text-muted mb-3" style="font-size: 0.9rem; line-height: 1.4;">{{ Str::limit($webinar->short_description, 100) }}</p>
+                        <h5 class="card-title fw-bold text-dark dark:text-white mb-1" style="font-size: 1.1rem; line-height: 1.3;">{{ $webinar->title }}</h5>
+                        <p class="card-text text-muted dark:text-gray-300 mb-3" style="font-size: 0.9rem; line-height: 1.4;">{{ Str::limit($webinar->short_description, 100) }}</p>
 
                         <!-- Webinar Info -->
                         <div class="mb-3">
@@ -331,8 +431,8 @@
                                         <i class="fas fa-calendar-alt text-white" style="font-size: 0.9rem;"></i>
                                     </div>
                                     <div>
-                                        <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Date et heure') }}</small>
-                                        <strong class="text-dark" style="font-size: 0.9rem;">
+                                        <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Date et heure') }}</small>
+                                        <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">
                                             {{ $webinar->start_date->format('d/m/Y') }} à {{ $webinar->start_date->format('H:i') }}
                                         </strong>
                                     </div>
@@ -344,8 +444,8 @@
                                         <i class="fas fa-clock text-white" style="font-size: 0.9rem;"></i>
                                     </div>
                                     <div>
-                                        <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Durée') }}</small>
-                                        <strong class="text-dark" style="font-size: 0.9rem;">{{ $webinar->duration ?? 60 }} {{ translate('minutes') }}</strong>
+                                        <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Durée') }}</small>
+                                        <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">{{ $webinar->duration ?? 60 }} {{ translate('minutes') }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -355,8 +455,8 @@
                                         <i class="fas fa-users text-white" style="font-size: 0.9rem;"></i>
                                     </div>
                                     <div>
-                                        <small class="text-muted d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Participants') }}</small>
-                                        <strong class="text-dark" style="font-size: 0.9rem;">
+                                        <small class="text-muted dark:text-gray-300 d-block" style="font-size: 0.8rem; font-weight: 500;">{{ translate('Participants') }}</small>
+                                        <strong class="text-dark dark:text-white" style="font-size: 0.9rem;">
                                             {{ $webinar->current_participants ?? 0 }}/{{ $webinar->max_participants ?? '∞' }}
                                         </strong>
                                     </div>
@@ -368,7 +468,7 @@
                         @if($webinar->meeting_url)
                             <div class="mb-3">
                                 <a href="{{ $webinar->meeting_url }}" target="_blank"
-                                   class="btn btn-primary btn-sm w-100 rounded-pill shadow-sm" style="font-weight: 600; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-size: 0.85rem;">
+                                   class="btn btn-primary btn-sm w-100 rounded-pill shadow-sm" style="font-weight: 600; padding: 10px 20px; background:  #667eea; border: none; font-size: 0.85rem;">
                                     <i class="fas fa-external-link-alt me-2"></i>
                                     {{ translate('Rejoindre la réunion') }}
                                 </a>
@@ -379,7 +479,7 @@
                         <div class="mt-auto">
                             <!-- Dropdown Actions -->
                             <div class="dropdown mb-2">
-                                <button class="btn btn-outline-secondary btn-sm w-100 dropdown-toggle rounded-pill shadow-sm" style="font-weight: 600; padding: 10px 20px; border: 1px solid #e9ecef; background: #fff; font-size: 0.85rem;"
+                                <button class="btn btn-outline-secondary btn-sm w-100 dropdown-toggle rounded-pill shadow-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200" style="font-weight: 600; padding: 10px 20px; border: 1px solid #e9ecef; background: #fff; font-size: 0.85rem;"
                                         type="button"
                                         data-bs-toggle="dropdown">
                                     <i class="fas fa-ellipsis-v me-2"></i>
@@ -485,8 +585,8 @@
          }
 
          .dark .dropdown-menu {
-             background-color: #1f2937;
-             border-color: #374151;
+             background-color: #374151;
+             border-color: #4b5563;
          }
 
          .dropdown-menu.show {
@@ -513,7 +613,7 @@
          }
 
          .dark .dropdown-item:hover {
-             background-color: #374151;
+             background-color: #4b5563;
              color: #f9fafb;
          }
      </style>

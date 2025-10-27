@@ -85,9 +85,11 @@
                                             class="w-full px-4 py-3 border border-gray-300 dark:border-dark-border-three rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-input dark:text-white transition duration-200 @error('instructor_id') border-red-500 @enderror">
                                         <option value="">{{ translate('Sélectionner un instructeur') }}</option>
                                         @foreach($instructors as $instructor)
-                                            <option value="{{ $instructor->id }}" {{ old('instructor_id') == $instructor->id ? 'selected' : '' }}>
-                                                {{ $instructor->username ?? 'Instructeur' }} ({{ $instructor->email }})
-                                            </option>
+                                            @if($instructor->user)
+                                                <option value="{{ $instructor->user->id }}" {{ old('instructor_id') == $instructor->user->id ? 'selected' : '' }}>
+                                                    {{ $instructor->user->full_name ?? $instructor->user->username ?? 'Instructeur' }} ({{ $instructor->user->email }})
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                     @error('instructor_id')
@@ -157,6 +159,23 @@
                                     @enderror
                                 </div>
                             </div>
+
+                            <!-- URL de la réunion -->
+                            <div class="mt-6">
+                                <label for="meeting_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <i class="fas fa-link mr-1 text-green-500"></i>{{ translate('URL de la Réunion') }}
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">({{ translate('Optionnel') }})</span>
+                                </label>
+                                <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url') }}"
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-dark-border-three rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-dark-input dark:text-white transition duration-200 @error('meeting_url') border-red-500 @enderror"
+                                        placeholder="{{ translate('https://meet.google.com/abc-defg-hij ou https://zoom.us/j/123456789') }}">
+                                @error('meeting_url')
+                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-info-circle mr-1"></i>{{ translate('Saisissez le lien de votre réunion Google Meet, Zoom, Microsoft Teams, etc.') }}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -223,28 +242,28 @@
                                 <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ translate('Options du Webinaire') }}</h4>
                                 <div class="space-y-4 grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three">
+                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three option-box">
                                         <input type="checkbox" id="is_free" name="is_free" value="1" checked disabled
-                                                class="form-checkbox h-5 w-5 text-green-600 rounded cursor-not-allowed">
-                                        <label for="is_free" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-not-allowed">
-                                            <i class="fas fa-gift mr-1 text-green-500"></i>{{ translate('Webinaire Gratuit') }} 
+                                                class="form-checkbox h-5 w-5 text-green-600 rounded cursor-not-allowed option-checkbox">
+                                        <label for="is_free" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-not-allowed option-label">
+                                            <i class="fas fa-gift mr-1 text-green-500"></i>{{ translate('Webinaire Gratuit') }}
                                             <span class="text-xs text-green-600 block leading-none">{{ translate('(Option non modifiable)') }}</span>
                                         </label>
                                     </div>
 
-                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three">
+                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three option-box">
                                         <input type="checkbox" id="is_recorded" name="is_recorded" value="1" {{ old('is_recorded') ? 'checked' : '' }}
-                                                class="form-checkbox h-5 w-5 text-indigo-600 rounded">
-                                        <label for="is_recorded" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                class="form-checkbox h-5 w-5 text-indigo-600 rounded option-checkbox">
+                                        <label for="is_recorded" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300 option-label">
                                             <i class="fas fa-video mr-1 text-indigo-500"></i>{{ translate('Enregistrer le Webinaire') }}
                                             <span class="text-xs text-gray-500 dark:text-gray-400 block leading-none">{{ translate('(Disponible en replay)') }}</span>
                                         </label>
                                     </div>
 
-                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three">
+                                    <div class="flex items-center p-3 bg-gray-50 dark:bg-dark-border-three rounded-lg border border-gray-200 dark:border-dark-border-three option-box">
                                         <input type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}
-                                                class="form-checkbox h-5 w-5 text-yellow-500 rounded">
-                                        <label for="is_featured" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                class="form-checkbox h-5 w-5 text-yellow-500 rounded option-checkbox">
+                                        <label for="is_featured" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300 option-label">
                                             <i class="fas fa-star mr-1 text-yellow-500"></i>{{ translate('Mettre en Vedette') }}
                                             <span class="text-xs text-gray-500 dark:text-gray-400 block leading-none">{{ translate('(Mise en avant sur le site)') }}</span>
                                         </label>
@@ -306,10 +325,198 @@
 
 
         /* Ajustements pour le mode sombre (Dark Mode) */
-        .dark .dark\:bg-dark-input { background-color: #1f2937; border-color: #374151; }
-        .dark .dark\:text-white { color: #ffffff; }
-        .dark .dark\:border-dark-border-three { border-color: #374151; }
-        .dark .dark\:bg-dark-card { background-color: #111827; }
+        .dark .dark\:bg-dark-input {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+        .dark .dark\:text-white {
+            color: #ffffff !important;
+        }
+        .dark .dark\:border-dark-border-three {
+            border-color: #374151 !important;
+        }
+        .dark .dark\:bg-dark-card {
+            background-color: #111827 !important;
+        }
+
+        /* Forcer les styles pour tous les champs de saisie en mode sombre */
+        .dark input[type="text"],
+        .dark input[type="datetime-local"],
+        .dark input[type="number"],
+        .dark textarea,
+        .dark select {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+            color: #ffffff !important;
+        }
+
+        /* Forcer les styles sur les classes spécifiques utilisées */
+        .dark .w-full.px-4.py-3.border {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+            color: #ffffff !important;
+        }
+
+        /* Forcer les styles pour les inputs avec les classes Tailwind */
+        .dark input.w-full,
+        .dark textarea.w-full,
+        .dark select.w-full {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+            color: #ffffff !important;
+        }
+
+        .dark input[type="text"]::placeholder,
+        .dark input[type="datetime-local"]::placeholder,
+        .dark input[type="number"]::placeholder,
+        .dark textarea::placeholder {
+            color: #9ca3af !important;
+        }
+
+        /* Forcer les styles pour les labels en mode sombre */
+        .dark label {
+            color: #d1d5db !important;
+        }
+
+        /* Forcer les styles pour les checkboxes en mode sombre */
+        .dark .form-checkbox {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+
+        .dark .form-checkbox:checked {
+            background-color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+
+        /* Styles conditionnels pour les champs selon le mode */
+        .dark input[type="text"],
+        .dark input[type="datetime-local"],
+        .dark input[type="number"],
+        .dark textarea,
+        .dark select {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+            color: #ffffff !important;
+        }
+
+        /* Mode clair - styles normaux */
+        input[type="text"]:not(.dark),
+        input[type="datetime-local"]:not(.dark),
+        input[type="number"]:not(.dark),
+        textarea:not(.dark),
+        select:not(.dark) {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
+
+        /* Styles conditionnels pour les boîtes d'options */
+        .dark .option-box {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+        }
+
+        .option-box:not(.dark) {
+            background-color: #f9fafb !important;
+            border-color: #e5e7eb !important;
+        }
+
+        .dark .option-label {
+            color: #d1d5db !important;
+        }
+
+        .option-label:not(.dark) {
+            color: #374151 !important;
+        }
+
+        .dark .option-checkbox {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+
+        .option-checkbox:not(.dark) {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+        }
+
+        /* SOLUTION FINALE - CHAMPS TRANSPARENTS EN MODE SOMBRE SEULEMENT */
+        .dark .w-full.px-4.py-3.border.border-gray-300,
+        .dark .w-full.px-4.py-3.border.border-gray-300.dark\\:border-dark-border-three,
+        .dark input.w-full,
+        .dark textarea.w-full,
+        .dark select.w-full,
+        .dark .w-full.px-4.py-3,
+        .dark input,
+        .dark textarea,
+        .dark select {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+
+        /* Forcer les options des selects */
+        .dark option {
+            background-color: transparent !important;
+            color: #ffffff !important;
+        }
+
+        /* Forcer les boîtes d'options */
+        .dark .bg-gray-50,
+        .dark .option-box,
+        .dark .p-3.bg-gray-50 {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+        }
+
+        /* Forcer les textes */
+        .dark .text-gray-700,
+        .dark .text-gray-300,
+        .dark label,
+        .dark .option-label {
+            color: #d1d5db !important;
+        }
+
+        /* Forcer les checkboxes */
+        .dark .form-checkbox,
+        .dark .option-checkbox,
+        .dark .h-5.w-5 {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+        }
+
+        /* S'assurer que le mode clair reste blanc */
+        html:not(.dark) .w-full.px-4.py-3.border.border-gray-300,
+        html:not(.dark) input,
+        html:not(.dark) textarea,
+        html:not(.dark) select {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
+
+        html:not(.dark) .bg-gray-50 {
+            background-color: #f9fafb !important;
+        }
+
+        /* RÈGLE ULTIME - CHAMPS TRANSPARENTS */
+        html.dark .w-full.px-4.py-3.border.border-gray-300.dark\\:border-dark-border-three.rounded-lg.focus\\:ring-2.focus\\:ring-blue-500.focus\\:border-blue-500.dark\\:bg-dark-input.dark\\:text-white.transition.duration-200 {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+
+        html.dark .w-full.px-4.py-3.border.border-gray-300.dark\\:border-dark-border-three.rounded-lg.focus\\:ring-2.focus\\:ring-green-500.focus\\:border-green-500.dark\\:bg-dark-input.dark\\:text-white.transition.duration-200 {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
+
+        html.dark .w-full.px-4.py-3.border.border-gray-300.dark\\:border-dark-border-three.rounded-lg.focus\\:ring-2.focus\\:ring-purple-500.focus\\:border-purple-500.dark\\:bg-dark-input.dark\\:text-white.transition.duration-200 {
+            background-color: transparent !important;
+            border-color: #4b5563 !important;
+            color: #ffffff !important;
+        }
     </style>
     @endpush
 </x-dashboard-layout>

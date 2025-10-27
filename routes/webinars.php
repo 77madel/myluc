@@ -126,3 +126,6 @@ Route::prefix('organization/webinars')->name('organization.webinars.')->middlewa
     Route::get('/{webinar}/feedback', [App\Http\Controllers\Organization\WebinarController::class, 'feedback'])->name('feedback');
 });
 
+
+
+
