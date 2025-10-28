@@ -174,7 +174,50 @@
         let type = self.data("type");
         let id = self.data("id");
         let action = self.data("action");
-        let dataFormat = { type: type, id: id };
+        
+        // Extraire les paramètres de l'URL data-action
+        let urlParams = {};
+        if (action && action.includes('?')) {
+            const queryString = action.split('?')[1];
+            const params = new URLSearchParams(queryString);
+            params.forEach((value, key) => {
+                urlParams[key] = value;
+            });
+        }
+        
+        // ⚠️ ATTENTION: 
+        // - 'id' (data-id) = topic_id réel (ex: 256) pour la progression
+        // - On a besoin du topicable_id pour charger la vidéo
+        // - Dans l'URL data-action, topic_id est aussi présent
+        
+        console.log('🔍 [custom.js] Debug:', {
+            'data-id': id,
+            'data-topicable-id': self.data("topicableId"),
+            'data-topic-id': self.data("topicId"),
+            'urlParams': urlParams
+        });
+        
+        // ✅ CORRECTION:
+        // - data-id = topic_id (256) maintenant corrigé
+        // - data-topicable-id = topicable_id (144) pour charger la vidéo
+        // - urlParams.topic_id = topic_id (256) depuis l'URL
+        
+        const realTopicId = urlParams.topic_id || id;  // Topic ID (256)
+        const topicableId = self.data("topicableId");  // Topicable ID (144)
+        
+        // Si topicableId n'existe pas, utiliser 'id' comme fallback
+        const contentId = topicableId || id;
+        
+        let dataFormat = { 
+            type: type,
+            id: contentId,         // topicable_id pour charger le contenu (ex: 144 = video_id)
+            course_id: urlParams.course_id,
+            chapter_id: urlParams.chapter_id,
+            topic_id: realTopicId  // vrai topic_id pour la progression (ex: 256)
+        };
+        
+        console.log('🎯 [custom.js] Données envoyées:', dataFormat);
+        
         getAjaxRequest(action, dataFormat);
     });
 

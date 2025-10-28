@@ -284,6 +284,7 @@ Route::group(
                 Route::get('enrolled/edit/{id}', 'edit')->name('edit');
                 Route::get('enrolled/show/{id}', 'show')->name('show');
                 Route::delete('enrolled/destroy/{id}', 'destroy')->name('destroy');
+                Route::post('re-enroll', 'reEnroll')->name('re-enroll');  // Nouvelle route pour réinscrire
             }
         );
 

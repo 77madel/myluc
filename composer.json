@@ -18,6 +18,7 @@
         "nwidart/laravel-modules": "^12.0",
         "paydunya/paydunya": "dev-master",
         "php-http/guzzle7-adapter": "^1.1",
+        "phpoffice/phpspreadsheet": "*",
         "spatie/laravel-permission": "^6.7",
         "stevebauman/location": "^7.4",
         "stevebauman/purify": "^6.2",

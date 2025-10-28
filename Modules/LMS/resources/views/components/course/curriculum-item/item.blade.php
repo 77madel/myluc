@@ -5,7 +5,8 @@
 
     // Utiliser l'ID du topic pour la progression
     $realTopic = $chapterTopic ?? null;
-    $realTopicId = $topic->id; // ID du topic (ex: 209)
+    // ✅ CORRECTION: Utiliser $chapterTopic->id (vrai Topic ID) au lieu de $topic->id (topicable_id)
+    $realTopicId = $chapterTopic->id ?? $topic->id;
 
     if ($auth && $purchaseCheck !== false) {
         $route = route('play.course', [
@@ -49,7 +50,7 @@
                 class="flex flex-col gap-2 leading-none cursor-pointer {{ $sideBarShow == 'video-play' ? 'video-lesson-item' : '' }}"
                 aria-label="{{ $topic->title }}" data-type="{{ $sideBarShow == 'video-play' ? $topic->topic_type?->slug : '' }}"
                 data-id="{{ $sideBarShow == 'video-play' ? $realTopicId : '' }}"
-                data-topicable-id="{{ $sideBarShow == 'video-play' ? $topic->topicable_id : '' }}"
+                data-topicable-id="{{ $sideBarShow == 'video-play' ? ($chapterTopic->topicable_id ?? $topic->id) : '' }}"
                 data-action="{{ $sideBarShow == 'video-play' ? route('learn.course.topic') . '?course_id=' . $course->id . '&chapter_id=' . $realTopic?->chapter_id . '&topic_id=' . $realTopicId : '' }}"
                 data-topic-id="{{ $realTopicId }}">
                 <div class="flex items-center gap-2">

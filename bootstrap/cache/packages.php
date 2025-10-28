@@ -1,153 +1,153 @@
 <?php return array (
-  'barryvdh/laravel-debugbar' =>
+  'barryvdh/laravel-debugbar' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Debugbar' => 'Barryvdh\\Debugbar\\Facades\\Debugbar',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Barryvdh\\Debugbar\\ServiceProvider',
     ),
   ),
-  'barryvdh/laravel-dompdf' =>
+  'barryvdh/laravel-dompdf' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
       'Pdf' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Barryvdh\\DomPDF\\ServiceProvider',
     ),
   ),
-  'laravel/sail' =>
+  'laravel/sail' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Sail\\SailServiceProvider',
     ),
   ),
-  'laravel/tinker' =>
+  'laravel/tinker' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
     ),
   ),
-  'maatwebsite/excel' =>
+  'maatwebsite/excel' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     ),
   ),
-  'nesbot/carbon' =>
+  'nesbot/carbon' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Carbon\\Laravel\\ServiceProvider',
     ),
   ),
-  'nunomaduro/collision' =>
+  'nunomaduro/collision' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     ),
   ),
-  'nunomaduro/termwind' =>
+  'nunomaduro/termwind' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
-  'nwidart/laravel-modules' =>
+  'nwidart/laravel-modules' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Module' => 'Nwidart\\Modules\\Facades\\Module',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
     ),
   ),
-  'php-flasher/flasher-laravel' =>
+  'php-flasher/flasher-laravel' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Flasher' => 'Flasher\\Laravel\\Facade\\Flasher',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Flasher\\Laravel\\FlasherServiceProvider',
     ),
   ),
-  'php-flasher/flasher-toastr-laravel' =>
+  'php-flasher/flasher-toastr-laravel' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Toastr' => 'Flasher\\Toastr\\Laravel\\Facade\\Toastr',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Flasher\\Toastr\\Laravel\\FlasherToastrServiceProvider',
     ),
   ),
-  'spatie/laravel-ignition' =>
+  'spatie/laravel-ignition' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Flare' => 'Spatie\\LaravelIgnition\\Facades\\Flare',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
     ),
   ),
-  'spatie/laravel-permission' =>
+  'spatie/laravel-permission' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Spatie\\Permission\\PermissionServiceProvider',
     ),
   ),
-  'stevebauman/location' =>
+  'stevebauman/location' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Location' => 'Stevebauman\\Location\\Facades\\Location',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Stevebauman\\Location\\LocationServiceProvider',
     ),
   ),
-  'stevebauman/purify' =>
+  'stevebauman/purify' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Purify' => 'Stevebauman\\Purify\\Facades\\Purify',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Stevebauman\\Purify\\PurifyServiceProvider',
     ),
   ),
-  'unicodeveloper/laravel-paystack' =>
+  'unicodeveloper/laravel-paystack' => 
   array (
-    'aliases' =>
+    'aliases' => 
     array (
       'Paystack' => 'Unicodeveloper\\Paystack\\Facades\\Paystack',
     ),
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Unicodeveloper\\Paystack\\PaystackServiceProvider',
     ),

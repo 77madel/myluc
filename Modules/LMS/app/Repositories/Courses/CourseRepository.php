@@ -1102,6 +1102,16 @@ class CourseRepository extends BaseRepository
 
         $id = $request->id;
         $type = $request->type;
+        
+        // 🔍 LOG: Afficher TOUS les paramètres reçus
+        \Log::info("🔍 [getCourseTopicByType] Requête reçue", [
+            'all_params' => $request->all(),
+            'id' => $id,
+            'type' => $type,
+            'topic_id_from_request' => $request->topic_id ?? 'NULL',
+            'course_id_from_request' => $request->course_id ?? 'NULL',
+            'chapter_id_from_request' => $request->chapter_id ?? 'NULL'
+        ]);
 
         // Fetch model and related data based on type
         $topic['data'] = $this->fetchContentByType($type, $id);
@@ -1113,12 +1123,19 @@ class CourseRepository extends BaseRepository
             ];
         }
 
-        // Additional data for quiz type
-        if ($type === 'quiz') {
-            $topic['courseId'] = $request->course_id ?? null;
-            $topic['topicId'] = $request->topic_id ?? null;
-            $topic['chapterId'] = $request->chapter_id ?? null;
-        }
+        // Additional data for all types (not just quiz)
+        $topic['courseId'] = $request->course_id ?? null;
+        $topic['topicId'] = $request->topic_id ?? null;
+        $topic['chapterId'] = $request->chapter_id ?? null;
+        
+        \Log::info("🎯 [getCourseTopicByType] Données passées à la vue", [
+            'type' => $type,
+            'id' => $id,
+            'topicId' => $topic['topicId'],
+            'courseId' => $topic['courseId'],
+            'chapterId' => $topic['chapterId']
+        ]);
+        
         // Render view
         $view = view('theme::course.course-learn', compact('topic', 'type'))->render();
 

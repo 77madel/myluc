@@ -100,3 +100,4 @@ class ManageTranslations extends Command
 
 
 
+

@@ -191,11 +191,20 @@ class CourseValidationService
             ];
         }
         
-        // Pour les vidéos, on ne valide pas (comme demandé)
+        // Pour les vidéos, vérifier la progression
         elseif ($topic->topicable_type === 'Modules\\LMS\\Models\\Courses\\Topics\\Video') {
+            $progress = TopicProgress::where('user_id', $userId)
+                ->where('topic_id', $topic->id)
+                ->where('status', 'completed')
+                ->first();
+                
             $result['type'] = 'video';
-            $result['is_completed'] = true; // On considère les vidéos comme toujours terminées
-            $result['details'] = ['note' => 'Vidéo non validée (hors scope)'];
+            $result['is_completed'] = $progress !== null;
+            $result['details'] = [
+                'progress_id' => $progress?->id,
+                'completed_at' => $progress?->completed_at,
+                'time_spent' => $progress?->time_spent
+            ];
         }
         
         return $result;

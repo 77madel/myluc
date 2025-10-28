@@ -71,10 +71,12 @@ class  CourseController extends Controller
     public function courseVideoPlayer($slug, Request $request)
     {
         $course = $this->course->courseDetail($slug);
-        $purchase = PurchaseRepository::getByUserId([
-            'user_id' => authCheck()->id,
-            'course_id' => $course->id
-        ]);
+        
+        // Récupérer l'enrollment de l'étudiant (objet complet)
+        $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
+            ->where('course_id', $course->id)
+            ->where('type', 'enrolled')
+            ->first();
 
         $data = [
             'type' => $request->type ?? null,
@@ -84,9 +86,24 @@ class  CourseController extends Controller
 
         $assignments = TopicRepository::getTopicByCourse($course->id,  TopicTypes::ASSIGNMENT);
 
-        if (!$purchase  && isStudent()) {
-            return redirect()->back();
+        // Vérifier si l'étudiant a accès au cours
+        if (isStudent()) {
+            if (!$purchaseDetails) {
+                // Vérifier si l'étudiant a obtenu un certificat pour ce cours
+                $hasCertificate = \Modules\LMS\Models\Certificate\UserCertificate::where('user_id', authCheck()->id)
+                    ->where('course_id', $course->id)
+                    ->where('type', 'course')
+                    ->exists();
+                
+                if ($hasCertificate) {
+                    return redirect()->route('student.dashboard')
+                        ->with('warning', 'Vous avez déjà obtenu le certificat pour ce cours. Contactez un administrateur pour une réinscription si nécessaire.');
+                }
+                
+                return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours.');
+            }
         }
+        
         return view('theme::course.course-video', compact('course', 'assignments', 'data'));
     }
     /**

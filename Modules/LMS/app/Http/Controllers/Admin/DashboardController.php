@@ -32,6 +32,15 @@ class DashboardController extends Controller
     public function index()
     {
         $data = $this->dashboard->dashboardInfo();
+        // Add webinar statistics
+        $webinars = Webinar::all();
+        $data['webinar_stats'] = [
+            'total' => $webinars->count(),
+            'published' => $webinars->where('is_published', true)->count(),
+            'drafts' => $webinars->where('is_published', false)->count(),
+            'participants' => $webinars->sum('current_participants')
+        ];
+
         return view('portal::admin.dashboard', compact('data'));
     }
 

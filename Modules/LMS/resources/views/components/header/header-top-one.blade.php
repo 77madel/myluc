@@ -1,5 +1,5 @@
-@php 
-    $general = get_theme_option(key: 'general') ?? []; 
+@php
+    $general = get_theme_option(key: 'general') ?? [];
 @endphp
 
 <div class="bg-primary py-3 hidden md:block">
@@ -35,8 +35,8 @@
                         @csrf
                         <input type="hidden" name="admin_id" value="{{ auth('admin')->check() ? auth('admin')->user()->id : null }}">
                         <input type="hidden" name="user_id" value="{{ auth()->check() ? auth()->user()->id : null }}">
-                        <select 
-                            name="locale" 
+                        <select
+                            name="locale"
                             aria-label="Choose Language"
                             onchange="event.preventDefault();
                             document.getElementById('language-form').submit();"
