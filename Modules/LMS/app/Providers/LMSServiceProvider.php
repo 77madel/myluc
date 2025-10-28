@@ -142,17 +142,11 @@ class LMSServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerGurads();
-<<<<<<< HEAD
-
         // Enregistrer les namespaces
         $this->registerPortalNamespace();
         $this->registerThemeNamespace();
-
         // Enregistrer les singletons nécessaires
         $this->registerRequiredSingletons();
-=======
->>>>>>> origin/famorydev
-
         // CORRECTION 2 : Conditionner les appels DB dans alreadyInstalled().
         if (alreadyInstalled() && !$this->app->runningInConsole()) {
             // Ces méthodes appellent get_theme_option() et PaymentMethod::first()
@@ -236,10 +230,7 @@ class LMSServiceProvider extends ServiceProvider
             // $router->pushMiddlewareToGroup('web', PerformanceMonitor::class);
             $router->pushMiddlewareToGroup('web', BootstrapMiddleware::class);
             $router->aliasMiddleware('checkInstaller', LicenseActivationMiddleware::class);
-<<<<<<< HEAD
             $router->aliasMiddleware('verify-org-access', \Modules\LMS\Http\Middleware\VerifyOrganizationAccess::class);
-=======
->>>>>>> origin/famorydev
         }
     }
 
@@ -277,7 +268,6 @@ class LMSServiceProvider extends ServiceProvider
     }
 
     /**
-<<<<<<< HEAD
      * Enregistrer le namespace portal
      */
     protected function registerPortalNamespace(): void
@@ -342,8 +332,6 @@ class LMSServiceProvider extends ServiceProvider
     }
 
     /**
-=======
->>>>>>> origin/famorydev
      * Register views.
      */
     public function registerViews(): void
