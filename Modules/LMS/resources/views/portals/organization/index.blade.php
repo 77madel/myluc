@@ -75,12 +75,7 @@
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Total Étudiants') }} </h6>
                         <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600 dark:text-blue-400">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
+                            <i class="ri-group-line text-xl text-blue-600 dark:text-blue-400"></i>
                         </div>
                     </div>
                     <div
@@ -101,13 +96,7 @@
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Cours Achetés') }} </h6>
                         <div class="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600 dark:text-green-400">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
-                            </svg>
+                            <i class="ri-book-2-line text-xl text-green-600 dark:text-green-400"></i>
                         </div>
                     </div>
                     <div
@@ -128,10 +117,7 @@
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Liens d\'Inscription') }} </h6>
                         <div class="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-600 dark:text-purple-400">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                            </svg>
+                            <i class="ri-links-line text-xl text-purple-600 dark:text-purple-400"></i>
                         </div>
                     </div>
                     <div
@@ -206,7 +192,6 @@
                                 <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Prix') }}</th>
                                 <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Date d\'Achat') }}</th>
                                 <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
-                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
@@ -228,14 +213,9 @@
                                         {{ \Carbon\Carbon::parse($purchase->created_at)->format('d/m/Y H:i') }}
                                     </td>
                                     <td class="px-4 py-4">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $purchase->status === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $purchase->status === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }}">
                                             {{ ucfirst($purchase->status) }}
                                         </span>
-                                    </td>
-                                    <td class="px-4 py-4 text-sm font-medium">
-                                        <a href="{{ route('organization.courses.show', $purchase->course_id) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400">
-                                            {{ translate('Voir') }}
-                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
