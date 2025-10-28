@@ -172,13 +172,13 @@
                 let email = $(this).data('email');
                 let password = $(this).data('password');
                 let role = $(this).text().toLowerCase().trim();
-                
+
                 $('.dashkit-tab-btn').removeClass('active');
                 $(this).addClass('active');
 
                 // Mettre à jour le champ caché avec le rôle sélectionné
                 $("#selected_role").val(role);
-                
+
                 $("#role_email").val(email);
                 $("#role_password").val(password);
             })

@@ -38,7 +38,7 @@ class OrderRepository
                 session()->forget('subscription_id');
                 session()->forget('subscription_id');
             }
-            
+
             // Gérer les achats d'organisation - détecter automatiquement
             $user = auth()->user();
             if ($user && $user->organization) {
@@ -62,7 +62,7 @@ class OrderRepository
     /**
      * Method subscription
      *
-     * @param int $purchaseId 
+     * @param int $purchaseId
      * @param string $method
      *
      */
@@ -178,8 +178,8 @@ class OrderRepository
     /**
      * Method profitShareCalculate
      *
-     * @param object $item 
-     * @param float $discountPrice 
+     * @param object $item
+     * @param float $discountPrice
      */
     public static function profitShareCalculate($item, $discountPrice, $type = null)
     {
@@ -223,7 +223,7 @@ class OrderRepository
     /**
      * Method orgProfit
      *
-     * @param float $profitBalance 
+     * @param float $profitBalance
      * @param integer $orgId
      *
      * @return void
@@ -238,8 +238,8 @@ class OrderRepository
     /**
      * Method instructorProfitShare
      *
-     * @param array $instructors 
-     * @param float $price 
+     * @param array $instructors
+     * @param float $price
      */
     public static function instructorProfitShare($instructors, $price)
     {
@@ -256,7 +256,7 @@ class OrderRepository
     /**
      * Method updateUserBalance
      *
-     * @param float $amount 
+     * @param float $amount
      * @param int $userId ;
      *
      */
@@ -269,8 +269,8 @@ class OrderRepository
     /**
      * Method paymentDocumentSave
      *
-     * @param int $purchaseId 
-     * @param string $document 
+     * @param int $purchaseId
+     * @param string $document
      */
     public static function paymentDocumentSave($purchaseId, $document)
     {
@@ -292,16 +292,16 @@ class OrderRepository
             }
 
             $organization = $user->organization;
-            
+
             // Récupérer les informations du cours depuis purchase_details
             $purchaseDetails = DB::table('purchase_details')
                 ->where('purchase_id', $purchaseId)
                 ->first();
-                
+
             if (!$purchaseDetails || !$purchaseDetails->course_id) {
                 return;
             }
-            
+
             $courseId = $purchaseDetails->course_id;
 
             // Créer un lien d'inscription

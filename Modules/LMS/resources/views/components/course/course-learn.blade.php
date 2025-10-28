@@ -22,9 +22,9 @@
             }
         @endphp
         <div class="plyr__video-embed" id="player">
-            <iframe src="{{ $embedUrl }}" 
-                    allowfullscreen 
-                    allowtransparency 
+            <iframe src="{{ $embedUrl }}"
+                    allowfullscreen
+                    allowtransparency
                     allow="autoplay"
                     frameborder="0"
                     webkitallowfullscreen
@@ -33,7 +33,7 @@
         </div>
         <script>
             console.log('🔧 [COURSE-LEARN] Script chargé');
-            
+
             const player = new Plyr("#player", {
                 settings: ["speed"],
                 seekTime: 0,
@@ -43,14 +43,14 @@
                     options: [0.5, 0.75, 1, 1.25, 1.5]
                 },
             });
-            
+
             console.log('🔧 [COURSE-LEARN] Plyr player initialisé:', player);
 
             // Système de progression automatique
             @if(auth()->check() && auth()->user()->guard === 'student')
-            
+
             console.log('🔧 [COURSE-LEARN] User authentifié, installation des listeners');
-            
+
             let isVideoStarted = false;
             let isVideoCompleted = false;
 
@@ -66,9 +66,9 @@
                     console.log('⚠️ [COURSE-LEARN] Vidéo déjà marquée comme commencée');
                 }
             });
-            
+
             console.log('✅ [COURSE-LEARN] Listener PLAY installé');
-            
+
             // Détecter la fin de vidéo pour marquer comme completed
             player.on('ended', function() {
                 console.log('🎬 [COURSE-LEARN] Event ENDED déclenché!');
@@ -81,9 +81,9 @@
                     console.log('⚠️ [COURSE-LEARN] Vidéo déjà marquée comme terminée');
                 }
             });
-            
+
             console.log('✅ [COURSE-LEARN] Listener ENDED installé');
-            
+
             // Test: écouter tous les événements Plyr
             ['ready', 'playing', 'pause', 'timeupdate', 'seeking', 'seeked'].forEach(eventName => {
                 player.on(eventName, function() {
@@ -95,11 +95,11 @@
             function getCurrentTopicId() {
                 console.log('🔍 [COURSE-LEARN] getCurrentTopicId() appelé');
                 console.log('🔍 [COURSE-LEARN] window.location.search:', window.location.search);
-                
+
                 // Chercher dans l'URL
                 const urlParams = new URLSearchParams(window.location.search);
                 console.log('🔍 [COURSE-LEARN] URLSearchParams:', Object.fromEntries(urlParams));
-                
+
                 const topicId = urlParams.get('topic_id') || urlParams.get('item');
                 if (topicId) {
                     console.log('✅ [COURSE-LEARN] Topic ID trouvé dans URL:', topicId);
@@ -110,7 +110,7 @@
                 console.log('🔍 [COURSE-LEARN] Recherche dans les attributs data...');
                 const topicElement = document.querySelector('[data-topic-id]');
                 console.log('🔍 [COURSE-LEARN] Element trouvé:', topicElement);
-                
+
                 if (topicElement) {
                     const id = topicElement.getAttribute('data-topic-id');
                     console.log('✅ [COURSE-LEARN] Topic ID trouvé dans data-topic-id:', id);
@@ -120,7 +120,7 @@
                 console.error('❌ [COURSE-LEARN] Aucun topic ID trouvé!');
                 return null;
             }
-            
+
             // Tester immédiatement
             console.log('🧪 [COURSE-LEARN] Test de getCurrentTopicId():');
             const testTopicId = getCurrentTopicId();
@@ -129,17 +129,17 @@
             // Fonction pour marquer la leçon comme commencée
             async function markTopicAsStarted() {
                 console.log('🚀 [COURSE-LEARN] markTopicAsStarted() appelé');
-                
+
                 const topicId = getCurrentTopicId();
                 console.log('🚀 [COURSE-LEARN] Topic ID récupéré:', topicId);
-                
+
                 if (!topicId) {
                     console.error('❌ [COURSE-LEARN] Impossible de démarrer: pas de topic ID');
                     return;
                 }
 
                 console.log('🚀 [COURSE-LEARN] Marquage de la leçon comme commencée, topic:', topicId);
-                
+
                 const url = `{{ route('student.topic.start', '') }}/${topicId}`;
                 console.log('🚀 [COURSE-LEARN] URL:', url);
 
@@ -156,7 +156,7 @@
                     console.log('🚀 [COURSE-LEARN] Réponse reçue, status:', response.status);
                     const data = await response.json();
                     console.log('✅ [COURSE-LEARN] Réponse start:', data);
-                    
+
                     if (data.status === 'success') {
                         console.log('✅ [COURSE-LEARN] Leçon marquée comme commencée!');
                     } else {
@@ -190,10 +190,10 @@
                     });
 
                     const data = await response.json();
-                    
+
                     if (data.status === 'success') {
                         showLessonCompletionModal();
-                        
+
                         // Vérifier si le chapitre est terminé
                         if (data.chapter_completed) {
                             setTimeout(() => {
@@ -215,7 +215,7 @@
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Félicitations !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé cette leçon.</p>
-                        <button onclick="this.closest('.fixed').remove()" 
+                        <button onclick="this.closest('.fixed').remove()"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                             Continuer
                         </button>
@@ -228,24 +228,24 @@
             function showChapterCompletionModal(nextChapter = null) {
                 const modal = document.createElement('div');
                 modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                
-                const nextChapterButton = nextChapter ? 
-                    `<button onclick="goToNextChapter('${nextChapter.url}')" 
+
+                const nextChapterButton = nextChapter ?
+                    `<button onclick="goToNextChapter('${nextChapter.url}')"
                             class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Suivant: ${nextChapter.title}
-                    </button>` : 
-                    `<button onclick="this.closest('.fixed').remove()" 
+                    </button>` :
+                    `<button onclick="this.closest('.fixed').remove()"
                             class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Terminé
                     </button>`;
-                
+
                 modal.innerHTML = `
                     <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Bravo !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé ce chapitre !</p>
                         <div class="flex gap-3 justify-center">
-                            <button onclick="this.closest('.fixed').remove()" 
+                            <button onclick="this.closest('.fixed').remove()"
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
                                 Fermer
                             </button>
@@ -260,7 +260,7 @@
             function goToNextChapter(nextChapterUrl = null) {
                 // Fermer le modal
                 document.querySelector('.fixed').remove();
-                
+
                 if (nextChapterUrl) {
                     console.log('Navigating to next chapter:', nextChapterUrl);
                     window.location.href = nextChapterUrl;
@@ -299,10 +299,10 @@
                     });
 
                     const data = await response.json();
-                    
+
                     if (data.status === 'success') {
                         showLessonCompletionModal();
-                        
+
                         // Vérifier si le chapitre est terminé
                         if (data.chapter_completed) {
                             setTimeout(() => {
@@ -324,7 +324,7 @@
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Félicitations !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé cette leçon.</p>
-                        <button onclick="this.closest('.fixed').remove()" 
+                        <button onclick="this.closest('.fixed').remove()"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                             Continuer
                         </button>
@@ -337,24 +337,24 @@
             function showChapterCompletionModal(nextChapter = null) {
                 const modal = document.createElement('div');
                 modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                
-                const nextChapterButton = nextChapter ? 
-                    `<button onclick="goToNextChapter('${nextChapter.url}')" 
+
+                const nextChapterButton = nextChapter ?
+                    `<button onclick="goToNextChapter('${nextChapter.url}')"
                             class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Suivant: ${nextChapter.title}
-                    </button>` : 
-                    `<button onclick="this.closest('.fixed').remove()" 
+                    </button>` :
+                    `<button onclick="this.closest('.fixed').remove()"
                             class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Terminé
                     </button>`;
-                
+
                 modal.innerHTML = `
                     <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Bravo !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé ce chapitre !</p>
                         <div class="flex gap-3 justify-center">
-                            <button onclick="this.closest('.fixed').remove()" 
+                            <button onclick="this.closest('.fixed').remove()"
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
                                 Fermer
                             </button>
@@ -369,7 +369,7 @@
             function goToNextChapter(nextChapterUrl = null) {
                 // Fermer le modal
                 document.querySelector('.fixed').remove();
-                
+
                 if (nextChapterUrl) {
                     console.log('Navigating to next chapter:', nextChapterUrl);
                     window.location.href = nextChapterUrl;
@@ -392,7 +392,7 @@
                         });
 
                         const data = await response.json();
-                        
+
                         if (data.status === 'success') {
                             console.log('✅ Topic marked as started');
                         }
@@ -425,13 +425,13 @@
 
             // Système de progression automatique pour vidéos locales
             @if(auth()->check() && auth()->user()->guard === 'student')
-            
+
             // Détecter le clic sur play pour marquer comme in_progress
             player.on('play', function() {
                 console.log('▶️ Local video started playing - Marking as in_progress');
                 markTopicAsStarted();
             });
-            
+
             // Détecter la fin de vidéo pour marquer comme completed
             player.on('ended', function() {
                 console.log('🎬 Local video ended - Auto progress triggered');
@@ -475,10 +475,10 @@
                     });
 
                     const data = await response.json();
-                    
+
                     if (data.status === 'success') {
                         showLessonCompletionModal();
-                        
+
                         // Vérifier si le chapitre est terminé
                         if (data.chapter_completed) {
                             setTimeout(() => {
@@ -500,7 +500,7 @@
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Félicitations !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé cette leçon.</p>
-                        <button onclick="this.closest('.fixed').remove()" 
+                        <button onclick="this.closest('.fixed').remove()"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                             Continuer
                         </button>
@@ -513,24 +513,24 @@
             function showChapterCompletionModal(nextChapter = null) {
                 const modal = document.createElement('div');
                 modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                
-                const nextChapterButton = nextChapter ? 
-                    `<button onclick="goToNextChapter('${nextChapter.url}')" 
+
+                const nextChapterButton = nextChapter ?
+                    `<button onclick="goToNextChapter('${nextChapter.url}')"
                             class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Suivant: ${nextChapter.title}
-                    </button>` : 
-                    `<button onclick="this.closest('.fixed').remove()" 
+                    </button>` :
+                    `<button onclick="this.closest('.fixed').remove()"
                             class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Terminé
                     </button>`;
-                
+
                 modal.innerHTML = `
                     <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">Bravo !</h3>
                         <p class="text-gray-600 mb-6">Vous avez terminé ce chapitre !</p>
                         <div class="flex gap-3 justify-center">
-                            <button onclick="this.closest('.fixed').remove()" 
+                            <button onclick="this.closest('.fixed').remove()"
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
                                 Fermer
                             </button>
@@ -545,7 +545,7 @@
             function goToNextChapter(nextChapterUrl = null) {
                 // Fermer le modal
                 document.querySelector('.fixed').remove();
-                
+
                 if (nextChapterUrl) {
                     console.log('Navigating to next chapter:', nextChapterUrl);
                     window.location.href = nextChapterUrl;
@@ -568,7 +568,7 @@
                         });
 
                         const data = await response.json();
-                        
+
                         if (data.status === 'success') {
                             console.log('✅ Topic marked as started');
                         }

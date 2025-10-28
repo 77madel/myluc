@@ -48,7 +48,7 @@
                     // Chemin absolu vers l'image du certificat (JPEG plus léger)
                     $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
                     $imageData = '';
-                    
+
                     // Vérifier si le fichier existe
                     if (file_exists($imagePath)) {
                         // Lire le fichier et l'encoder en base64 pour l'affichage
@@ -216,7 +216,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const downloadBtn = document.getElementById('download-btn');
-            
+
             if (downloadBtn) {
                 downloadBtn.addEventListener('click', function(e) {
                     // Attendre un peu pour que le téléchargement commence

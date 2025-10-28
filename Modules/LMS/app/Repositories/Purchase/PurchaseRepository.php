@@ -187,10 +187,10 @@ class PurchaseRepository extends BaseRepository
             if ($deletedPurchase && $deletedPurchase->trashed()) {
                 // Restaurer l'enrollment supprimé
                 $deletedPurchase->restore();
-                
+
                 // Remettre le statut en processing
                 $deletedPurchase->update(['status' => 'processing']);
-                
+
                 \Log::info("🔄 Enrollment restauré pour l'étudiant {$userId} au cours {$courseId}");
             } else {
                 // Si pas d'enrollment trouvé, créer un nouveau
@@ -266,7 +266,7 @@ class PurchaseRepository extends BaseRepository
 
     /**
      *  purchaseStore
-     * @param array $data 
+     * @param array $data
      */
     public function purchaseStore($data)
     {
@@ -276,7 +276,7 @@ class PurchaseRepository extends BaseRepository
 
     /**
      *  getByUserId
-     * @param array $data 
+     * @param array $data
      */
     public static function getByUserId($data)
     {

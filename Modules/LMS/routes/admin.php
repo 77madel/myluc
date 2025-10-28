@@ -48,6 +48,7 @@ use Modules\LMS\Http\Controllers\Admin\Testimonial\TestimonialController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuestionController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizTypeController;
 use Modules\LMS\Http\Controllers\Admin\Noticeboard\NoticesBoardController;
+use Modules\LMS\Http\Controllers\Admin\WebinarController;
 use Modules\LMS\Http\Controllers\Admin\MeetProvider\MeetProviderController;
 use Modules\LMS\Http\Controllers\Admin\Organization\OrganizationController;
 use Modules\LMS\Http\Controllers\Admin\SupportTicket\TicketSupportController;
@@ -352,6 +353,28 @@ Route::group(
         Route::group(['prefix' => 'review'],  function () {
             Route::resource('course-review', ReviewController::class);
         });
+
+        // Webinar routes
+        Route::group(['prefix' => 'webinars', 'as' => 'webinars.'], function () {
+            Route::get('/', [WebinarController::class, 'index'])->name('index');
+            Route::get('/create', [WebinarController::class, 'create'])->name('create');
+            Route::post('/', [WebinarController::class, 'store'])->name('store');
+            Route::get('/{id}', [WebinarController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [WebinarController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [WebinarController::class, 'update'])->name('update');
+            Route::delete('/{id}', [WebinarController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/toggle-status', [WebinarController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('/{id}/start', [WebinarController::class, 'start'])->name('start');
+            Route::post('/{id}/end', [WebinarController::class, 'end'])->name('end');
+            Route::get('/{id}/statistics', [WebinarController::class, 'statistics'])->name('statistics');
+            Route::post('/{id}/publish', [WebinarController::class, 'publish'])->name('publish');
+            Route::post('/{id}/unpublish', [WebinarController::class, 'unpublish'])->name('unpublish');
+            Route::post('/{id}/feature', [WebinarController::class, 'feature'])->name('feature');
+        Route::post('/{id}/unfeature', [WebinarController::class, 'unfeature'])->name('unfeature');
+        Route::get('/{id}/registrations', [WebinarController::class, 'registrations'])->name('registrations');
+        Route::post('/{id}/generate-meeting-link', [WebinarController::class, 'generateMeetingLink'])->name('generate-meeting-link');
+        });
+
         Route::post('generate/completions', [OpenaiController::class, 'generate'])->name('generate.content');
     }
 );

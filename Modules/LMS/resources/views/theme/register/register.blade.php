@@ -2,34 +2,34 @@
     // Détecter automatiquement si c'est une inscription via lien d'organisation
     $isOrganizationEnrollment = false;
     $enrollmentLink = null;
-    
+
     // Debug: Vérifier l'URL actuelle
     $currentUrl = request()->url();
     $currentPath = request()->path();
     \Log::info('URL actuelle: ' . $currentUrl);
     \Log::info('Path actuel: ' . $currentPath);
     \Log::info('Pattern enroll/* match: ' . (request()->is('enroll/*') ? 'OUI' : 'NON'));
-    
+
     if (request()->is('enroll/*')) {
         $slug = request()->route('slug');
         \Log::info('Slug récupéré: ' . $slug);
-        
+
         $enrollmentLink = \Modules\LMS\Models\Auth\OrganizationEnrollmentLink::where('slug', $slug)
             ->where('status', 'active')
             ->with(['organization', 'course'])
             ->first();
-            
+
         \Log::info('EnrollmentLink trouvé: ' . ($enrollmentLink ? 'OUI' : 'NON'));
         if ($enrollmentLink) {
             \Log::info('EnrollmentLink valide: ' . ($enrollmentLink->isValid() ? 'OUI' : 'NON'));
         }
-            
+
         if ($enrollmentLink && $enrollmentLink->isValid()) {
             $isOrganizationEnrollment = true;
             \Log::info('isOrganizationEnrollment défini à TRUE');
         }
     }
-    
+
     \Log::info('isOrganizationEnrollment final: ' . ($isOrganizationEnrollment ? 'TRUE' : 'FALSE'));
 @endphp
 
@@ -373,15 +373,15 @@
             forms.forEach(form => {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const formData = new FormData(form);
                     const submitBtn = form.querySelector('button[type="submit"]');
                     const originalText = submitBtn.textContent;
-                    
+
                     // Afficher le loading
                     submitBtn.disabled = true;
                     submitBtn.textContent = '{{ translate("Processing...") }}';
-                    
+
                     fetch(form.action, {
                         method: 'POST',
                         body: formData,

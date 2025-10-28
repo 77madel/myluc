@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Supprimer la table organization_participants
+        // Supprimer d'abord la contrainte de clé étrangère depuis organization_participant_progress
+        Schema::table('organization_participant_progress', function (Blueprint $table) {
+            $table->dropForeign('org_part_progress_fk');
+        });
+
+        // Maintenant supprimer la table organization_participants
         Schema::dropIfExists('organization_participants');
     }
 

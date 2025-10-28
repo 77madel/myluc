@@ -71,7 +71,7 @@ class  CourseController extends Controller
     public function courseVideoPlayer($slug, Request $request)
     {
         $course = $this->course->courseDetail($slug);
-        
+
         // Récupérer l'enrollment de l'étudiant (objet complet)
         $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
             ->where('course_id', $course->id)
@@ -94,16 +94,16 @@ class  CourseController extends Controller
                     ->where('course_id', $course->id)
                     ->where('type', 'course')
                     ->exists();
-                
+
                 if ($hasCertificate) {
                     return redirect()->route('student.dashboard')
                         ->with('warning', 'Vous avez déjà obtenu le certificat pour ce cours. Contactez un administrateur pour une réinscription si nécessaire.');
                 }
-                
+
                 return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours.');
             }
         }
-        
+
         return view('theme::course.course-video', compact('course', 'assignments', 'data'));
     }
     /**

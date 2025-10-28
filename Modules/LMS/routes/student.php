@@ -23,8 +23,8 @@ Route::group(
             Route::get('quiz-details/{userQuizId}', 'quizDetails')->name('quiz.details');
             Route::get('assignments', 'assignmentList')->name('assignment.list');
             Route::get("request/certificate/{id}", 'certificateGenerate')->name('generate.certificate');
-Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
-Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
+            Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
+            Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
             Route::get("wishlists", 'wishlists')->name('wishlist');
             Route::get("offline/payment", 'offlinePayment')->name('offline.payment');
             Route::delete('wishlists/{id}', 'removeWishlist')->name('remove.wishlist');

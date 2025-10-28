@@ -10,7 +10,7 @@
         </div>
         <script>
             console.log('🔧 [THEME-COURSE-LEARN] Script YouTube/Vimeo chargé');
-            
+
             var videoPlayer = new Plyr("#player", {
                 settings: ["speed"],
                 seekTime: 0,
@@ -20,23 +20,23 @@
                     options: [0.5, 0.75, 1, 1.25, 1.5]
                 },
             });
-            
+
             console.log('🔧 [THEME-COURSE-LEARN] Plyr player initialisé:', videoPlayer);
-            
+
             @if(auth()->check() && auth()->user()->guard === 'student')
             var isVideoStarted = false;
             var isVideoCompleted = false;
-            
+
             // Fonction pour obtenir le topic ID
             function getTopicId() {
                 console.log('🔍 [THEME-LEARN] Recherche du topic ID...');
-                
+
                 // Méthode 1: Chercher dans les données passées par le backend
                 @if(isset($topic['topicId']))
                     console.log('✅ [THEME-LEARN] Topic ID trouvé depuis backend:', {{ $topic['topicId'] }});
                     return {{ $topic['topicId'] }};
                 @endif
-                
+
                 // Méthode 2: Chercher dans l'URL parent (window.parent pour iframe)
                 try {
                     const parentUrl = new URLSearchParams(window.parent.location.search);
@@ -48,10 +48,10 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder à parent URL');
                 }
-                
+
                 // Méthode 3: Chercher dans les attributs data du parent
                 try {
-                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') || 
+                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') ||
                                        window.parent.document.querySelector('[data-topic-id]');
                     if (topicElement) {
                         const id = topicElement.getAttribute('data-topic-id');
@@ -61,11 +61,11 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder au parent DOM');
                 }
-                
+
                 console.error('❌ [THEME-LEARN] Aucun topic ID trouvé!');
                 return null;
             }
-            
+
             // Détecter le clic sur play
             videoPlayer.on('play', function() {
                 console.log('▶️ [THEME-LEARN] Event PLAY déclenché!');
@@ -73,7 +73,7 @@
                 if (!isVideoStarted) {
                     isVideoStarted = true;
                     console.log('▶️ [THEME-LEARN] Marquer comme commencé');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🚀 [THEME-LEARN] Envoi de la progression start pour topic:', topicId);
@@ -96,14 +96,14 @@
                     }
                 }
             });
-            
+
             // Détecter la fin
             videoPlayer.on('ended', function() {
                 console.log('🎬 [THEME-LEARN] Event ENDED déclenché!');
                 if (!isVideoCompleted) {
                     isVideoCompleted = true;
                     console.log('🎬 [THEME-LEARN] Vidéo terminée');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🏁 [THEME-LEARN] Envoi de la progression complete pour topic:', topicId);
@@ -117,11 +117,11 @@
                         .then(response => response.json())
                         .then(data => {
                             console.log('✅ [THEME-LEARN] Réponse complete:', data);
-                            
+
                             // Afficher un modal si le chapitre ou le cours est terminé
                             if (data.certificate_generated) {
                                 console.log('🎓 [THEME-LEARN] Certificat généré!');
-                                
+
                                 // Afficher le modal dans le parent
                                 try {
                                     if (window.parent && typeof window.parent.showCourseCompleteModal === 'function') {
@@ -135,7 +135,7 @@
                                 }
                             } else if (data.chapter_completed) {
                                 console.log('📖 [THEME-LEARN] Chapitre terminé!');
-                                
+
                                 // Afficher un message pour le chapitre terminé
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -152,7 +152,7 @@
                                 }
                             } else {
                                 console.log('✅ [THEME-LEARN] Leçon terminée!');
-                                
+
                                 // Afficher un simple message pour la leçon terminée
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -174,7 +174,7 @@
                     }
                 }
             });
-            
+
             console.log('✅ [THEME-LEARN] Listeners installés');
             @endif
         </script>
@@ -1041,7 +1041,7 @@
         </div>
         <script>
             console.log('🔧 [THEME-COURSE-LEARN] Script YouTube/Vimeo chargé');
-            
+
             var videoPlayer = new Plyr("#player", {
                 settings: ["speed"],
                 seekTime: 0,
@@ -1051,23 +1051,23 @@
                     options: [0.5, 0.75, 1, 1.25, 1.5]
                 },
             });
-            
+
             console.log('🔧 [THEME-COURSE-LEARN] Plyr player initialisé:', videoPlayer);
-            
+
             @if(auth()->check() && auth()->user()->guard === 'student')
             var isVideoStarted = false;
             var isVideoCompleted = false;
-            
+
             // Fonction pour obtenir le topic ID
             function getTopicId() {
                 console.log('🔍 [THEME-LEARN] Recherche du topic ID...');
-                
+
                 // Méthode 1: Chercher dans les données passées par le backend
                 @if(isset($topic['topicId']))
                     console.log('✅ [THEME-LEARN] Topic ID trouvé depuis backend:', {{ $topic['topicId'] }});
                     return {{ $topic['topicId'] }};
                 @endif
-                
+
                 // Méthode 2: Chercher dans l'URL parent (window.parent pour iframe)
                 try {
                     const parentUrl = new URLSearchParams(window.parent.location.search);
@@ -1079,10 +1079,10 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder à parent URL');
                 }
-                
+
                 // Méthode 3: Chercher dans les attributs data du parent
                 try {
-                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') || 
+                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') ||
                                        window.parent.document.querySelector('[data-topic-id]');
                     if (topicElement) {
                         const id = topicElement.getAttribute('data-topic-id');
@@ -1092,11 +1092,11 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder au parent DOM');
                 }
-                
+
                 console.error('❌ [THEME-LEARN] Aucun topic ID trouvé!');
                 return null;
             }
-            
+
             // Détecter le clic sur play
             videoPlayer.on('play', function() {
                 console.log('▶️ [THEME-LEARN] Event PLAY déclenché!');
@@ -1104,7 +1104,7 @@
                 if (!isVideoStarted) {
                     isVideoStarted = true;
                     console.log('▶️ [THEME-LEARN] Marquer comme commencé');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🚀 [THEME-LEARN] Envoi de la progression start pour topic:', topicId);
@@ -1127,14 +1127,14 @@
                     }
                 }
             });
-            
+
             // Détecter la fin
             videoPlayer.on('ended', function() {
                 console.log('🎬 [THEME-LEARN] Event ENDED déclenché!');
                 if (!isVideoCompleted) {
                     isVideoCompleted = true;
                     console.log('🎬 [THEME-LEARN] Vidéo terminée');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🏁 [THEME-LEARN] Envoi de la progression complete pour topic:', topicId);
@@ -1148,11 +1148,11 @@
                         .then(response => response.json())
                         .then(data => {
                             console.log('✅ [THEME-LEARN] Réponse complete:', data);
-                            
+
                             // Afficher un modal si le chapitre ou le cours est terminé
                             if (data.certificate_generated) {
                                 console.log('🎓 [THEME-LEARN] Certificat généré!');
-                                
+
                                 // Afficher le modal dans le parent
                                 try {
                                     if (window.parent && typeof window.parent.showCourseCompleteModal === 'function') {
@@ -1166,7 +1166,7 @@
                                 }
                             } else if (data.chapter_completed) {
                                 console.log('📖 [THEME-LEARN] Chapitre terminé!');
-                                
+
                                 // Afficher un message pour le chapitre terminé
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -1183,7 +1183,7 @@
                                 }
                             } else {
                                 console.log('✅ [THEME-LEARN] Leçon terminée!');
-                                
+
                                 // Afficher un simple message pour la leçon terminée
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -1205,7 +1205,7 @@
                     }
                 }
             });
-            
+
             console.log('✅ [THEME-LEARN] Listeners installés');
             @endif
         </script>
@@ -2108,7 +2108,7 @@
         </div>
         <script>
             console.log('🔧 [THEME-COURSE-LEARN] Script YouTube/Vimeo chargé');
-            
+
             var videoPlayer = new Plyr("#player", {
                 settings: ["speed"],
                 seekTime: 0,
@@ -2118,23 +2118,23 @@
                     options: [0.5, 0.75, 1, 1.25, 1.5]
                 },
             });
-            
+
             console.log('🔧 [THEME-COURSE-LEARN] Plyr player initialisé:', videoPlayer);
-            
+
             @if(auth()->check() && auth()->user()->guard === 'student')
             var isVideoStarted = false;
             var isVideoCompleted = false;
-            
+
             // Fonction pour obtenir le topic ID
             function getTopicId() {
                 console.log('🔍 [THEME-LEARN] Recherche du topic ID...');
-                
+
                 // Méthode 1: Chercher dans les données passées par le backend
                 @if(isset($topic['topicId']))
                     console.log('✅ [THEME-LEARN] Topic ID trouvé depuis backend:', {{ $topic['topicId'] }});
                     return {{ $topic['topicId'] }};
                 @endif
-                
+
                 // Méthode 2: Chercher dans l'URL parent (window.parent pour iframe)
                 try {
                     const parentUrl = new URLSearchParams(window.parent.location.search);
@@ -2146,10 +2146,10 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder à parent URL');
                 }
-                
+
                 // Méthode 3: Chercher dans les attributs data du parent
                 try {
-                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') || 
+                    const topicElement = window.parent.document.querySelector('[data-topic-id].active') ||
                                        window.parent.document.querySelector('[data-topic-id]');
                     if (topicElement) {
                         const id = topicElement.getAttribute('data-topic-id');
@@ -2159,11 +2159,11 @@
                 } catch(e) {
                     console.log('⚠️ [THEME-LEARN] Impossible d\'accéder au parent DOM');
                 }
-                
+
                 console.error('❌ [THEME-LEARN] Aucun topic ID trouvé!');
                 return null;
             }
-            
+
             // Détecter le clic sur play
             videoPlayer.on('play', function() {
                 console.log('▶️ [THEME-LEARN] Event PLAY déclenché!');
@@ -2171,7 +2171,7 @@
                 if (!isVideoStarted) {
                     isVideoStarted = true;
                     console.log('▶️ [THEME-LEARN] Marquer comme commencé');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🚀 [THEME-LEARN] Envoi de la progression start pour topic:', topicId);
@@ -2194,14 +2194,14 @@
                     }
                 }
             });
-            
+
             // Détecter la fin
             videoPlayer.on('ended', function() {
                 console.log('🎬 [THEME-LEARN] Event ENDED déclenché!');
                 if (!isVideoCompleted) {
                     isVideoCompleted = true;
                     console.log('🎬 [THEME-LEARN] Vidéo terminée');
-                    
+
                     const topicId = getTopicId();
                     if (topicId) {
                         console.log('🏁 [THEME-LEARN] Envoi de la progression complete pour topic:', topicId);
@@ -2215,11 +2215,11 @@
                         .then(response => response.json())
                         .then(data => {
                             console.log('✅ [THEME-LEARN] Réponse complete:', data);
-                            
+
                             // Afficher un modal si le chapitre ou le cours est terminé
                             if (data.certificate_generated) {
                                 console.log('🎓 [THEME-LEARN] Certificat généré!');
-                                
+
                                 // Afficher le modal dans le parent
                                 try {
                                     if (window.parent && typeof window.parent.showCourseCompleteModal === 'function') {
@@ -2233,7 +2233,7 @@
                                 }
                             } else if (data.chapter_completed) {
                                 console.log('📖 [THEME-LEARN] Chapitre terminé!');
-                                
+
                                 // Afficher un message pour le chapitre terminé
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -2250,7 +2250,7 @@
                                 }
                             } else {
                                 console.log('✅ [THEME-LEARN] Leçon terminée!');
-                                
+
                                 // Afficher un simple message pour la leçon terminée
                                 try {
                                     if (window.parent && typeof window.parent.showLessonCompleteModal === 'function') {
@@ -2272,7 +2272,7 @@
                     }
                 }
             });
-            
+
             console.log('✅ [THEME-LEARN] Listeners installés');
             @endif
         </script>

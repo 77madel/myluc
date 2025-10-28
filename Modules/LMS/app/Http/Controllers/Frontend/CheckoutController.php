@@ -322,12 +322,12 @@ class CheckoutController extends Controller
         if ($cartType === 'course_purchase') {
             // Appeler notre méthode pour gérer l'achat d'organisation
             \Modules\LMS\Repositories\Order\OrderRepository::handleOrganizationPurchase($id, 'paydunya');
-            
+
             // Rediriger vers le dashboard organisation
             return redirect()->route('organization.dashboard')
                 ->with('success', 'Cours acheté avec succès ! Un lien d\'inscription a été généré automatiquement.');
         }
-        
+
         return view('theme::success.index');
     }
 

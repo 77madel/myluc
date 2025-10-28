@@ -63,6 +63,12 @@
                                     {{ translate('Bundle Purchase') }}
                                 </a>
                             </li>
+                            <li class="relative group/sub">
+                                <a href="{{ route('webinar.list') }}"
+                                    class="relative peer/link text-gray-500 dark:text-dark-text-two leading-none px-5 py-2.5 group-data-[sidebar-size=lg]:pl-8 rtl:group-data-[sidebar-size=lg]:pr-8 flex hover:text-primary-500 dark:hover:text-dark-text [&.active]:text-primary-500 dark:[&.active]:text-dark-text before:absolute before:top-[49%] before:-translate-y-1/2 before:left-4 rtl:before:left-auto rtl:before:right-4 before:size-1.5 before:rounded-50 before:border before:border-gray-400 dark:before:border-text-dark hover:before:border-none hover:before:bg-primary-400 dark:hover:before:bg-text-dark [&.active]:before:border-none group-data-[sidebar-size=sm]:after:block group-data-[sidebar-size=sm]:after:right-3 [&.active]:before:bg-primary-400 dark:[&.active]:before:bg-text-dark group-data-[sidebar-size=sm]:before:hidden {{ request()->routeIs('webinar.*') ? 'active' : '' }}">
+                                    {{ translate('Webinaires') }}
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>

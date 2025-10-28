@@ -111,7 +111,6 @@ class EmailFormat
         Mail::to($details['email'])->queue(new SendNotification($details));
     }
 
-
     public static function getInstance()
     {
         if (self::$instance == null) {

@@ -12,7 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('purchase_details', function (Blueprint $table) {
-            $table->dropColumn(['is_locked', 'locked_at', 'lock_reason']);
+            // Supprimer seulement les colonnes qui existent
+            if (Schema::hasColumn('purchase_details', 'is_locked')) {
+                $table->dropColumn('is_locked');
+            }
+            if (Schema::hasColumn('purchase_details', 'locked_at')) {
+                $table->dropColumn('locked_at');
+            }
+            if (Schema::hasColumn('purchase_details', 'lock_reason')) {
+                $table->dropColumn('lock_reason');
+            }
         });
     }
 

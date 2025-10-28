@@ -280,7 +280,7 @@ class UserRepository  extends BaseRepository
     /**
      * getUserById
      *
-     * 
+     *
      */
     public function getUserById($id)
     {
@@ -1028,11 +1028,11 @@ class UserRepository  extends BaseRepository
         if (!$user) {
             return $message;
         }
-        
+
         // Vérifier le rôle sélectionné
         $selectedRole = $request->selected_role ?? 'student';
         $userRole = $user->guard;
-        
+
         // Vérifier si le rôle de l'utilisateur correspond au rôle sélectionné
         if ($userRole !== $selectedRole) {
             return [
@@ -1040,7 +1040,7 @@ class UserRepository  extends BaseRepository
                 'message' => 'Vous ne pouvez pas vous connecter avec ce rôle. Veuillez sélectionner le bon rôle.',
             ];
         }
-        
+
         // Return the error message if conditions are not met
         if ($user->is_verify != 1) {
             return [
