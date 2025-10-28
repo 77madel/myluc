@@ -614,6 +614,118 @@
     });
     </script>
     @endif
+
+    <!-- MODALS POUR LA PROGRESSION -->
+    @if(auth()->check() && auth()->user()->guard === 'student')
+    <!-- Modal de leçon terminée -->
+    <div id="lesson-complete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 12px; padding: 30px; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div style="width: 60px; height: 60px; background: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="ri-check-line" style="color: white; font-size: 32px;"></i>
+            </div>
+            <h3 id="lesson-modal-title" style="font-size: 22px; font-weight: 600; color: #1F2937; margin-bottom: 12px;">Leçon terminée !</h3>
+            <p id="lesson-modal-message" style="font-size: 14px; color: #6B7280; margin-bottom: 25px;">Votre progression a été enregistrée.</p>
+            <button id="lesson-modal-close" style="background: #3B82F6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
+                Continuer
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de cours terminé avec certificat -->
+    <div id="course-complete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 12px; padding: 40px; max-width: 500px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                <i class="ri-trophy-line" style="color: white; font-size: 40px;"></i>
+            </div>
+            <h3 style="font-size: 26px; font-weight: 700; color: #1F2937; margin-bottom: 15px;">🎉 Félicitations !</h3>
+            <p id="course-complete-message" style="font-size: 16px; color: #374151; margin-bottom: 30px; line-height: 1.6;">Vous avez terminé ce cours avec succès !</p>
+            <div id="course-complete-certificate" style="display: none; margin-bottom: 25px;">
+                <a href="{{ route('student.certificate.index') }}" style="display: inline-block; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="ri-award-line"></i> Voir mon certificat
+                </a>
+            </div>
+            <button id="course-complete-close" style="background: #E5E7EB; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#D1D5DB'" onmouseout="this.style.background='#E5E7EB'">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+    // Fonction pour afficher le modal de leçon terminée
+    window.showLessonCompleteModal = function(data) {
+        console.log('📖 [PARENT] showLessonCompleteModal appelée:', data);
+        
+        const modal = document.getElementById('lesson-complete-modal');
+        const title = document.getElementById('lesson-modal-title');
+        const message = document.getElementById('lesson-modal-message');
+        const closeBtn = document.getElementById('lesson-modal-close');
+        
+        if (!modal) {
+            console.error('❌ Modal lesson-complete-modal introuvable');
+            return;
+        }
+        
+        // Mettre à jour le contenu
+        if (data.chapter_completed) {
+            title.textContent = '📖 Chapitre terminé !';
+            message.textContent = 'Félicitations ! Vous avez terminé ce chapitre.';
+        } else {
+            title.textContent = '✅ Leçon terminée !';
+            message.textContent = 'Votre progression a été enregistrée.';
+        }
+        
+        // Afficher le modal
+        modal.style.display = 'flex';
+        console.log('✅ [PARENT] Modal affiché');
+        
+        // Gestionnaire de fermeture
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+            // Recharger la page pour mettre à jour la sidebar
+            window.location.reload();
+        };
+    };
+    
+    // Fonction pour afficher le modal de cours terminé
+    window.showCourseCompleteModal = function(certificateGenerated) {
+        console.log('🎓 [PARENT] showCourseCompleteModal appelée:', certificateGenerated);
+        
+        const modal = document.getElementById('course-complete-modal');
+        const message = document.getElementById('course-complete-message');
+        const certificateBtn = document.getElementById('course-complete-certificate');
+        const closeBtn = document.getElementById('course-complete-close');
+        
+        if (!modal) {
+            console.error('❌ Modal course-complete-modal introuvable');
+            return;
+        }
+        
+        // Afficher ou masquer le bouton certificat
+        if (certificateGenerated) {
+            message.textContent = 'Vous avez terminé ce cours avec succès et obtenu votre certificat !';
+            certificateBtn.style.display = 'block';
+        } else {
+            message.textContent = 'Vous avez terminé ce cours avec succès !';
+            certificateBtn.style.display = 'none';
+        }
+        
+        // Afficher le modal
+        modal.style.display = 'flex';
+        console.log('✅ [PARENT] Modal cours terminé affiché');
+        
+        // Gestionnaire de fermeture
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+            window.location.reload();
+        };
+    };
+    
+    console.log('✅ [PARENT] Fonctions de modal définies:', {
+        showLessonCompleteModal: typeof window.showLessonCompleteModal,
+        showCourseCompleteModal: typeof window.showCourseCompleteModal
+    });
+    </script>
+    @endif
 </body>
 
 </html>

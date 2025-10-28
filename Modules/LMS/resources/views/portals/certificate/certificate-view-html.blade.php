@@ -10,6 +10,7 @@
             padding: 20px;
             background-color: #f5f5f5;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -86,21 +87,75 @@
                     <!-- Texte "pour avoir terminé avec succès" -->
 
 
-                    <!-- Titre du cours -->
-                    <div style="
-                        position: absolute;
-                        left: 50%;
-                        top: 50%;
-                        transform: translateX(-50%);
-                        font-size: 22px;
-                        font-weight: 600;
-                        color: #2c5282;
-                        text-align: center;
-                        max-width: 550px;
-                        line-height: 1.4;
-                        z-index: 10;
-                        letter-spacing: 0.2px;
-                    ">{{ $course_title }}</div>
+                    <!-- Titre du cours (multi-lignes si nécessaire) -->
+                    @php
+                        $courseTitle = $course_title;
+                        $maxChars = 45;
+                    @endphp
+                    
+                    @if(strlen($courseTitle) > $maxChars)
+                        {{-- Titre long - afficher sur 2 lignes --}}
+                        @php
+                            $words = explode(' ', $courseTitle);
+                            $line1 = '';
+                            $line2 = '';
+                            $currentLine = 1;
+                            
+                            foreach ($words as $word) {
+                                if ($currentLine == 1 && strlen($line1 . ' ' . $word) <= $maxChars) {
+                                    $line1 .= ($line1 ? ' ' : '') . $word;
+                                } else {
+                                    $currentLine = 2;
+                                    $line2 .= ($line2 ? ' ' : '') . $word;
+                                }
+                            }
+                        @endphp
+                        
+                        <div style="
+                            position: absolute;
+                            left: 50%;
+                            top: 48.3%;
+                            transform: translateX(-50%);
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: #2c5282;
+                            text-align: center;
+                            z-index: 10;
+                            letter-spacing: 0.2px;
+                            max-width: 550px;
+                        ">{{ $line1 }}</div>
+                        
+                        @if($line2)
+                        <div style="
+                            position: absolute;
+                            left: 50%;
+                            top: 51.7%;
+                            transform: translateX(-50%);
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: #2c5282;
+                            text-align: center;
+                            z-index: 10;
+                            letter-spacing: 0.2px;
+                            max-width: 550px;
+                        ">{{ $line2 }}</div>
+                        @endif
+                    @else
+                        {{-- Titre court - une seule ligne --}}
+                        <div style="
+                            position: absolute;
+                            left: 50%;
+                            top: 50%;
+                            transform: translateX(-50%);
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: #2c5282;
+                            text-align: center;
+                            max-width: 550px;
+                            z-index: 10;
+                            letter-spacing: 0.2px;
+                        ">{{ $courseTitle }}</div>
+                    @endif
 
                     <!-- Date -->
                     <div style="

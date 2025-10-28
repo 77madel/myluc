@@ -162,10 +162,12 @@ class TopicProgressController
                 }
                 
                 // Trouver le chapitre suivant
-                $nextChapter = Chapter::where('course_id', $topic->course_id)
-                    ->where('order', '>', $topic->chapter->order)
-                    ->orderBy('order')
-                    ->first();
+                if ($topic->chapter && $topic->chapter->order !== null) {
+                    $nextChapter = Chapter::where('course_id', $topic->course_id)
+                        ->where('order', '>', $topic->chapter->order)
+                        ->orderBy('order')
+                        ->first();
+                }
             }
 
             // Vérifier si le cours est éligible pour un certificat
@@ -356,12 +358,16 @@ class TopicProgressController
                 return response()->json(['status' => 'error', 'message' => 'User not authenticated'], 401);
             }
 
+            $topic = Topic::find($topicId);
+            if (!$topic) {
+                return response()->json(['status' => 'error', 'message' => 'Topic not found'], 404);
+            }
+
             $progress = TopicProgress::where('user_id', $user->id)
                 ->where('topic_id', $topicId)
                 ->first();
 
             if (!$progress) {
-                $topic = Topic::find($topicId);
                 $progress = TopicProgress::create([
                     'user_id' => $user->id,
                     'topic_id' => $topicId,
@@ -375,10 +381,106 @@ class TopicProgressController
                 $progress->markAsCompleted();
             }
 
+            // Vérifier si le chapitre est terminé
+            $chapterCompleted = false;
+            $nextChapter = null;
+            
+            if ($topic->chapter) {
+                $courseValidationService = new \Modules\LMS\Services\CourseValidationService();
+                $chapterValidation = $courseValidationService->validateChapter($user->id, $topic->chapter);
+
+                if ($chapterValidation['is_completed']) {
+                    $chapterProgress = ChapterProgress::where('user_id', $user->id)
+                        ->where('chapter_id', $topic->chapter->id)
+                        ->first();
+
+                    if (!$chapterProgress) {
+                        $chapterProgress = ChapterProgress::create([
+                            'user_id' => $user->id,
+                            'chapter_id' => $topic->chapter->id,
+                            'course_id' => $topic->course_id,
+                            'status' => 'completed',
+                            'started_at' => now(),
+                            'completed_at' => now()
+                        ]);
+                        Log::info('✅ [markAsCompleted] Chapitre marqué comme terminé', [
+                            'user_id' => $user->id,
+                            'chapter_id' => $topic->chapter->id
+                        ]);
+                    } else {
+                        $chapterProgress->markAsCompleted();
+                    }
+                    $chapterCompleted = true;
+                }
+                
+                // Trouver le chapitre suivant
+                if ($topic->chapter && $topic->chapter->order !== null) {
+                    $nextChapter = Chapter::where('course_id', $topic->course_id)
+                        ->where('order', '>', $topic->chapter->order)
+                        ->orderBy('order')
+                        ->first();
+                }
+            }
+
+            // Vérifier si le cours est éligible pour un certificat
+            $certificateGenerated = false;
+            $courseCompleted = false;
+            
+            try {
+                Log::info("🔍 [markAsCompleted] Vérification du cours terminé", [
+                    'user_id' => $user->id,
+                    'course_id' => $topic->course_id
+                ]);
+                
+                $courseValidationService = new \Modules\LMS\Services\CourseValidationService();
+                $courseValidation = $courseValidationService->validateCourse($user->id, $topic->course_id);
+                $courseCompleted = $courseValidation['is_completed'];
+                
+                Log::info("📊 [markAsCompleted] Résultat validation cours", [
+                    'course_completed' => $courseCompleted,
+                    'completion_percentage' => $courseValidation['completion_percentage'] ?? 'N/A'
+                ]);
+                
+                if ($courseCompleted) {
+                    Log::info("✅ [markAsCompleted] Cours terminé ! Génération du certificat...");
+                    
+                    $certificate = \Modules\LMS\Services\CertificateService::generateCertificate($user->id, $topic->course_id);
+                    $certificateGenerated = $certificate !== null;
+                    
+                    if ($certificateGenerated) {
+                        Log::info("🎓 [markAsCompleted] Certificat généré automatiquement", [
+                            'user_id' => $user->id,
+                            'course_id' => $topic->course_id,
+                            'certificate_id' => $certificate->certificate_id
+                        ]);
+                    } else {
+                        Log::warning("⚠️ [markAsCompleted] Le certificat n'a pas pu être généré");
+                    }
+                } else {
+                    Log::info("📚 [markAsCompleted] Cours pas encore terminé", [
+                        'completed_chapters' => $courseValidation['completed_chapters'] ?? 'N/A',
+                        'total_chapters' => $courseValidation['total_chapters'] ?? 'N/A'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ [markAsCompleted] Erreur lors de la génération du certificat", [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Topic marked as completed',
-                'progress' => $progress
+                'progress' => $progress,
+                'chapter_completed' => $chapterCompleted,
+                'course_completed' => $courseCompleted,
+                'certificate_generated' => $certificateGenerated,
+                'next_chapter' => $nextChapter ? [
+                    'id' => $nextChapter->id,
+                    'title' => $nextChapter->title
+                ] : null
             ]);
 
         } catch (\Exception $e) {

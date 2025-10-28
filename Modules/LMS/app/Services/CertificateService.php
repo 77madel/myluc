@@ -152,6 +152,24 @@ class CertificateService
 
         Log::info("✅ Certificat généré avec succès: {$certificateId}");
 
+        // SUPPRIMER l'enrollment après l'obtention du certificat (soft delete)
+        try {
+            $enrollment = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->where('type', 'enrolled')
+                ->first();
+            
+            if ($enrollment) {
+                // Soft delete (suppression douce - conserve les données avec deleted_at)
+                $enrollment->delete();
+                Log::info("🗑️ Enrollment supprimé pour l'utilisateur {$userId} au cours {$courseId} - Certificat obtenu");
+            } else {
+                Log::warning("⚠️ Aucun enrollment trouvé à supprimer pour l'utilisateur {$userId} et le cours {$courseId}");
+            }
+        } catch (\Exception $e) {
+            Log::error("❌ Erreur lors de la suppression de l'enrollment: " . $e->getMessage());
+        }
+
         // Envoyer une notification (à implémenter)
         self::sendCertificateNotification($user, $course, $userCertificate);
 

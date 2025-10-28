@@ -168,6 +168,89 @@ class PurchaseRepository extends BaseRepository
     }
 
     /**
+     * Réinscrire un étudiant dans un cours (restaurer l'enrollment supprimé)
+     *
+     * @param  int  $userId
+     * @param  int  $courseId
+     * @return array
+     */
+    public function reEnrollStudent($userId, $courseId): array
+    {
+        try {
+            // Chercher l'enrollment supprimé (avec soft delete)
+            $deletedPurchase = static::$model::withTrashed()
+                ->where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->where('type', PurchaseType::ENROLLED)
+                ->first();
+
+            if ($deletedPurchase && $deletedPurchase->trashed()) {
+                // Restaurer l'enrollment supprimé
+                $deletedPurchase->restore();
+                
+                // Remettre le statut en processing
+                $deletedPurchase->update(['status' => 'processing']);
+                
+                \Log::info("🔄 Enrollment restauré pour l'étudiant {$userId} au cours {$courseId}");
+            } else {
+                // Si pas d'enrollment trouvé, créer un nouveau
+                $course = Course::find($courseId);
+                if (!$course) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'Cours non trouvé.'
+                    ];
+                }
+
+                // Créer un nouveau purchase
+                $purchaseData = [
+                    'user_id' => $userId,
+                    'type' => PurchaseType::ENROLLED,
+                    'status' => 'success',
+                ];
+                $purchase = $this->purchaseStore($purchaseData);
+
+                // Créer un nouvel enrollment
+                static::$model::create([
+                    'purchase_number' => 'RE-' . strtoupper(orderNumber()),
+                    'purchase_id' => $purchase->id,
+                    'user_id' => $userId,
+                    'course_id' => $courseId,
+                    'details' => $course,
+                    'type' => PurchaseType::ENROLLED,
+                    'purchase_type' => PurchaseType::COURSE,
+                    'status' => 'processing',
+                ]);
+
+                \Log::info("✨ Nouvel enrollment créé pour l'étudiant {$userId} au cours {$courseId}");
+            }
+
+            // Réinitialiser la progression
+            \Modules\LMS\Models\TopicProgress::where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->update(['status' => 'not_started']);
+
+            \Modules\LMS\Models\ChapterProgress::where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->update(['status' => 'not_started']);
+
+            \Log::info("🔓 Étudiant {$userId} réinscrit au cours {$courseId}");
+
+            return [
+                'status' => 'success',
+                'message' => 'Étudiant réinscrit avec succès ! L\'accès au cours a été restauré.'
+            ];
+
+        } catch (\Exception $e) {
+            \Log::error("❌ Erreur lors de la réinscription: " . $e->getMessage());
+            return [
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la réinscription: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      *  courseEnroll
      *
      * @param  int  $item
