@@ -1,7 +1,16 @@
 @php
-    $auth = authCheck();
-    if ($auth) {
-        $purchaseCheck = purchaseCheck($course->id, 'course');
+    // Pour Admin et Instructeur, donner accès libre
+    if (isAdmin() || isInstructor()) {
+        // Admin/Instructeur ont accès libre sans vérification
+        $auth = Auth::guard('admin')->check() ? Auth::guard('admin')->user() : authCheck();
+        $purchaseCheck = true;  // Considéré comme ayant acheté
+    } else {
+        // Student/Organization : vérification normale
+        $auth = authCheck();
+        $purchaseCheck = false;
+        if ($auth) {
+            $purchaseCheck = purchaseCheck($course->id, 'course');
+        }
     }
 @endphp
 

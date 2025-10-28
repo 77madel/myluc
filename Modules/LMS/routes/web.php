@@ -173,9 +173,13 @@ Route::group(['middleware' => ['checkInstaller']], function () {
             Route::get('payment/success/{method}', 'success')->name('payment.success');
             Route::get('cancel', 'cancel')->name('payment.cancel.web');
         });
-
-        Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
-        Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
+    });
+    
+    // ✅ Routes accessibles par TOUS (admin, instructeur, student) - HORS du groupe middleware auth
+    Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
+    Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
+    
+    Route::group(['middleware' => 'auth'], function () {
         Route::post('course-review', [CourseController::class, 'review'])->name('review');
         Route::post('quiz/{id}/store', [QuizController::class, 'quizStoreResult'])->name('quiz.store.result');
         Route::post('user/submit-quiz-answer/{quiz_id}/{type}', [QuizController::class, 'submitQuizAnswer'])->name('user.submit.quiz.answer');
