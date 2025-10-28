@@ -32,6 +32,8 @@
             </iframe>
         </div>
         <script>
+            console.log('🔧 [COURSE-LEARN] Script chargé');
+            
             const player = new Plyr("#player", {
                 settings: ["speed"],
                 seekTime: 0,
@@ -41,48 +43,143 @@
                     options: [0.5, 0.75, 1, 1.25, 1.5]
                 },
             });
+            
+            console.log('🔧 [COURSE-LEARN] Plyr player initialisé:', player);
 
             // Système de progression automatique
             @if(auth()->check() && auth()->user()->guard === 'student')
             
+            console.log('🔧 [COURSE-LEARN] User authentifié, installation des listeners');
+            
+            let isVideoStarted = false;
+            let isVideoCompleted = false;
+
             // Détecter le clic sur play pour marquer comme in_progress
             player.on('play', function() {
-                console.log('▶️ Video started playing - Marking as in_progress');
-                markTopicAsStarted();
+                console.log('▶️ [COURSE-LEARN] Event PLAY déclenché!');
+                console.log('▶️ [COURSE-LEARN] isVideoStarted:', isVideoStarted);
+                if (!isVideoStarted) {
+                    isVideoStarted = true;
+                    console.log('▶️ [COURSE-LEARN] Appel de markTopicAsStarted()');
+                    markTopicAsStarted();
+                } else {
+                    console.log('⚠️ [COURSE-LEARN] Vidéo déjà marquée comme commencée');
+                }
             });
+            
+            console.log('✅ [COURSE-LEARN] Listener PLAY installé');
             
             // Détecter la fin de vidéo pour marquer comme completed
             player.on('ended', function() {
-                console.log('🎬 Video ended - Auto progress triggered');
-                handleVideoCompletion();
+                console.log('🎬 [COURSE-LEARN] Event ENDED déclenché!');
+                console.log('🎬 [COURSE-LEARN] isVideoCompleted:', isVideoCompleted);
+                if (!isVideoCompleted) {
+                    isVideoCompleted = true;
+                    console.log('🎬 [COURSE-LEARN] Appel de handleVideoCompletion()');
+                    handleVideoCompletion();
+                } else {
+                    console.log('⚠️ [COURSE-LEARN] Vidéo déjà marquée comme terminée');
+                }
             });
+            
+            console.log('✅ [COURSE-LEARN] Listener ENDED installé');
+            
+            // Test: écouter tous les événements Plyr
+            ['ready', 'playing', 'pause', 'timeupdate', 'seeking', 'seeked'].forEach(eventName => {
+                player.on(eventName, function() {
+                    console.log(`🎥 [PLYR EVENT] ${eventName}`);
+                });
+            });
+
+            // Fonction pour obtenir l'ID du topic actuel
+            function getCurrentTopicId() {
+                console.log('🔍 [COURSE-LEARN] getCurrentTopicId() appelé');
+                console.log('🔍 [COURSE-LEARN] window.location.search:', window.location.search);
+                
+                // Chercher dans l'URL
+                const urlParams = new URLSearchParams(window.location.search);
+                console.log('🔍 [COURSE-LEARN] URLSearchParams:', Object.fromEntries(urlParams));
+                
+                const topicId = urlParams.get('topic_id') || urlParams.get('item');
+                if (topicId) {
+                    console.log('✅ [COURSE-LEARN] Topic ID trouvé dans URL:', topicId);
+                    return topicId;
+                }
+
+                // Chercher dans les attributs data
+                console.log('🔍 [COURSE-LEARN] Recherche dans les attributs data...');
+                const topicElement = document.querySelector('[data-topic-id]');
+                console.log('🔍 [COURSE-LEARN] Element trouvé:', topicElement);
+                
+                if (topicElement) {
+                    const id = topicElement.getAttribute('data-topic-id');
+                    console.log('✅ [COURSE-LEARN] Topic ID trouvé dans data-topic-id:', id);
+                    return id;
+                }
+
+                console.error('❌ [COURSE-LEARN] Aucun topic ID trouvé!');
+                return null;
+            }
+            
+            // Tester immédiatement
+            console.log('🧪 [COURSE-LEARN] Test de getCurrentTopicId():');
+            const testTopicId = getCurrentTopicId();
+            console.log('🧪 [COURSE-LEARN] Résultat:', testTopicId);
+
+            // Fonction pour marquer la leçon comme commencée
+            async function markTopicAsStarted() {
+                console.log('🚀 [COURSE-LEARN] markTopicAsStarted() appelé');
+                
+                const topicId = getCurrentTopicId();
+                console.log('🚀 [COURSE-LEARN] Topic ID récupéré:', topicId);
+                
+                if (!topicId) {
+                    console.error('❌ [COURSE-LEARN] Impossible de démarrer: pas de topic ID');
+                    return;
+                }
+
+                console.log('🚀 [COURSE-LEARN] Marquage de la leçon comme commencée, topic:', topicId);
+                
+                const url = `{{ route('student.topic.start', '') }}/${topicId}`;
+                console.log('🚀 [COURSE-LEARN] URL:', url);
+
+                try {
+                    console.log('🚀 [COURSE-LEARN] Envoi de la requête POST...');
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    });
+
+                    console.log('🚀 [COURSE-LEARN] Réponse reçue, status:', response.status);
+                    const data = await response.json();
+                    console.log('✅ [COURSE-LEARN] Réponse start:', data);
+                    
+                    if (data.status === 'success') {
+                        console.log('✅ [COURSE-LEARN] Leçon marquée comme commencée!');
+                    } else {
+                        console.error('❌ [COURSE-LEARN] Erreur:', data.message);
+                    }
+                } catch (error) {
+                    console.error('❌ [COURSE-LEARN] Erreur lors du démarrage:', error);
+                }
+            }
 
             // Fonction pour gérer la fin de vidéo
             function handleVideoCompletion() {
                 const topicId = getCurrentTopicId();
                 if (topicId) {
                     markTopicAsCompleted(topicId);
+                } else {
+                    console.error('❌ Impossible de marquer comme terminé: pas de topic ID');
                 }
-            }
-
-            // Fonction pour obtenir l'ID du topic actuel
-            function getCurrentTopicId() {
-                // Chercher dans l'URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const topicId = urlParams.get('topic_id') || urlParams.get('item');
-                if (topicId) return topicId;
-
-                // Chercher dans les attributs data
-                const topicElement = document.querySelector('[data-topic-id]');
-                if (topicElement) {
-                    return topicElement.getAttribute('data-topic-id');
-                }
-
-                return null;
             }
 
             // Fonction pour marquer une leçon comme terminée
             async function markTopicAsCompleted(topicId) {
+                console.log('🏁 Marquage de la leçon comme terminée, topic:', topicId);
                 try {
                     const response = await fetch(`{{ route('student.topic.complete', '') }}/${topicId}`, {
                         method: 'POST',
@@ -191,6 +288,7 @@
 
             // Fonction pour marquer une leçon comme terminée
             async function markTopicAsCompleted(topicId) {
+                console.log('🏁 Marquage de la leçon comme terminée, topic:', topicId);
                 try {
                     const response = await fetch(`{{ route('student.topic.complete', '') }}/${topicId}`, {
                         method: 'POST',
@@ -366,6 +464,7 @@
 
             // Fonction pour marquer une leçon comme terminée
             async function markTopicAsCompleted(topicId) {
+                console.log('🏁 Marquage de la leçon comme terminée, topic:', topicId);
                 try {
                     const response = await fetch(`{{ route('student.topic.complete', '') }}/${topicId}`, {
                         method: 'POST',
