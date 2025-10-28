@@ -4,6 +4,27 @@
 
 <x-dashboard-layout>
     <x-slot:title> {{ translate('My Course') }} </x-slot:title>
+    @if ($notifications->count() > 0)
+        <div class="col-span-full mb-4">
+            <div class="card p-5">
+                <h6 class="card-title mb-4">{{ translate('Notifications') }}</h6>
+                <div class="list-group">
+                    @foreach ($notifications as $notification)
+                        <a href="{{ url('dashboard/messages') }}" class="list-group-item list-group-item-action">
+                            <strong>{{ $notification->data['sender_name'] }}</strong> {{ translate('replied to your message') }}: {{ Str::limit($notification->data['content'], 50) }}
+                            <small class="float-right">{{ $notification->created_at->diffForHumans() }}</small>
+                        </a>
+                    @endforeach
+                </div>
+                <div class="mt-3">
+                    <form action="{{ route('student.notifications.markAllAsRead') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">{{ translate('Mark all as read') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
     <div class="grid grid-cols-12 gap-x-4">
         <!-- Start Intro -->
         <div class="col-span-full 2xl:col-span-7 card p-0">

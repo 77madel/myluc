@@ -17,7 +17,7 @@ class RegisterController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
-<<<<<<< HEAD
+
         // Détecter automatiquement si c'est une inscription via lien d'organisation
         $this->detectAndHandleOrganizationEnrollment($request);
 
@@ -29,9 +29,6 @@ class RegisterController extends Controller
                 return $this->enrollExistingStudent($existingUser, $request);
             }
         }
-
-=======
->>>>>>> origin/famorydev
         $user = $this->register->userRegister($request);
         if ($user['status'] !== 'success') {
             return response()->json($user);
@@ -46,7 +43,6 @@ class RegisterController extends Controller
     {
         return view('theme::register.register');
     }
-<<<<<<< HEAD
 
     /**
      * Afficher la page de succès après enrollment
@@ -188,6 +184,5 @@ class RegisterController extends Controller
         }
     }
 
-=======
->>>>>>> origin/famorydev
+
 }

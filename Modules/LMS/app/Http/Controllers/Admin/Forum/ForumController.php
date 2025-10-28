@@ -36,7 +36,7 @@ class ForumController extends Controller
      */
     public function create()
     {
-        $forum = null;
+        $forum = new Forum();
         return view('portal::admin.forum.create', compact('forum'));
     }
 
@@ -67,37 +67,6 @@ class ForumController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    /*public function edit($id, Request $request)
-    {
-        // Check if the user has permission to edit the forum.
-        if (!has_permissions($request->user(), ['edit.forum'])) {
-            toastr()->error(translate('You have no permission.'));
-            return redirect()->back();
-        }
-
-        // Attempt to retrieve the forum and handle the response.
-        //$forum = $this->forum->first($id);
-        // Attempt to retrieve the forum and handle the response.
-        $response = $this->forum->first($id);
-
-        // Check if the forum was retrieved successfully.
-        if ($response['status'] !== 'success') {
-            toastr()->error(translate('Forum not found.'));
-            return redirect()->route('forum.index');
-        }
-
-        $forum = is_object($response['data']) ? $response['data'] : null;
-
-        // Check if the forum was retrieved successfully.
-        if ($forum['status'] !== 'success') {
-            return response()->json($forum);
-        }
-
-        $forum = $forum['data'];
-
-        return view('portal::admin.forum.create', compact('forum'));
-    }*/
-
     public function edit($id, Request $request)
     {
         // Check if the user has permission to edit the forum.
@@ -107,24 +76,18 @@ class ForumController extends Controller
         }
 
         // Attempt to retrieve the forum and handle the response.
-        $response = $this->forum->first($id);
+        $forum = $this->forum->first($id);
 
         // Check if the forum was retrieved successfully.
-        if ($response['status'] !== 'success') {
-            toastr()->error(translate('Forum not found.'));
-            return redirect()->route('forum.index');
+        if ($forum['status'] !== 'success') {
+            return response()->json($forum);
         }
 
-        $forum = $response['data'];
-
-        // Vérification supplémentaire pour s'assurer que c'est un objet
-        if (!is_object($forum)) {
-            toastr()->error(translate('Invalid forum data.'));
-            return redirect()->route('forum.index');
-        }
+        $forum = $forum['data'];
 
         return view('portal::admin.forum.create', compact('forum'));
     }
+
     /**
      * Update the specified forum resource in storage.
      *
@@ -149,7 +112,6 @@ class ForumController extends Controller
 
         return $this->jsonSuccess('Forum has been updated successfully.', route('forum.index'));
     }
-
 
     /**
      * Change the status of the specified forum resource.

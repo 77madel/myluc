@@ -20,6 +20,7 @@ class ForumRepository extends BaseRepository
     protected static $rules = [
         'save' => [
             'title' => 'required|unique:forums,title',
+            'slug' => 'required|unique:forums,slug',
             'description' => 'required',
         ],
         'update' => [],
@@ -28,15 +29,28 @@ class ForumRepository extends BaseRepository
     /**
      * @param  mixed  $request
      */
-    public static function save($request): array
+    public static function save($data): array
     {
-        if ($request->hasFile('forum_img')) {
-            $image = parent::upload($request, fieldname: 'forum_img', file: '', folder: 'lms/forums');
-            $request->request->add(['image' => $image]);
-        }
-        $request->request->add(['slug' => Str::slug($request->name)]);
+        return parent::save($data);
+    }
 
-        return parent::save($request->all());
+    /**
+     * Create a new forum for a specific course.
+     *
+     * @param \Modules\LMS\Models\Course $course
+     * @return array
+     */
+    public function createForCourse($course): array
+    {
+        $forumData = [
+            'title' => 'Forum for course: ' . $course->title,
+            'slug' => Str::slug('Forum for course ' . $course->title . ' ' . uniqid()), // Ensure unique slug
+            'description' => 'This is the discussion forum for the course "' . $course->title . '".',
+            'course_id' => $course->id,
+        ];
+
+        // We call the parent save method directly to bypass the validation rules in the local save method.
+        return parent::save($forumData);
     }
 
     /**
@@ -56,7 +70,7 @@ class ForumRepository extends BaseRepository
             $request->request->add(['image' => $image ? $image : $forum->image]);
         }
 
-        $request->request->add(['slug' => Str::slug($request->name)]);
+        $request->request->add(['slug' => Str::slug($request->title)]);
 
         return parent::update($id, $request->all());
     }
@@ -100,10 +114,26 @@ class ForumRepository extends BaseRepository
      */
     public function forumsList()
     {
-        $data['forums'] = static::$model::withCount('forumPosts')->withCount('forumMembers')->withCount('subForums as topics')->get();
+        $data['forums'] = static::$model::withCount('forumPosts')->withCount('subForums as topics')->with('course.instructors')->get();
         $data['posts'] = static::$model::with('forumPosts');
 
         return $data;
+    }
+
+    public function forumDetail($slug)
+    {
+        $forum = static::$model::where('slug', $slug)
+            ->with(['subForums' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }])
+            ->firstOrFail();
+
+        return ['forum' => $forum];
+    }
+
+    public function findBySlug($slug)
+    {
+        return static::$model::where('slug', $slug)->firstOrFail();
     }
 
     /**
@@ -126,5 +156,14 @@ class ForumRepository extends BaseRepository
         ]);
 
         return parent::save($request->all());
+    }
+
+    public function getInstructorForums($instructorId)
+    {
+        return static::$model::whereHas('course', function ($query) use ($instructorId) {
+            $query->whereHas('instructors', function ($query) use ($instructorId) {
+                $query->where('instructor_id', $instructorId);
+            });
+        })->get();
     }
 }

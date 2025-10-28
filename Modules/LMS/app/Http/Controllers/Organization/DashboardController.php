@@ -36,7 +36,6 @@ class DashboardController extends Controller implements HasMiddleware
     public function index()
     {
         $data = $this->user->dashboardInfoOrganization();
-
         return view('portal::organization.index', compact('data'));
     }
 
@@ -56,14 +55,12 @@ class DashboardController extends Controller implements HasMiddleware
     {
         Auth::logout();
         Session::flush();
-
         return redirect('/');
     }
 
     public function students()
     {
         $students = $this->user->enrolledStudents();
-
         return view('portal::organization.student.student-list', compact('students'));
     }
 

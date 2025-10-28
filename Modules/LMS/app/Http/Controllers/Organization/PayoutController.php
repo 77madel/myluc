@@ -15,6 +15,7 @@ class PayoutController extends Controller
     {
         $reports = PayoutRepository::payoutReport();
         $response = PayoutRepository::paginate(options: [
+<<<<<<< HEAD
             'where' => ['user_id' => authCheck()->id],
         ]);
         $payoutHistories = $response['data'] ?? [];
@@ -22,6 +23,14 @@ class PayoutController extends Controller
         return view('portal::organization.financial.payout.index', compact('reports', 'payoutHistories'));
     }
 
+=======
+            'where' => ['user_id' => authCheck()->id]
+        ]);
+        $payoutHistories = $response['data'] ??  [];
+
+        return view('portal::organization.financial.payout.index', compact('reports', 'payoutHistories'));
+    }
+>>>>>>> origin/bakarydev
     /**
      * Store a newly created resource in storage.
      */
@@ -29,6 +38,7 @@ class PayoutController extends Controller
     {
         //
         if (dotZeroRemove(authCheck()?->userable?->user_balance)) {
+<<<<<<< HEAD
             $response = PayoutRepository::payoutRequest();
             $response['url'] = route('organization.payout.index');
 
@@ -38,6 +48,15 @@ class PayoutController extends Controller
         return response()->json([
             'status' => 'error',
             'message' => translate('You have no available balance'),
+=======
+            $response =  PayoutRepository::payoutRequest();
+            $response['url'] = route('organization.payout.index');
+            return response()->json($response);
+        }
+        return response()->json([
+            'status' => 'error',
+            'message' =>  translate('You have no available balance')
+>>>>>>> origin/bakarydev
 
         ]);
     }

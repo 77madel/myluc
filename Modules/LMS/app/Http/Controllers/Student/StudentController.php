@@ -26,7 +26,8 @@ class StudentController extends Controller
     public function dashboard()
     {
         $data = $this->student->dashboardReport();
-        return view('portal::student.index', compact('data'));
+        $notifications = Auth::user()->unreadNotifications;
+        return view('portal::student.index', compact('data', 'notifications'));
     }
 
     /**
@@ -241,5 +242,11 @@ class StudentController extends Controller
             ->orderBy('id', 'DESC')
             ->paginate(15);
         return view('portal::student.payment.offline.index', compact('offlinePayments'));
+    }
+
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return back();
     }
 }

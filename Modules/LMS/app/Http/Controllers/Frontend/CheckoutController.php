@@ -17,7 +17,6 @@ class CheckoutController extends Controller
 {
 
     public function __construct(protected PurchaseRepository $enrolled) {}
-
     public function checkoutPage()
     {
         if (!authCheck()) {
@@ -39,19 +38,16 @@ class CheckoutController extends Controller
         ];
         return view('theme::checkout.index', compact('data'));
     }
-
     public function checkout(Request $request)
     {
         $result = CheckoutService::checkout($request);
         return response()->json($result);
     }
 
-
     public function transactionSuccess($id = null)
     {
         return view('theme::success.index');
     }
-
     public function paymentFormRender(Request $request)
     {
         $paymentMethod = $request->payment_method;
@@ -71,7 +67,6 @@ class CheckoutController extends Controller
             'payment' => true,
         ]);
     }
-
 
     public function courseEnrolled(Request $request)
     {
