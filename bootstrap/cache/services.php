@@ -27,20 +27,21 @@
     23 => 'Barryvdh\\Debugbar\\ServiceProvider',
     24 => 'Barryvdh\\DomPDF\\ServiceProvider',
     25 => 'Laravel\\Sail\\SailServiceProvider',
-    26 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    27 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
-    28 => 'Carbon\\Laravel\\ServiceProvider',
-    29 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    30 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    31 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
-    32 => 'Flasher\\Laravel\\FlasherServiceProvider',
-    33 => 'Flasher\\Toastr\\Laravel\\FlasherToastrServiceProvider',
-    34 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
-    35 => 'Spatie\\Permission\\PermissionServiceProvider',
-    36 => 'Stevebauman\\Location\\LocationServiceProvider',
-    37 => 'Stevebauman\\Purify\\PurifyServiceProvider',
-    38 => 'Unicodeveloper\\Paystack\\PaystackServiceProvider',
-    39 => 'App\\Providers\\AppServiceProvider',
+    26 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    27 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    28 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
+    29 => 'Carbon\\Laravel\\ServiceProvider',
+    30 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    31 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    32 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
+    33 => 'Flasher\\Laravel\\FlasherServiceProvider',
+    34 => 'Flasher\\Toastr\\Laravel\\FlasherToastrServiceProvider',
+    35 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    36 => 'Spatie\\Permission\\PermissionServiceProvider',
+    37 => 'Stevebauman\\Location\\LocationServiceProvider',
+    38 => 'Stevebauman\\Purify\\PurifyServiceProvider',
+    39 => 'Unicodeveloper\\Paystack\\PaystackServiceProvider',
+    40 => 'App\\Providers\\AppServiceProvider',
   ),
   'eager' => 
   array (
@@ -223,6 +224,7 @@
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Socialite\\Contracts\\Factory' => 'Laravel\\Socialite\\SocialiteServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -267,6 +269,9 @@
     array (
     ),
     'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Socialite\\SocialiteServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 

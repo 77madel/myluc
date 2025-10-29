@@ -191,6 +191,13 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         // Routes pour les certificats PDF
         Route::get('certificate/{id}/download', [CertificateController::class, 'downloadPdf'])->name('certificate.download');
         Route::get('certificate/{id}/view', [CertificateController::class, 'viewPdf'])->name('certificate.view');
+        
+        // Routes publiques pour partage sur réseaux sociaux (HORS auth)
+        Route::get('certificate/public/{uuid}', [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'showPublic'])->name('certificate.public');
+        Route::get('certificate/public/{uuid}/image', [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'getPublicImage'])->name('certificate.public.image');
+        
+        // Routes LinkedIn OAuth (HORS auth pour callback public)
+        Route::get('linkedin/callback', [\Modules\LMS\Http\Controllers\LinkedInShareController::class, 'callback'])->name('linkedin.callback');
     });
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');

@@ -142,8 +142,9 @@ class CertificateService
         // Créer le certificat
         $userCertificate = UserCertificate::create([
             'user_id' => $userId,
-            'course_id' => $courseId, // Ajouter le course_id
+            'course_id' => $courseId,
             'certificate_id' => $certificateId,
+            'public_uuid' => \Illuminate\Support\Str::uuid(), // UUID pour partage public
             'type' => 'course',
             'subject' => $course->title,
             'certificate_content' => $certificateContent,
