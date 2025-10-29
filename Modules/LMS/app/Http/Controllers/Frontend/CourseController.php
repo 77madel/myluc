@@ -70,9 +70,32 @@ class  CourseController extends Controller
      */
     public function courseVideoPlayer($slug, Request $request)
     {
+        \Log::info('🎬 [courseVideoPlayer] Accès demandé', [
+            'slug' => $slug,
+            'user_guard' => auth()->check() ? auth()->user()->guard : 'guest',
+            'isAdmin' => isAdmin(),
+            'isInstructor' => isInstructor(),
+            'isStudent' => isStudent()
+        ]);
+        
         $course = $this->course->courseDetail($slug);
         
-        // Récupérer l'enrollment de l'étudiant (objet complet)
+        // ✅ ACCÈS LIBRE POUR ADMIN ET INSTRUCTEUR
+        if (isAdmin() || isInstructor()) {
+            \Log::info('✅ [courseVideoPlayer] Admin/Instructeur détecté - Accès libre');
+            
+            $data = [
+                'type' => $request->type ?? null,
+                'topic_id' => $request->topic_id ?? null,
+                'chapter_id' => $request->chapter_id ?? null,
+            ];
+            
+            $assignments = TopicRepository::getTopicByCourse($course->id,  TopicTypes::ASSIGNMENT);
+            
+            return view('theme::course.course-video', compact('course', 'assignments', 'data'));
+        }
+        
+        // ✅ VÉRIFICATION D'ACCÈS POUR LES STUDENTS
         $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
             ->where('course_id', $course->id)
             ->where('type', 'enrolled')
@@ -86,7 +109,6 @@ class  CourseController extends Controller
 
         $assignments = TopicRepository::getTopicByCourse($course->id,  TopicTypes::ASSIGNMENT);
 
-        // Vérifier si l'étudiant a accès au cours
         if (isStudent()) {
             if (!$purchaseDetails) {
                 // Vérifier si l'étudiant a obtenu un certificat pour ce cours
@@ -100,7 +122,7 @@ class  CourseController extends Controller
                         ->with('warning', 'Vous avez déjà obtenu le certificat pour ce cours. Contactez un administrateur pour une réinscription si nécessaire.');
                 }
                 
-                return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours.');
+                return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours. Veuillez l\'acheter ou demander un accès.');
             }
         }
         

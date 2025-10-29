@@ -105,6 +105,14 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     Route::get('organizations', [OrganizationController::class, 'index'])->name('organization.list');
     //Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
     Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
+    
+    // ✅ Route pour vérifier la validité de la session (Session Unique)
+    Route::post('session/check', [\Modules\LMS\Http\Controllers\SessionCheckController::class, 'check'])->name('session.check');
+    
+    // ✅ Routes Analytics (Tracking utilisateurs)
+    Route::post('analytics/track', [\Modules\LMS\Http\Controllers\AnalyticsController::class, 'track'])->name('analytics.track');
+    Route::post('analytics/conversion', [\Modules\LMS\Http\Controllers\AnalyticsController::class, 'trackConversion'])->name('analytics.conversion');
+    
     Route::group(['middleware' => 'auth'], function () {
         Route::post('forum-post', [ForumController::class, 'forumPost']);
         Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');
@@ -173,9 +181,13 @@ Route::group(['middleware' => ['checkInstaller']], function () {
             Route::get('payment/success/{method}', 'success')->name('payment.success');
             Route::get('cancel', 'cancel')->name('payment.cancel.web');
         });
-
-        Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
-        Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
+    });
+    
+    // ✅ Routes accessibles par TOUS (admin, instructeur, student) - HORS du groupe middleware auth
+    Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
+    Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
+    
+    Route::group(['middleware' => 'auth'], function () {
         Route::post('course-review', [CourseController::class, 'review'])->name('review');
         Route::post('quiz/{id}/store', [QuizController::class, 'quizStoreResult'])->name('quiz.store.result');
         Route::post('user/submit-quiz-answer/{quiz_id}/{type}', [QuizController::class, 'submitQuizAnswer'])->name('user.submit.quiz.answer');
@@ -187,6 +199,13 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         // Routes pour les certificats PDF
         Route::get('certificate/{id}/download', [CertificateController::class, 'downloadPdf'])->name('certificate.download');
         Route::get('certificate/{id}/view', [CertificateController::class, 'viewPdf'])->name('certificate.view');
+        
+        // Routes publiques pour partage sur réseaux sociaux (HORS auth)
+        Route::get('certificate/public/{uuid}', [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'showPublic'])->name('certificate.public');
+        Route::get('certificate/public/{uuid}/image', [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'getPublicImage'])->name('certificate.public.image');
+        
+        // Routes LinkedIn OAuth (HORS auth pour callback public)
+        Route::get('linkedin/callback', [\Modules\LMS\Http\Controllers\LinkedInShareController::class, 'callback'])->name('linkedin.callback');
     });
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');

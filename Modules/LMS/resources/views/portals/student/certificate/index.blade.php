@@ -10,4 +10,35 @@
             <x-portal::admin.empty-card title="You have no Certificate" />
         @endif
     </div>
+
+    @if(session('success'))
+        <script>
+            if (typeof toastr !== 'undefined') {
+                toastr.success('{{ session('success') }}');
+            } else {
+                alert('{{ session('success') }}');
+            }
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            if (typeof toastr !== 'undefined') {
+                toastr.error('{{ session('error') }}');
+            } else {
+                alert('{{ session('error') }}');
+            }
+        </script>
+    @endif
+
+    @if(session('warning'))
+        <script>
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('{{ session('warning') }}');
+            } else {
+                alert('{{ session('warning') }}');
+            }
+        </script>
+    @endif
 </x-dashboard-layout>
+

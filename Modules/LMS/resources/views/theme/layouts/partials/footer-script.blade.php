@@ -1,3 +1,9 @@
+{{-- Session Monitor - Vérification automatique de session unique --}}
+@include('theme::components.layouts.session-monitor')
+
+{{-- Analytics Tracker - Tracking des utilisateurs --}}
+<script src="{{ asset('lms/frontend/assets/js/analytics-tracker.js') }}"></script>
+
 <script src="{{ asset('lms/frontend/assets/vendor/js/jquery-3.7.1.min.js') }}"></script>
 <!-- VENDOR JS -->
 <script src="{{ asset('lms/frontend/assets/vendor/js/swiper-bundle.min.js') }}"></script>

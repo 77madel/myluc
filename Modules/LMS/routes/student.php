@@ -9,7 +9,7 @@ use Modules\LMS\Http\Controllers\Student\ChapterProgressController;
 use Modules\LMS\Http\Controllers\CertificateController;
 
 Route::group(
-    ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller']],
+    ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::group(['controller' => StudentController::class], function () {
@@ -23,8 +23,6 @@ Route::group(
             Route::get('quiz-details/{userQuizId}', 'quizDetails')->name('quiz.details');
             Route::get('assignments', 'assignmentList')->name('assignment.list');
             Route::get("request/certificate/{id}", 'certificateGenerate')->name('generate.certificate');
-Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
-Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
             Route::get("wishlists", 'wishlists')->name('wishlist');
             Route::get("offline/payment", 'offlinePayment')->name('offline.payment');
             Route::delete('wishlists/{id}', 'removeWishlist')->name('remove.wishlist');
@@ -65,5 +63,13 @@ Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\Certifica
             Route::get('chapter/{chapterId}', 'getChapterTopicsProgress')->name('chapter.topics.progress');
             Route::get('all', 'getAllProgress')->name('all.topics.progress');
         });
+        
+        // Routes pour les certificats
+        Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
+        Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
+        Route::post("certificate/track-share", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'trackShare'])->name('certificate.track-share');
+        
+        // Routes LinkedIn OAuth
+        Route::post("linkedin/authorize", [\Modules\LMS\Http\Controllers\LinkedInShareController::class, 'authorize'])->name('linkedin.authorize');
     }
 );

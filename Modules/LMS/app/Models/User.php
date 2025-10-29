@@ -25,7 +25,7 @@ class User extends Authenticatable
 
     public $guard_name = 'web';
 
-    protected $fillable = ['id', 'userable_type', 'userable_id', 'guard',  'username', 'email', 'password', 'organization_id', 'enrollment_link_id', 'is_verify', 'remember_me'];
+    protected $fillable = ['id', 'userable_type', 'userable_id', 'guard',  'username', 'email', 'password', 'organization_id', 'enrollment_link_id', 'is_verify', 'remember_me', 'session_token'];
 
     /**
      * The attributes that should be hidden for serialization.
