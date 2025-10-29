@@ -1765,17 +1765,19 @@ if (!function_exists('active_theme')) {
     {
         $active_theme = null;
 
-        if (! session()->has('active_theme')) {
-            $active_theme = Theme::whereActive(1)->first();
-            session()->put('active_theme', $active_theme);
+        try {
+            if (! session()->has('active_theme')) {
+                if (checkDatabaseConnection() && Schema::hasTable('themes')) {
+                    $active_theme = Theme::whereActive(1)->first();
+                    session()->put('active_theme', $active_theme);
+                }
+            }
+
+            $active_theme = session()->get('active_theme');
+        } catch (\Exception $e) {
+            // En cas d'erreur, on ne fait rien et on retourne null
+            // Le système utilisera le thème par défaut
         }
-
-        $active_theme = session()->get('active_theme');
-
-        // if (! $active_theme && checkDatabaseConnection() && Schema::hasTable('themes')) {
-        //     $active_theme = Theme::whereActive(1)->first();
-        //     session()->put('active_theme', $active_theme);
-        // }
 
         return  $active_theme;
     }

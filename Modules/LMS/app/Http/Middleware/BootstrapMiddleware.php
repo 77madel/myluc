@@ -157,7 +157,22 @@ class BootstrapMiddleware
         $sourceThemePath = module_path($this->moduleName, 'resources/views/theme');
         $sourcePortalPath = module_path($this->moduleName, 'resources/views/portals');
 
-        $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$activeThemeSourcePath, $sourceThemePath]), 'theme');
+        // Collecter les chemins valides pour les vues du thème
+        $themePaths = array_filter(
+            [$activeThemeSourcePath, $sourceThemePath],
+            fn($path) => file_exists($path) && is_dir($path)
+        );
+
+        if (empty($themePaths)) {
+            // Fallback vers le thème par défaut si aucun chemin valide
+            $defaultThemePath = system_path($this->moduleName, "resources/themes/default/views");
+            if (file_exists($defaultThemePath)) {
+                $themePaths[] = $defaultThemePath;
+            }
+            $themePaths[] = $sourceThemePath;
+        }
+
+        $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), $themePaths), 'theme');
 
         if (file_exists($activePortalSourcePath)) {
             $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$activePortalSourcePath]), 'portal');

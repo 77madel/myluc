@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Schema;
 use Modules\LMS\Models\PaymentMethod;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
@@ -245,6 +246,81 @@ class LMSServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(FileServiceProvider::class);
         $this->app->register(CookieConsentServiceProvider::class);
+
+        // Enregistrer les singletons essentiels comme fallback
+        // Le middleware BootstrapMiddleware peut les remplacer avec des valeurs plus spécifiques
+        $this->registerEssentialSingletons();
+    }
+
+    /**
+     * Register essential singletons that are needed across the application
+     */
+    protected function registerEssentialSingletons(): void
+    {
+        // Default language singleton
+        $this->app->singleton('default_language', function () {
+            try {
+                if (checkDatabaseConnection() && Schema::hasTable('languages')) {
+                    $defaultLanguage = \Modules\LMS\Models\Language::select('code')->where('active', 1)->first();
+                    return $defaultLanguage['code'] ?? App::getLocale();
+                }
+            } catch (\Exception $e) {
+                // En cas d'erreur, utiliser la locale par défaut
+            }
+            return App::getLocale();
+        });
+
+        // Languages singleton
+        $this->app->singleton('languages', function () {
+            try {
+                if (checkDatabaseConnection() && Schema::hasTable('languages')) {
+                    return \Modules\LMS\Models\Language::where('status', 1)
+                        ->get()
+                        ->map(function ($language) {
+                            if (function_exists('translate')) {
+                                $language->name = translate($language->name);
+                            }
+                            return $language;
+                        });
+                }
+            } catch (\Exception $e) {
+                // En cas d'erreur, retourner une collection vide
+            }
+            return collect();
+        });
+
+        // Translations singleton
+        $this->app->singleton('translations', function () {
+            $locale = App::getLocale();
+            try {
+                if (function_exists('get_translations')) {
+                    return get_translations($locale);
+                }
+            } catch (\Exception $e) {
+                // En cas d'erreur, retourner un tableau vide
+            }
+            return [];
+        });
+
+        // User singleton (sera remplacé par le middleware si un utilisateur est connecté)
+        $this->app->singleton('user', function () {
+            return null;
+        });
+
+        // User roles singleton
+        $this->app->singleton('user_roles', function () {
+            return [];
+        });
+
+        // User permissions singleton
+        $this->app->singleton('user_permissions', function () {
+            return [];
+        });
+
+        // User role list singleton
+        $this->app->singleton('user_role_list', function () {
+            return [];
+        });
     }
 
     /**
@@ -273,6 +349,29 @@ class LMSServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePortalPath]), "{$this->moduleNameLower}:portal");
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->moduleNameLower);
+
+        // Enregistrer le namespace 'portal' comme fallback
+        // Le middleware BootstrapMiddleware peut le remplacer avec le thème actif
+        if (file_exists($sourcePortalPath) && is_dir($sourcePortalPath)) {
+            $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePortalPath]), 'portal');
+        }
+
+        // Enregistrer le namespace 'theme' comme fallback
+        // Le middleware BootstrapMiddleware peut le remplacer avec le thème actif
+        $sourceThemePath = module_path($this->moduleName, 'resources/views/theme');
+        $defaultThemePath = module_path($this->moduleName, 'resources/themes/default/views');
+
+        $themePaths = [];
+        if (file_exists($defaultThemePath) && is_dir($defaultThemePath)) {
+            $themePaths[] = $defaultThemePath;
+        }
+        if (file_exists($sourceThemePath) && is_dir($sourceThemePath)) {
+            $themePaths[] = $sourceThemePath;
+        }
+
+        if (!empty($themePaths)) {
+            $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), $themePaths), 'theme');
+        }
 
         $this->publishes([
             $sourcePath => $viewPath
