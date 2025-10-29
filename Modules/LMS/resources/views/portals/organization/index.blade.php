@@ -8,7 +8,7 @@
     $currencySymbol = get_currency_symbol($currency);
 
     // Statistiques pour l'organisation
-    $totalPurchasedCourses = $organization ? DB::table('purchases')
+    $totalPurchasedCourses = $organization ? DB::table('purchase_details')
         ->where('organization_id', $organization->id)
         ->where('purchase_type', 'organization_course')
         ->count() : 0;
@@ -19,11 +19,11 @@
     $totalEnrollmentLinks = $organization ? $organization->enrollmentLinks()->count() : 0;
 
     // Récupérer les cours achetés avec leurs détails
-    $purchasedCourses = $organization ? DB::table('purchases')
-        ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
+    $purchasedCourses = $organization ? DB::table('purchase_details')
+        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
         ->join('courses', 'purchase_details.course_id', '=', 'courses.id')
-        ->where('purchases.organization_id', $organization->id)
-        ->where('purchases.purchase_type', 'organization_course')
+        ->where('purchase_details.organization_id', $organization->id)
+        ->where('purchase_details.purchase_type', 'organization_course')
         ->select('purchases.*', 'courses.title as course_title', 'courses.thumbnail', 'courses.id as course_id', 'purchase_details.price')
         ->latest('purchases.created_at')
         ->take(5)

@@ -35,7 +35,21 @@ class DashboardController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $data = $this->user->dashboardInfoOrganization();
+        try {
+            $data = $this->user->dashboardInfoOrganization();
+        } catch (\Exception $e) {
+            // Log l'erreur complète pour debug
+            \Log::error('Error in dashboardInfoOrganization: ' . $e->getMessage());
+            \Log::error('SQL: ' . $e->getSql() ?? 'No SQL');
+
+            // Données par défaut en cas d'erreur
+            $data = [
+                'total_amount' => 0,
+                'total_course' => 0,
+                'total_platform_fee' => 0,
+                'total_bundle' => 0,
+            ];
+        }
         return view('portal::organization.index', compact('data'));
     }
 
