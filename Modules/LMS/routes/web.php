@@ -109,6 +109,10 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     // ✅ Route pour vérifier la validité de la session (Session Unique)
     Route::post('session/check', [\Modules\LMS\Http\Controllers\SessionCheckController::class, 'check'])->name('session.check');
     
+    // ✅ Routes Analytics (Tracking utilisateurs)
+    Route::post('analytics/track', [\Modules\LMS\Http\Controllers\AnalyticsController::class, 'track'])->name('analytics.track');
+    Route::post('analytics/conversion', [\Modules\LMS\Http\Controllers\AnalyticsController::class, 'trackConversion'])->name('analytics.conversion');
+    
     Route::group(['middleware' => 'auth'], function () {
         Route::post('forum-post', [ForumController::class, 'forumPost']);
         Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');

@@ -68,7 +68,10 @@
     @endauth
 
     {{-- Session Monitor - Vérification automatique de session unique --}}
-    @include('lms::components.layouts.session-monitor')
+    @include('lms::portals.components.layouts.session-monitor')
+    
+    {{-- Analytics Tracker - Tracking des utilisateurs --}}
+    <script src="{{ asset('lms/frontend/assets/js/analytics-tracker.js') }}"></script>
     
     <script src="{{ asset('lms/assets/js/vendor/jquery.min.js') }}"></script>
     <script src="{{ asset('lms/assets/js/vendor/flowbite.min.js') }}"></script>

@@ -63,6 +63,9 @@ Route::group(
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/profile', [DashboardController::class, 'profile'])->name('admin.profile');
         Route::post('/profile', [DashboardController::class, 'profileUpdate'])->name('admin.profile.update');
+        
+        // ✅ Analytics Dashboard
+        Route::get('/analytics', [\Modules\LMS\Http\Controllers\Admin\AnalyticsDashboardController::class, 'index'])->name('admin.analytics');
 
         Route::get('/cache-clear', [DashboardController::class, 'cacheClear'])->name('cache.clear');
         Route::get('/cache-optimize', [DashboardController::class, 'cacheOptimize'])->name('cache.optimize');

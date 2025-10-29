@@ -26,8 +26,8 @@
     22 => 'Illuminate\\View\\ViewServiceProvider',
     23 => 'Barryvdh\\Debugbar\\ServiceProvider',
     24 => 'Barryvdh\\DomPDF\\ServiceProvider',
-    25 => 'Laravel\\Sail\\SailServiceProvider',
-    26 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    25 => 'Jenssegers\\Agent\\AgentServiceProvider',
+    26 => 'Laravel\\Sail\\SailServiceProvider',
     27 => 'Laravel\\Tinker\\TinkerServiceProvider',
     28 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     29 => 'Carbon\\Laravel\\ServiceProvider',
@@ -57,19 +57,20 @@
     9 => 'Illuminate\\View\\ViewServiceProvider',
     10 => 'Barryvdh\\Debugbar\\ServiceProvider',
     11 => 'Barryvdh\\DomPDF\\ServiceProvider',
-    12 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
-    13 => 'Carbon\\Laravel\\ServiceProvider',
-    14 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    15 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    16 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
-    17 => 'Flasher\\Laravel\\FlasherServiceProvider',
-    18 => 'Flasher\\Toastr\\Laravel\\FlasherToastrServiceProvider',
-    19 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
-    20 => 'Spatie\\Permission\\PermissionServiceProvider',
-    21 => 'Stevebauman\\Location\\LocationServiceProvider',
-    22 => 'Stevebauman\\Purify\\PurifyServiceProvider',
-    23 => 'Unicodeveloper\\Paystack\\PaystackServiceProvider',
-    24 => 'App\\Providers\\AppServiceProvider',
+    12 => 'Jenssegers\\Agent\\AgentServiceProvider',
+    13 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
+    14 => 'Carbon\\Laravel\\ServiceProvider',
+    15 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    16 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    17 => 'Nwidart\\Modules\\LaravelModulesServiceProvider',
+    18 => 'Flasher\\Laravel\\FlasherServiceProvider',
+    19 => 'Flasher\\Toastr\\Laravel\\FlasherToastrServiceProvider',
+    20 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    21 => 'Spatie\\Permission\\PermissionServiceProvider',
+    22 => 'Stevebauman\\Location\\LocationServiceProvider',
+    23 => 'Stevebauman\\Purify\\PurifyServiceProvider',
+    24 => 'Unicodeveloper\\Paystack\\PaystackServiceProvider',
+    25 => 'App\\Providers\\AppServiceProvider',
   ),
   'deferred' => 
   array (
@@ -224,7 +225,6 @@
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
-    'Laravel\\Socialite\\Contracts\\Factory' => 'Laravel\\Socialite\\SocialiteServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -269,9 +269,6 @@
     array (
     ),
     'Laravel\\Sail\\SailServiceProvider' => 
-    array (
-    ),
-    'Laravel\\Socialite\\SocialiteServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 
