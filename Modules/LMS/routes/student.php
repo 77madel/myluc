@@ -7,6 +7,7 @@ use Modules\LMS\Http\Controllers\Student\SupportController;
 use Modules\LMS\Http\Controllers\Student\NotificationController;
 use Modules\LMS\Http\Controllers\Student\ChapterProgressController;
 use Modules\LMS\Http\Controllers\CertificateController;
+use Modules\LMS\Http\Controllers\Student\StudentMessageController;
 
 Route::group(
     ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller', 'check.session.token']],
@@ -23,9 +24,13 @@ Route::group(
             Route::get('quiz-details/{userQuizId}', 'quizDetails')->name('quiz.details');
             Route::get('assignments', 'assignmentList')->name('assignment.list');
             Route::get("request/certificate/{id}", 'certificateGenerate')->name('generate.certificate');
+            Route::get("certificate/view/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'viewPdf'])->name('certificate.view');
+            Route::get("certificate/download/{id}", [\Modules\LMS\Http\Controllers\CertificateControllerSimple::class, 'downloadPdf'])->name('certificate.download');
             Route::get("wishlists", 'wishlists')->name('wishlist');
             Route::get("offline/payment", 'offlinePayment')->name('offline.payment');
             Route::delete('wishlists/{id}', 'removeWishlist')->name('remove.wishlist');
+
+            Route::post('notifications/mark-all-as-read', 'markAllAsRead')->name('notifications.markAllAsRead');
         });
 
         Route::group(['controller' => NotificationController::class], function () {
@@ -35,6 +40,13 @@ Route::group(
             Route::get('notification/read-all', 'notificationReadAll')->name('notification.read.all');
         });
         Route::resource('supports', SupportController::class);
+
+        Route::group(['prefix' => 'messages', 'as' => 'messages.'], function () {
+            Route::get('/', [\Modules\LMS\Http\Controllers\Student\StudentMessageController::class, 'index'])->name('index');
+            Route::get('/{id}', [\Modules\LMS\Http\Controllers\Student\StudentMessageController::class, 'show'])->name('show');
+            Route::post('/{id}', [\Modules\LMS\Http\Controllers\Student\StudentMessageController::class, 'store'])->name('store');
+            Route::post('/start', [\Modules\LMS\Http\Controllers\Student\StudentMessageController::class, 'startConversation'])->name('start');
+        });
         Route::get('course-support', [SupportController::class, 'courseSupport'])->name('course.support.index');
         Route::get('course-support-create', [SupportController::class, 'courseSupportCreate'])->name('course.support.create');
         Route::get('reply/{id}', [SupportController::class, 'reply'])->name('reply');

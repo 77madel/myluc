@@ -1102,7 +1102,7 @@ class CourseRepository extends BaseRepository
 
         $id = $request->id;
         $type = $request->type;
-        
+
         // 🔍 LOG: Afficher TOUS les paramètres reçus
         \Log::info("🔍 [getCourseTopicByType] Requête reçue", [
             'all_params' => $request->all(),
@@ -1127,7 +1127,7 @@ class CourseRepository extends BaseRepository
         $topic['courseId'] = $request->course_id ?? null;
         $topic['topicId'] = $request->topic_id ?? null;
         $topic['chapterId'] = $request->chapter_id ?? null;
-        
+
         \Log::info("🎯 [getCourseTopicByType] Données passées à la vue", [
             'type' => $type,
             'id' => $id,
@@ -1135,7 +1135,7 @@ class CourseRepository extends BaseRepository
             'courseId' => $topic['courseId'],
             'chapterId' => $topic['chapterId']
         ]);
-        
+
         // Render view
         $view = view('theme::course.course-learn', compact('topic', 'type'))->render();
 
@@ -1158,7 +1158,7 @@ class CourseRepository extends BaseRepository
                 'type' => $type,
                 'id' => $id
             ]);
-            
+
             switch ($type) {
                 case 'video':
                     $result = Video::find($id);
@@ -1182,16 +1182,16 @@ class CourseRepository extends BaseRepository
                 default:
                     $result = null;
             }
-            
+
             \Log::info("🔍 fetchContentByType result", [
                 'type' => $type,
                 'id' => $id,
                 'result_found' => $result !== null,
                 'result_title' => $result ? $result->title : null
             ]);
-            
+
             return $result;
-            
+
         } catch (\Exception $e) {
             \Log::error("❌ Error in fetchContentByType", [
                 'type' => $type,

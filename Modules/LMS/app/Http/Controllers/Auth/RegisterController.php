@@ -17,9 +17,10 @@ class RegisterController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+
         // Détecter automatiquement si c'est une inscription via lien d'organisation
         $this->detectAndHandleOrganizationEnrollment($request);
-        
+
         // Vérifier si c'est une inscription via lien d'organisation et si l'étudiant existe déjà
         if ($request->has('enrollment_link_id') && $request->has('organization_id')) {
             $existingUser = $this->checkExistingStudent($request);
@@ -28,7 +29,6 @@ class RegisterController extends Controller
                 return $this->enrollExistingStudent($existingUser, $request);
             }
         }
-        
         $user = $this->register->userRegister($request);
         if ($user['status'] !== 'success') {
             return response()->json($user);
@@ -68,11 +68,11 @@ class RegisterController extends Controller
         // Vérifier si l'URL contient un slug d'organisation (détection automatique)
         $currentUrl = $request->url();
         $path = parse_url($currentUrl, PHP_URL_PATH);
-        
+
         // Détecter le pattern /enroll/{slug}
         if (preg_match('/\/enroll\/([a-zA-Z0-9]+)/', $path, $matches)) {
             $slug = $matches[1];
-            
+
             // Récupérer le lien d'inscription
             $enrollmentLink = OrganizationEnrollmentLink::where('slug', $slug)
                 ->where('status', 'active')
@@ -94,13 +94,13 @@ class RegisterController extends Controller
     private function checkExistingStudent(Request $request)
     {
         $email = $request->email;
-        
+
         // Chercher un utilisateur avec cet email et type student
         $user = \Modules\LMS\Models\User::where('email', $email)
             ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
             ->with('userable')
             ->first();
-            
+
         return $user;
     }
 
@@ -112,7 +112,7 @@ class RegisterController extends Controller
         try {
             // Récupérer le lien d'inscription
             $enrollmentLink = OrganizationEnrollmentLink::find($request->enrollment_link_id);
-            
+
             if (!$enrollmentLink || !$enrollmentLink->course_id) {
                 return response()->json([
                     'status' => 'error',
@@ -183,5 +183,6 @@ class RegisterController extends Controller
             ]);
         }
     }
+
 
 }

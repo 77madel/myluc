@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        /*"./Modules/LMS/resources/views/components/!**!/!*.blade.php",*/
-        "./Modules/LMS/resources/views/**/*.blade.php",  // Capture tous les fichiers
+ // Capture tous les fichiers
         "./resources/views/**/*.blade.php",
+        "./Modules/LMS/resources/views/components/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/themes/**/*.blade.php",

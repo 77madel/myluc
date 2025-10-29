@@ -663,17 +663,17 @@
     // Fonction pour afficher le modal de leçon terminée
     window.showLessonCompleteModal = function(data) {
         console.log('📖 [PARENT] showLessonCompleteModal appelée:', data);
-        
+
         const modal = document.getElementById('lesson-complete-modal');
         const title = document.getElementById('lesson-modal-title');
         const message = document.getElementById('lesson-modal-message');
         const closeBtn = document.getElementById('lesson-modal-close');
-        
+
         if (!modal) {
             console.error('❌ Modal lesson-complete-modal introuvable');
             return;
         }
-        
+
         // Mettre à jour le contenu
         if (data.chapter_completed) {
             title.textContent = '📖 Chapitre terminé !';
@@ -682,11 +682,11 @@
             title.textContent = '✅ Leçon terminée !';
             message.textContent = 'Votre progression a été enregistrée.';
         }
-        
+
         // Afficher le modal
         modal.style.display = 'flex';
         console.log('✅ [PARENT] Modal affiché');
-        
+
         // Gestionnaire de fermeture
         closeBtn.onclick = function() {
             modal.style.display = 'none';
@@ -694,21 +694,21 @@
             window.location.reload();
         };
     };
-    
+
     // Fonction pour afficher le modal de cours terminé
     window.showCourseCompleteModal = function(certificateGenerated) {
         console.log('🎓 [PARENT] showCourseCompleteModal appelée:', certificateGenerated);
-        
+
         const modal = document.getElementById('course-complete-modal');
         const message = document.getElementById('course-complete-message');
         const certificateBtn = document.getElementById('course-complete-certificate');
         const closeBtn = document.getElementById('course-complete-close');
-        
+
         if (!modal) {
             console.error('❌ Modal course-complete-modal introuvable');
             return;
         }
-        
+
         // Afficher ou masquer le bouton certificat
         if (certificateGenerated) {
             message.textContent = 'Vous avez terminé ce cours avec succès et obtenu votre certificat !';
@@ -717,18 +717,18 @@
             message.textContent = 'Vous avez terminé ce cours avec succès !';
             certificateBtn.style.display = 'none';
         }
-        
+
         // Afficher le modal
         modal.style.display = 'flex';
         console.log('✅ [PARENT] Modal cours terminé affiché');
-        
+
         // Gestionnaire de fermeture
         closeBtn.onclick = function() {
             modal.style.display = 'none';
             window.location.reload();
         };
     };
-    
+
     console.log('✅ [PARENT] Fonctions de modal définies:', {
         showLessonCompleteModal: typeof window.showLessonCompleteModal,
         showCourseCompleteModal: typeof window.showCourseCompleteModal

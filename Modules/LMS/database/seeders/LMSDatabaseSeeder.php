@@ -33,6 +33,7 @@ class LMSDatabaseSeeder extends Seeder
                 PaydunyaSeeder::class,
                 OrganizationCoursesSeeder::class,
                 VideoContentSeeder::class,
+                WebinarSeeder::class,
 
             ]
         );

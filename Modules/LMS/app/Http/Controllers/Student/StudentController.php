@@ -26,7 +26,8 @@ class StudentController extends Controller
     public function dashboard()
     {
         $data = $this->student->dashboardReport();
-        return view('portal::student.index', compact('data'));
+        $notifications = Auth::user()->unreadNotifications;
+        return view('portal::student.index', compact('data', 'notifications'));
     }
 
     /**
@@ -153,7 +154,7 @@ class StudentController extends Controller
     public function certificateView($id)
     {
         $certificate = UserCertificate::where(['user_id' => authCheck()->id, 'id' => $id])->first();
-        
+
         if (!$certificate) {
             abort(404, 'Certificat non trouvé');
         }
@@ -161,22 +162,22 @@ class StudentController extends Controller
         // Récupérer l'utilisateur et l'instructeur
         $user = authCheck();
         $instructor_name = 'Instructeur';
-        
+
         // Essayer de récupérer l'instructeur du cours
         \Log::info('Debug certificat - quiz_id:', ['quiz_id' => $certificate->quiz_id]);
-        
+
         if ($certificate->quiz_id) {
             try {
                 $quiz = \Modules\LMS\Models\Courses\Topics\Quiz::find($certificate->quiz_id);
                 \Log::info('Debug certificat - quiz trouvé:', ['quiz' => $quiz ? 'oui' : 'non']);
-                
+
                 if ($quiz && $quiz->chapter && $quiz->chapter->course) {
                     $course = $quiz->chapter->course;
                     \Log::info('Debug certificat - cours trouvé:', ['course_id' => $course->id, 'course_title' => $course->title]);
-                    
+
                     $instructor = $course->instructors()->first();
                     \Log::info('Debug certificat - instructeur trouvé:', ['instructor' => $instructor ? 'oui' : 'non']);
-                    
+
                     if ($instructor && $instructor->userable) {
                         $instructor_name = ($instructor->userable->first_name ?? '') . ' ' . ($instructor->userable->last_name ?? '');
                         \Log::info('Debug certificat - nom instructeur:', ['instructor_name' => $instructor_name]);
@@ -193,7 +194,7 @@ class StudentController extends Controller
     public function certificateDownload($id)
     {
         $certificate = UserCertificate::where(['user_id' => authCheck()->id, 'id' => $id])->first();
-        
+
         if (!$certificate) {
             abort(404, 'Certificat non trouvé');
         }
@@ -208,7 +209,7 @@ class StudentController extends Controller
 
         // Générer le nom du fichier
         $fileName = 'Certificat_' . $certificate->certificate_id . '_' . now()->format('Y-m-d') . '.html';
-        
+
         // Retourner le fichier en téléchargement
         return response($certificate->certificate_content)
             ->header('Content-Type', 'text/html; charset=utf-8')
@@ -241,5 +242,11 @@ class StudentController extends Controller
             ->orderBy('id', 'DESC')
             ->paginate(15);
         return view('portal::student.payment.offline.index', compact('offlinePayments'));
+    }
+
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return back();
     }
 }

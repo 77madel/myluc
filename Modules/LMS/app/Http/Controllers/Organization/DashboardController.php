@@ -1,5 +1,4 @@
 <?php
-
 namespace Modules\LMS\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
@@ -36,8 +35,21 @@ class DashboardController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $data = $this->user->dashboardInfoOrganization();
+        try {
+            $data = $this->user->dashboardInfoOrganization();
+        } catch (\Exception $e) {
+            // Log l'erreur complète pour debug
+            \Log::error('Error in dashboardInfoOrganization: ' . $e->getMessage());
+            \Log::error('SQL: ' . $e->getSql() ?? 'No SQL');
 
+            // Données par défaut en cas d'erreur
+            $data = [
+                'total_amount' => 0,
+                'total_course' => 0,
+                'total_platform_fee' => 0,
+                'total_bundle' => 0,
+            ];
+        }
         return view('portal::organization.index', compact('data'));
     }
 
@@ -57,14 +69,12 @@ class DashboardController extends Controller implements HasMiddleware
     {
         Auth::logout();
         Session::flush();
-
         return redirect('/');
     }
 
     public function students()
     {
         $students = $this->user->enrolledStudents();
-
         return view('portal::organization.student.student-list', compact('students'));
     }
 
@@ -100,11 +110,11 @@ class DashboardController extends Controller implements HasMiddleware
     public function enrollmentLinks()
     {
         $organization = Auth::user()->organization;
-        
+
         if (!$organization) {
             abort(403, 'Aucune organisation associée à ce compte');
         }
-        
+
         $enrollmentLinks = $organization->enrollmentLinks()
             ->with(['course', 'participants'])
             ->latest()
@@ -120,11 +130,11 @@ class DashboardController extends Controller implements HasMiddleware
     public function organizationStudents()
     {
         $organization = Auth::user()->organization;
-        
+
         if (!$organization) {
             abort(403, 'Aucune organisation associée à ce compte');
         }
-        
+
         // Utiliser le système unifié avec users + students
         $students = \Modules\LMS\Models\User::where('organization_id', $organization->id)
             ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
@@ -149,29 +159,29 @@ class DashboardController extends Controller implements HasMiddleware
         $totalProgress = 0;
         $courseCount = 0;
         $totalTimeSpent = 0;
-        
+
         foreach ($enrolledCourses as $enrollment) {
             if ($enrollment->course) {
                 $courseId = $enrollment->course->id;
-                
+
                 // Récupérer le nombre total de leçons
                 $totalTopics = \Modules\LMS\Models\Courses\Topic::whereHas('chapter', function($query) use ($courseId) {
                     $query->where('course_id', $courseId);
                 })->count();
-                
+
                 // Récupérer le nombre de leçons terminées
                 $completedTopics = \Modules\LMS\Models\TopicProgress::where('user_id', $student->id)
                     ->where('course_id', $courseId)
                     ->where('status', 'completed')
                     ->count();
-                
+
                 // Récupérer le temps passé sur ce cours
                 $courseTimeSpent = \Modules\LMS\Models\ChapterProgress::where('user_id', $student->id)
                     ->where('course_id', $courseId)
                     ->sum('time_spent');
-                
+
                 $totalTimeSpent += $courseTimeSpent;
-                
+
                 if ($totalTopics > 0) {
                     $courseProgress = round(($completedTopics / $totalTopics) * 100, 2);
                     $totalProgress += $courseProgress;
@@ -179,7 +189,7 @@ class DashboardController extends Controller implements HasMiddleware
                 }
             }
         }
-        
+
         $student->average_progress = $courseCount > 0 ? round($totalProgress / $courseCount, 2) : 0;
         $student->enrolled_courses_count = $enrolledCourses->count();
         $student->total_time_spent = $totalTimeSpent;
@@ -192,11 +202,11 @@ class DashboardController extends Controller implements HasMiddleware
     public function studentProgress($studentId)
     {
         $organization = Auth::user()->organization;
-        
+
         if (!$organization) {
             abort(403, 'Aucune organisation associée à ce compte');
         }
-        
+
         // Utiliser le système unifié
         $student = \Modules\LMS\Models\User::where('id', $studentId)
             ->where('organization_id', $organization->id)
@@ -216,7 +226,7 @@ class DashboardController extends Controller implements HasMiddleware
             if ($course) {
                 // Récupérer la progression des chapitres
                 $chapterProgress = \Modules\LMS\Models\ChapterProgress::getCourseProgress($studentId, $course->id);
-                
+
                 // Récupérer la progression des leçons (topics)
                 $topicProgress = \Modules\LMS\Models\TopicProgress::where('user_id', $studentId)
                     ->where('course_id', $course->id)
@@ -272,11 +282,11 @@ class DashboardController extends Controller implements HasMiddleware
     public function exportStudents()
     {
         $organization = Auth::user()->organization;
-        
+
         if (!$organization) {
             abort(403, 'Aucune organisation associée à ce compte');
         }
-        
+
         return Excel::download(
             new \Modules\LMS\Exports\OrganizationStudentsExport($organization),
             "etudiants-{$organization->name}-" . now()->format('Y-m-d') . '.xlsx'

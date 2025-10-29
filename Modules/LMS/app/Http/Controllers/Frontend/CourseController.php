@@ -116,7 +116,7 @@ class  CourseController extends Controller
                     ->where('course_id', $course->id)
                     ->where('type', 'course')
                     ->exists();
-                
+
                 if ($hasCertificate) {
                     return redirect()->route('student.dashboard')
                         ->with('warning', 'Vous avez déjà obtenu le certificat pour ce cours. Contactez un administrateur pour une réinscription si nécessaire.');
@@ -125,7 +125,7 @@ class  CourseController extends Controller
                 return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours. Veuillez l\'acheter ou demander un accès.');
             }
         }
-        
+
         return view('theme::course.course-video', compact('course', 'assignments', 'data'));
     }
     /**

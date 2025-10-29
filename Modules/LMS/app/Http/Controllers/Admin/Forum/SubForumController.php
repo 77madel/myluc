@@ -32,12 +32,15 @@ class SubForumController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('SubForum store request data: ', $request->all());
         // Check if the user has permission to add a sub-forum.
         if (!has_permissions($request->user(), ['add.sub-forum'])) {
+            \Illuminate\Support\Facades\Log::error('SubForum store permission denied.');
             return json_error('You have no permission.');
         }
         // Attempt to save the sub-forum and capture the response.
         $subForum = $this->subForum->save($request);
+        \Illuminate\Support\Facades\Log::info('SubForum store save response: ', $subForum);
 
         // Check if the sub-forum was saved successfully.
         if ($subForum['status'] !== 'success') {
