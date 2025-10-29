@@ -9,7 +9,7 @@ use Modules\LMS\Http\Controllers\Student\ChapterProgressController;
 use Modules\LMS\Http\Controllers\CertificateController;
 
 Route::group(
-    ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller']],
+    ['prefix' => 'dashboard', 'as' => 'student.', 'middleware' => ['auth', 'role:Student', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::group(['controller' => StudentController::class], function () {

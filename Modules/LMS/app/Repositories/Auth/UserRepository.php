@@ -1063,6 +1063,22 @@ class UserRepository  extends BaseRepository
                 ]);
             }
 
+            // ✅ GÉNÉRATION DU SESSION TOKEN (SESSION UNIQUE)
+            $sessionToken = \Illuminate\Support\Str::random(60);
+            
+            // Sauvegarder le token dans la base de données
+            $user->update(['session_token' => $sessionToken]);
+            
+            // Stocker le token dans la session actuelle
+            session(['session_token_web' => $sessionToken]);
+            
+            \Log::info('🔐 [Session Unique] Token généré pour utilisateur', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'guard' => $user->guard,
+                'token_preview' => substr($sessionToken, 0, 10) . '...'
+            ]);
+
             // Retrieve the authenticated user's guard type and match to route
             $userGuard = Auth::user()->guard;
             if (array_key_exists($userGuard, $dashboardRoutes)) {

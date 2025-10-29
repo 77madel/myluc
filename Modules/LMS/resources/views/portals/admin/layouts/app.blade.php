@@ -67,6 +67,9 @@
         @endif
     @endauth
 
+    {{-- Session Monitor - Vérification automatique de session unique --}}
+    @include('lms::components.layouts.session-monitor')
+    
     <script src="{{ asset('lms/assets/js/vendor/jquery.min.js') }}"></script>
     <script src="{{ asset('lms/assets/js/vendor/flowbite.min.js') }}"></script>
     <script src="{{ asset('lms/assets/js/vendor/smooth-scrollbar/smooth-scrollbar.min.js') }}"></script>

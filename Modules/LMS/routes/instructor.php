@@ -22,7 +22,7 @@ use Modules\LMS\Http\Controllers\Instructor\Courses\Bundle\BundleController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizQuestionController;
 
 Route::group(
-    ['prefix' => 'instructor', 'as' => 'instructor.', 'middleware' => ['auth:web',  'role:Instructor', 'checkInstaller']],
+    ['prefix' => 'instructor', 'as' => 'instructor.', 'middleware' => ['auth:web',  'role:Instructor', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::get('/', [InstructorController::class, 'index'])->name('dashboard');

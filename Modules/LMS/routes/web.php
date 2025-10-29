@@ -105,6 +105,10 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     Route::get('organizations', [OrganizationController::class, 'index'])->name('organization.list');
     //Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
     Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
+    
+    // ✅ Route pour vérifier la validité de la session (Session Unique)
+    Route::post('session/check', [\Modules\LMS\Http\Controllers\SessionCheckController::class, 'check'])->name('session.check');
+    
     Route::group(['middleware' => 'auth'], function () {
         Route::post('forum-post', [ForumController::class, 'forumPost']);
         Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');

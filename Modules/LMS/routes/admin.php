@@ -57,7 +57,7 @@ use Modules\LMS\Http\Controllers\Admin\SupportTicket\SupportCategoryController;
 
 
 Route::group(
-    ['prefix' => 'admin', 'middleware' => ['auth:admin', 'checkInstaller']],
+    ['prefix' => 'admin', 'middleware' => ['auth:admin', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');

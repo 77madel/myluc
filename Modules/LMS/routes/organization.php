@@ -24,7 +24,7 @@ use Modules\LMS\Http\Controllers\Organization\SettingController;
 use Modules\LMS\Http\Controllers\Organization\SupportController;
 
 Route::group(
-    ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller', 'verify-org-access']],
+    ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller', 'verify-org-access', 'check.session.token']],
     function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('logout', [DashboardController::class, 'logout'])->name('logout');

@@ -24,6 +24,7 @@ class Admin extends User
         'name',
         'email',
         'password',
+        'session_token',
     ];
 
     /**
