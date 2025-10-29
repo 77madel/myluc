@@ -53,6 +53,9 @@ Route::group(
 
         /* Students and Progress Management */
         Route::get('students', [DashboardController::class, 'organizationStudents'])->name('students.index');
+        Route::get('student/list', function() {
+            return redirect()->route('organization.students.index');
+        })->name('student.list'); // Alias pour compatibilité
         Route::get('students/{student}/progress', [DashboardController::class, 'studentProgress'])->name('students.progress');
         Route::get('students/export', [DashboardController::class, 'exportStudents'])->name('students.export');
 
@@ -63,10 +66,22 @@ Route::group(
         // Route::get('instructors/status-change/{id}', [InstructorController::class, 'statusChange'])->name('instructor.status');
         // Route::get('instructor/{id}/translate/{locale}', [InstructorController::class, 'edit'])->name('instructor.translate');
 
-        /* course - désactivé pour les organisations (pas de création/gestion) */
-        // Route::resource('course', CourseController::class)->except('show');
-        // Route::get('course/{id}/translate/{locale}', [CourseController::class, 'translate'])->name('course.translate');
-        // Route::put('course/restore/{id}', [CourseController::class, 'restore'])->name('course.restore');
+        /* course */
+        Route::get('course', [CourseController::class, 'index'])->name('course.index');
+        Route::get('course/create', [CourseController::class, 'create'])->name('course.create');
+        Route::post('course', [CourseController::class, 'store'])->name('course.store');
+        Route::get('course/{course}/edit', [CourseController::class, 'edit'])->name('course.edit');
+        Route::put('course/{course}', [CourseController::class, 'update'])->name('course.update');
+        Route::delete('course/{course}', [CourseController::class, 'destroy'])->name('course.destroy');
+
+        /* bundle */
+        Route::get('bundle', [Bundle\BundleController::class, 'index'])->name('bundle.index');
+        Route::get('bundle/create', [Bundle\BundleController::class, 'create'])->name('bundle.create');
+        Route::post('bundle', [Bundle\BundleController::class, 'store'])->name('bundle.store');
+        Route::get('bundle/{bundle}/edit', [Bundle\BundleController::class, 'edit'])->name('bundle.edit');
+        Route::put('bundle/{bundle}', [Bundle\BundleController::class, 'update'])->name('bundle.update');
+        Route::delete('bundle/{bundle}', [Bundle\BundleController::class, 'destroy'])->name('bundle.destroy');
+
         // Route::prefix('course')->group(
         //     function () {
         //         Route::get('delete-information', [CourseController::class, 'deleteInformation'])->name('course.delete.information');
@@ -77,10 +92,6 @@ Route::group(
         //         Route::get('assignment-file-delete/{id}', [TopicController::class, 'assignmentFileDelete'])->name('assignment.file.delete');
         //         Route::get('topic-sorted', [TopicController::class, 'topicSorted'])->name('topic.sorted');
         //         Route::get('chapter-topic-type/{type}', [TopicController::class, 'topicType'])->name('chapter.topic.type');
-        //         Route::resource('bundle', BundleController::class);
-        //         Route::put('bundle/restore/{id}', [BundleController::class, 'restore'])->name('bundle.restore');
-        //         Route::delete('bundle/thumbnail-delete/{id}', [BundleController::class, 'thumbnailDelete'])->name('bundle.thumbnail.delete');
-        //         Route::get('bundle/{id}/translate/{locale}', [BundleController::class, 'translate'])->name('bundle.translate');
         //         Route::post('tag', [TagController::class, 'store'])->name('tag.store');
         //         Route::get('tag-search', [CourseController::class, 'tagSearch'])->name('tag.search');
         //     }

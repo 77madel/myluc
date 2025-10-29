@@ -8,7 +8,7 @@
     $currencySymbol = get_currency_symbol($currency);
 
     // Statistiques pour l'organisation
-    $totalPurchasedCourses = $organization ? DB::table('purchases')
+    $totalPurchasedCourses = $organization ? DB::table('purchase_details')
         ->where('organization_id', $organization->id)
         ->where('purchase_type', 'organization_course')
         ->count() : 0;
@@ -19,11 +19,11 @@
     $totalEnrollmentLinks = $organization ? $organization->enrollmentLinks()->count() : 0;
 
     // Récupérer les cours achetés avec leurs détails
-    $purchasedCourses = $organization ? DB::table('purchases')
-        ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
+    $purchasedCourses = $organization ? DB::table('purchase_details')
+        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
         ->join('courses', 'purchase_details.course_id', '=', 'courses.id')
-        ->where('purchases.organization_id', $organization->id)
-        ->where('purchases.purchase_type', 'organization_course')
+        ->where('purchase_details.organization_id', $organization->id)
+        ->where('purchase_details.purchase_type', 'organization_course')
         ->select('purchases.*', 'courses.title as course_title', 'courses.thumbnail', 'courses.id as course_id', 'purchase_details.price')
         ->latest('purchases.created_at')
         ->take(5)
@@ -107,6 +107,24 @@
                                     <span class="counter-value"
                                         data-value="{{ $totalPurchasedCourses }}">{{ translate('0') }}</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Total Profit') }} </h6>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    {{ $currencySymbol }}<span class="counter-value"
+                                        data-value="{{ $data['total_amount'] - $data['total_platform_fee'] }}">{{ translate('0') }}</span>
+                                </div>
+
                             </div>
                         </div>
                     </div>

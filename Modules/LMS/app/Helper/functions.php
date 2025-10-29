@@ -1965,6 +1965,11 @@ if (!function_exists('get_menus')) {
                     ],
                 ]
             ],
+            'webinars' => [
+                'name' => translate('Webinaires'),
+                'url' => route('webinar.list'),
+                'is_active' => is_active('webinar.list'),
+            ],
             'contact' => [
                 'name' => translate('Contact'),
                 'url' => route('contact.page'),
@@ -2179,12 +2184,12 @@ if (!function_exists('user_wishlist_check')) {
     function user_wishlist_check($courseId)
     {
         $user = authCheck();
-        
+
         // Vérifier si l'utilisateur est connecté et a une relation userable
         if (!$user || !$user->wishlists) {
             return false;
         }
-        
+
         $wishlistArray = $user->wishlists->pluck('id')->toArray();
         if (in_array($courseId,  $wishlistArray)) {
             return  true;

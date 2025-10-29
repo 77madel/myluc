@@ -5,11 +5,15 @@
         class="relative size-8 flex-center hover:bg-gray-200 dark:hover:bg-dark-icon rounded-md">
         <i class="ri-notification-3-line text-[24px]"></i>
         <span
-            class="absolute -top-1 -right-1 size-4 rounded-50 flex-center bg-primary-500 leading-none text-xs text-white">{{ $notifications->count() }}</span>
+            class="absolute -top-1 -right-1 size-4 rounded-50 flex-center bg-primary-500 leading-none text-xs text-white">
+            {{ $notifications->count() }}
+        </span>
     </button>
+
     <!-- Dropdown menu -->
     <div id="dropdownNotification"
         class="!-right-full rtl:!right-auto rtl:!-left-full sm:!right-0 rtl:sm:!right-auto rtl:sm:!left-0 z-backdrop invisible w-[250px] sm:w-[420px] bg-white divide-y divide-gray-100 rounded-lg shadow border-[0.5px] border-gray-500/20 dark:bg-dark-card-shade dark:divide-dark-border-four dk-theme-card-square">
+
         <div
             class="block px-4 py-2 font-medium text-center text-heading dark:text-white rounded-t-lg bg-gray-50 dark:bg-dark-card-two">
             {{ translate('Notifications') }}

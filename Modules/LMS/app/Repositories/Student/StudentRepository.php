@@ -60,7 +60,7 @@ class StudentRepository extends BaseRepository
 
             // Filtrer les données pour ne pas inclure les champs d'organisation dans la table students
             $studentData = $request->except(['organization_id', 'enrollment_link_id']);
-            
+
             // Attempt to save the student data from the request.
             $response = parent::save($studentData);
 
@@ -431,14 +431,14 @@ class StudentRepository extends BaseRepository
         try {
             // Récupérer le lien d'inscription
             $enrollmentLink = \Modules\LMS\Models\Auth\OrganizationEnrollmentLink::find($request->enrollment_link_id);
-            
+
             if (!$enrollmentLink || !$enrollmentLink->course_id) {
                 return;
             }
 
             // Récupérer le cours
             $course = \Modules\LMS\Models\Courses\Course::find($enrollmentLink->course_id);
-            
+
             if (!$course) {
                 return;
             }

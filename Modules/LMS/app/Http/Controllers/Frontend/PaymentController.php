@@ -16,18 +16,18 @@ class PaymentController extends Controller
     {
         // Traitement normal pour tous les types de paiement
         $result = PaymentService::success($method, $request->all());
-        
+
         // Vérifier si c'est un achat d'organisation après le traitement normal
         $cartType = session()->get('type');
         if ($cartType === 'course_purchase') {
             // Appeler notre méthode pour gérer l'achat d'organisation
             \Modules\LMS\Repositories\Order\OrderRepository::handleOrganizationPurchase($result['order_id'], $method);
-            
+
             // Rediriger vers le dashboard organisation
             return redirect()->route('organization.dashboard')
                 ->with('success', 'Cours acheté avec succès ! Un lien d\'inscription a été généré automatiquement.');
         }
-        
+
         return redirect()->route('transaction.success');
     }
 

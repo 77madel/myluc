@@ -13,6 +13,7 @@ use Modules\LMS\Repositories\SearchSuggestionRepository;
 use Modules\LMS\Repositories\Courses\Topics\TopicRepository;
 use Modules\LMS\Repositories\Courses\Topics\Quizzes\QuizRepository;
 use Modules\LMS\Repositories\Courses\Topics\Assignment\AssignmentRepository;
+use Modules\LMS\Models\Webinar;
 
 class InstructorController extends Controller
 {
@@ -32,6 +33,16 @@ class InstructorController extends Controller
     public function index()
     {
         $data = $this->user->dashboardInfoInstructor();
+
+        // Add webinar statistics
+        $webinars = Webinar::where('instructor_id', Auth::id())->get();
+        $data['webinar_stats'] = [
+            'total' => $webinars->count(),
+            'published' => $webinars->where('is_published', true)->count(),
+            'drafts' => $webinars->where('is_published', false)->count(),
+            'participants' => $webinars->sum('current_participants')
+        ];
+
         return view('portal::instructor.index', compact('data'));
     }
 

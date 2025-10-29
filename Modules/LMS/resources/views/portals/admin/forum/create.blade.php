@@ -4,9 +4,9 @@
     <x-portal::admin.breadcrumb title="{{ isset($forum) ? 'Edit' : 'Create' }} Forum" page-to="Forum" />
     <div class="card">
         <form method="post" class="form"
-            action="{{ isset($forum) ? route('forum.update', $forum->id) : route('forum.store') }}">
+            action="{{ $forum->exists ? route('forum.update', $forum->id) : route('forum.store') }}">
             @csrf
-            @if (isset($forum))
+            @if ($forum->exists)
                 @method('PUT')
                 <input type="hidden" name="id" value="{{ $forum->id }}">
             @endif
@@ -17,8 +17,14 @@
                 <span class="text-danger error-text title_err"></span>
             </div>
             <div class="mt-6">
+                <label for="forumSlug" class="form-label">{{ translate('Slug') }}</label>
+                <input type="text" id="forumSlug" placeholder="{{ translate('Slug') }}" name="slug"
+                    value="{{ $forum->slug ?? '' }}" class="form-input">
+                <span class="text-danger error-text slug_err"></span>
+            </div>
+            <div class="mt-6">
                 <label for="forumDescription" class="form-label">{{ translate('Description') }}</label>
-                <textarea class="summernote description" name="description">{!! clean(isset($forum) ? $forum->description : '') !!}</textarea>
+                <textarea class="summernote description" name="description">{!! clean($forum->description) !!}</textarea>
                 <span class="text-danger error-text description"></span>
             </div>
             <div class="mt-6">

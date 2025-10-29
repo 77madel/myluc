@@ -8,13 +8,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\LMS\Http\Requests\CourseRequest;
 use Modules\LMS\Repositories\Courses\CourseRepository;
+use Modules\LMS\Repositories\Forum\ForumRepository;
 
 class CourseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function __construct(protected CourseRepository $course) {}
+    public function __construct(protected CourseRepository $course, protected ForumRepository $forum) {}
 
     public function index(Request $request)
     {
@@ -69,14 +70,20 @@ class CourseController extends Controller
         if (!has_permissions($request->user(), ['add.course', 'edit.course'])) {
             return json_error('You have no permission.');
         }
-        $course = $this->course->store($request);
+        $courseResponse = $this->course->store($request);
 
-        $courseId = $course['course_id'] ?? '';
-        if (empty($request->course_id)) {
-            $course['url'] = route('course.edit', $courseId);
+        if (isset($courseResponse['data']) && empty($request->course_id)) {
+            $course = $courseResponse['data'];
+            $this->forum->createForCourse($course);
         }
-        $course['message'] = translate("Update Successfully");
-        return response()->json($course);
+
+
+        $courseId = $courseResponse['course_id'] ?? '';
+        if (empty($request->course_id)) {
+            $courseResponse['url'] = route('course.edit', $courseId);
+        }
+        $courseResponse['message'] = translate("Update Successfully");
+        return response()->json($courseResponse);
     }
 
     /**

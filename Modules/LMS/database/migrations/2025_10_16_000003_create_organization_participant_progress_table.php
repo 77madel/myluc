@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['organization_participant_id', 'course_id']);
+            $table->unique(['organization_participant_id', 'course_id'], 'org_part_progress_unique');
             $table->index(['organization_id', 'status']);
         });
 

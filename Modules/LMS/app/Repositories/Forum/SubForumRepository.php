@@ -31,13 +31,11 @@ class SubForumRepository extends BaseRepository
      */
     public static function save($request): array
     {
-        if ($request->hasFile('sub_forum_img')) {
-            $icon = parent::upload($request, fieldname: 'sub_forum_img', file: '', folder: 'lms/forums/icons');
-            $request->request->add(['icon' => $icon]);
-        }
-        $request->request->add(['slug' => Str::slug($request->name)]);
+        $data = $request->all();
+        $data['author_id'] = auth()->id();
+        $data['slug'] = Str::slug($request->name);
 
-        return parent::save($request->all());
+        return parent::save($data);
     }
 
     /**
@@ -84,5 +82,36 @@ class SubForumRepository extends BaseRepository
             'status' => 'success',
             'message' => translate('Delete Successfully'),
         ];
+    }
+
+    public function findTopicBySlug($slug)
+    {
+        $topic = static::$model::where('slug', $slug)
+            ->with(['forumPosts' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }, 'forumPosts.user.userable', 'forum', 'user.userable']) // Add author.userable
+            ->firstOrFail();
+
+        return ['topic' => $topic];
+    }
+
+    public function storeTopic($request)
+    {
+        $topicData = [
+            'forum_id' => $request->forum_id,
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'description' => $request->description,
+            'author_id' => auth()->id(),
+        ];
+
+        try {
+            $subForum = SubForum::create($topicData);
+            return ['status' => 'success', 'data' => $subForum];
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error($e);
+            return ['status' => 'error', 'data' => 'Could not create topic.'];
+        }
     }
 }

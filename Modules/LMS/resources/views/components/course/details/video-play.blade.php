@@ -34,9 +34,9 @@
         }
     @endphp
     <div class="plyr__video-embed" id="course-demo">
-        <iframe src="{{ $embedUrl }}" 
-                allowfullscreen 
-                allowtransparency 
+        <iframe src="{{ $embedUrl }}"
+                allowfullscreen
+                allowtransparency
                 allow="autoplay"
                 frameborder="0"
                 webkitallowfullscreen

@@ -163,7 +163,7 @@
         </div>
     </div>
     <!-- END INNER CONTENT AREA -->
-    
+
     <!-- JavaScript pour afficher les réponses -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -178,11 +178,11 @@
                         const input = option.querySelector('input');
                         const label = option.querySelector('label');
                         const span = option.querySelector('span');
-                        
+
                         if (input && label && span) {
                             // Vérifier si c'est une bonne réponse (vous devrez adapter selon votre structure)
                             const isCorrect = input.getAttribute('data-correct') === '1';
-                            
+
                             if (isCorrect) {
                                 label.classList.add('bg-green-50', 'border-green-200');
                                 if (!span.querySelector('.ri-check-line')) {
@@ -195,7 +195,7 @@
                         }
                     });
                 });
-                
+
                 // Changer le bouton
                 this.innerHTML = '<i class="ri-eye-off-line mr-2"></i> {{ translate("Masquer les Réponses") }}';
                 this.onclick = function() {

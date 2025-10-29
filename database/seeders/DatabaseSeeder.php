@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             \Modules\LMS\Database\Seeders\OrganizationCoursesSeeder::class,
         ]);
-        
+
         echo "\n🎉 Cours d'organisation créés avec succès !\n";
         echo "📚 2 cours avec chapitres et leçons\n";
         echo "🎥 Vidéos YouTube courtes (1-2 minutes)\n";
