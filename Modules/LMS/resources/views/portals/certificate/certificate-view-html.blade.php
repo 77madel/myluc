@@ -38,7 +38,7 @@
         <div class="certificate-display">
                 @php
                     // Chemin absolu vers l'image du certificat (JPEG plus léger)
-                    $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
+                    $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-RK7Fn0CzaE.jpeg');
                     $imageData = '';
 
                     // Vérifier si le fichier existe

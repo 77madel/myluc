@@ -11,7 +11,7 @@
                 <div class="list-group">
                     @foreach ($notifications as $notification)
                         <a href="{{ url('dashboard/messages') }}" class="list-group-item list-group-item-action">
-                            <strong>{{ $notification->data['sender_name'] }}</strong> {{ translate('replied to your message') }}: {{ Str::limit($notification->data['content'], 50) }}
+                            <strong>{{ $notification->data['sender_name'] ?? translate('Unknown') }}</strong> {{ translate('replied to your message') }}: {{ Str::limit($notification->data['content'] ?? '', 50) }}
                             <small class="float-right">{{ $notification->created_at->diffForHumans() }}</small>
                         </a>
                     @endforeach

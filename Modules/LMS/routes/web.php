@@ -131,6 +131,8 @@ Route::group(['middleware' => ['checkInstaller']], function () {
     Route::controller(WebinarController::class)->group(function () {
         Route::get('webinars', 'index')->name('webinar.list');
         Route::get('webinars/{slug}', 'show')->name('webinar.detail');
+        Route::post('webinars/{id}/register', 'register')->name('webinar.register')->middleware('auth');
+        Route::post('webinars/{id}/cancel', 'cancelRegistration')->name('webinar.cancel')->middleware('auth');
     });
 
     // ✅ Localization & Themes

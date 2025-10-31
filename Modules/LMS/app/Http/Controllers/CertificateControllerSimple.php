@@ -55,7 +55,7 @@ class CertificateControllerSimple extends Controller
             }
 
             // NOUVELLE APPROCHE: Créer une image complète avec GD
-            $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-B7ZmOUUgXO.jpeg');
+            $imagePath = base_path('Modules/LMS/storage/app/public/lms/certificates/lms-RK7Fn0CzaE.jpeg');
             $studentName = ($user->userable->first_name ?? 'Utilisateur') . ' ' . ($user->userable->last_name ?? '');
             
             // Charger l'image de fond et la REDIMENSIONNER à une taille plus gérable

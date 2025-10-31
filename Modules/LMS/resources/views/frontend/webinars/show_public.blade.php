@@ -94,10 +94,16 @@
                     </li>
                     @auth
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('student.dashboard') }}">{{ translate('Dashboard') }}</a>
+                            @if(isStudent())
+                                <a class="nav-link" href="{{ route('student.dashboard') }}">{{ translate('Dashboard') }}</a>
+                            @elseif(isInstructor())
+                                <a class="nav-link" href="{{ route('instructor.dashboard') }}">{{ translate('Dashboard') }}</a>
+                            @elseif(isOrganization())
+                                <a class="nav-link" href="{{ route('organization.dashboard') }}">{{ translate('Dashboard') }}</a>
+                            @endif
                         </li>
                         <li class="nav-item">
-                            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            <form action="@if(isStudent()){{ route('student.logout') }}@elseif(isInstructor()){{ route('instructor.logout') }}@elseif(isOrganization()){{ route('organization.logout') }}@endif" method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="nav-link btn btn-link">{{ translate('Déconnexion') }}</button>
                             </form>
