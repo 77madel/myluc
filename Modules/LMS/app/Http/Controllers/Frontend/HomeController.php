@@ -95,6 +95,16 @@ class HomeController extends Controller
                 break;
         }
         $data = $this->home->homeContent($sections);
+        // Safe fallback if 'theme' namespace isn't registered yet
+        $hints = view()->getFinder()->getHints();
+        if (!array_key_exists('theme', $hints)) {
+            if (view()->exists('lms::theme.index')) {
+                return view('lms::theme.index', compact('data'));
+            }
+            if (view()->exists('lms::index')) {
+                return view('lms::index', compact('data'));
+            }
+        }
         return view('theme::index', compact('data'));
     }
 

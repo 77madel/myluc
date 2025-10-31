@@ -245,6 +245,27 @@ class LMSServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(FileServiceProvider::class);
         $this->app->register(CookieConsentServiceProvider::class);
+
+        // Ensure 'default_language' is always available, even before middleware runs
+        if (! $this->app->bound('default_language')) {
+            $this->app->singleton('default_language', function () {
+                return config('app.locale', 'en');
+            });
+        }
+
+        // Ensure 'languages' is available (fallback empty collection)
+        if (! $this->app->bound('languages')) {
+            $this->app->singleton('languages', function () {
+                return collect([]);
+            });
+        }
+
+        // Ensure 'translations' is available (fallback empty array)
+        if (! $this->app->bound('translations')) {
+            $this->app->singleton('translations', function () {
+                return [];
+            });
+        }
     }
 
     /**
@@ -273,6 +294,20 @@ class LMSServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePortalPath]), "{$this->moduleNameLower}:portal");
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->moduleNameLower);
+
+        // Hard fallback registrations for 'theme' and 'portal' namespaces to avoid
+        // "No hint path defined for [theme]" in early requests or when middleware didn't run yet.
+        $defaultThemePath = module_path($this->moduleName, 'resources/themes/default/views');
+        $sourceThemePath  = module_path($this->moduleName, 'resources/views/theme');
+        if (is_dir($defaultThemePath)) {
+            $this->app['view']->addNamespace('theme', $defaultThemePath);
+        }
+        if (is_dir($sourceThemePath)) {
+            $this->app['view']->addNamespace('theme', $sourceThemePath);
+        }
+        if (is_dir($sourcePortalPath)) {
+            $this->app['view']->addNamespace('portal', $sourcePortalPath);
+        }
 
         $this->publishes([
             $sourcePath => $viewPath
