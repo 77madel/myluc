@@ -266,6 +266,28 @@ class LMSServiceProvider extends ServiceProvider
                 return [];
             });
         }
+
+        // Ensure user-related singletons exist with safe defaults
+        if (! $this->app->bound('user')) {
+            $this->app->singleton('user', function () {
+                return null;
+            });
+        }
+        if (! $this->app->bound('user_roles')) {
+            $this->app->singleton('user_roles', function () {
+                return collect([]);
+            });
+        }
+        if (! $this->app->bound('user_permissions')) {
+            $this->app->singleton('user_permissions', function () {
+                return collect([]);
+            });
+        }
+        if (! $this->app->bound('user_role_list')) {
+            $this->app->singleton('user_role_list', function () {
+                return [];
+            });
+        }
     }
 
     /**
