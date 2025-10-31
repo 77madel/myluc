@@ -22,11 +22,26 @@ class CourseController extends Controller
     }
 
     /**
-     * Afficher la liste des cours disponibles pour achat
+     * Afficher la liste des cours de l'organisation (achetés)
      */
     public function index()
     {
-        $courses = Course::where('status', 'active')
+        $organization = Auth::user()->organization;
+        if (! $organization) {
+            abort(403);
+        }
+
+        $userId = Auth::id();
+        $courseIds = \DB::table('purchase_details')
+            ->whereNotNull('course_id')
+            ->where(function($q) use ($organization, $userId) {
+                $q->where('organization_id', $organization->id)
+                  ->orWhere('user_id', $userId);
+            })
+            ->distinct()
+            ->pluck('course_id');
+
+        $courses = Course::whereIn('id', $courseIds)
             ->with(['coursePrice', 'instructors.userable'])
             ->paginate(12);
 
@@ -42,6 +57,8 @@ class CourseController extends Controller
         
         return view('portal::organization.courses.show', compact('course'));
     }
+
+    // myCourses supprimé: l'index affiche désormais les cours achetés
 
     /**
      * Traiter l'achat d'un cours avec Paydunya

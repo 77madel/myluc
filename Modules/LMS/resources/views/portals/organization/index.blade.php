@@ -8,10 +8,12 @@
     $currencySymbol = get_currency_symbol($currency);
 
     // Statistiques pour l'organisation
+    // Nombre de cours achetés: distinct course_id reliés à l'organisation (ou via user org)
     $totalPurchasedCourses = $organization ? DB::table('purchase_details')
         ->where('organization_id', $organization->id)
-        ->where('purchase_type', 'organization_course')
-        ->count() : 0;
+        ->whereNotNull('course_id')
+        ->distinct()
+        ->count('course_id') : 0;
 
     $totalStudents = $organization ? \Modules\LMS\Models\User::where('organization_id', $organization->id)
         ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
@@ -111,24 +113,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
-                    <div class="flex-center-between">
-                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Total Profit') }} </h6>
-                    </div>
-                    <div
-                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
-                        <div class="pb-8 shrink-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="card-title text-2xl">
-                                    {{ $currencySymbol }}<span class="counter-value"
-                                        data-value="{{ $data['total_amount'] - $data['total_platform_fee'] }}">{{ translate('0') }}</span>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">

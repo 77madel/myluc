@@ -564,21 +564,25 @@ class UserRepository  extends BaseRepository
      */
     public function dashboardInfoOrganization(): array
     {
-        $user = User::where('id', authCheck()->id)
-            ->withWhereHas(
-                'organizationCourses',
-                function ($query) {
-                    $query->saleCountNumber()->orderBy('sale_count_number', 'DESC')
-                        ->with('coursePrice', 'instructors.userable', 'levels');
-                }
-            )
-            ->with('userBundles')
-            ->first();
+        $user = User::where('id', authCheck()->id)->with('userBundles', 'userable')->first();
+        $orgId = $user?->organization?->id;
 
-        $coursesId = $user?->organizationCourses?->pluck('id')->toArray() ?? [];
-        $data['total_amount'] =   PurchaseDetails::whereIn('course_id', $coursesId)->sum('price');
-        $data['total_course'] = $user?->organizationCourses?->count() ?? 0;
+        // Cours achetés par l'organisation (priorité org_id), fallback sur user_id du compte org
+        $coursesId = [];
+        if ($orgId) {
+            $coursesId = PurchaseDetails::whereNotNull('course_id')
+                ->where(function($q) use ($orgId) {
+                    $q->where('organization_id', $orgId)
+                      ->orWhere('user_id', authCheck()->id);
+                })
+                ->distinct()
+                ->pluck('course_id')
+                ->toArray();
+        }
+
+        $data['total_amount'] =  PurchaseDetails::whereIn('course_id', $coursesId)->sum('price');
         $data['total_platform_fee'] =  PurchaseDetails::whereIn('course_id', $coursesId)->sum('platform_fee');
+        $data['total_course'] = count($coursesId);
         $data['total_bundle'] = $user?->userBundles?->count() ?? 0;
 
         return $data;

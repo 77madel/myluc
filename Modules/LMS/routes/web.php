@@ -166,6 +166,8 @@ Route::group(['middleware' => ['checkInstaller']], function () {
             Route::get('/payment/success/{method}', 'success')->name('payment.success');
             Route::post('/payment/callback/{method}', 'callback')->name('payment.callback');
             Route::get('/payment/cancel', 'cancel')->name('payment.cancel');
+            // Alias requis par certains services de paiement tiers
+            Route::get('/payment/cancel', 'cancel')->name('payment.cancel.web');
         });
 
         Route::controller(CheckoutController::class)->group(function () {
