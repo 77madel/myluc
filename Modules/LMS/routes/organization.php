@@ -22,6 +22,7 @@ use Modules\LMS\Http\Controllers\Organization\ReviewController;
 use Modules\LMS\Http\Controllers\Organization\SaleController;
 use Modules\LMS\Http\Controllers\Organization\SettingController;
 use Modules\LMS\Http\Controllers\Organization\SupportController;
+use Modules\LMS\Http\Controllers\Organization\ReportsController;
 
 Route::group(
     ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller', 'verify-org-access', 'check.session.token']],
@@ -141,6 +142,18 @@ Route::group(
 
         Route::group(['prefix' => 'review'], function () {
             Route::resource('course-review', ReviewController::class);
+        });
+
+        /* Reports & Statistics */
+        Route::group(['prefix' => 'reports', 'as' => 'reports.'], function () {
+            Route::get('/', [ReportsController::class, 'index'])->name('index');
+            Route::get('/participants', [ReportsController::class, 'participants'])->name('participants');
+            Route::get('/courses', [ReportsController::class, 'courses'])->name('courses');
+            Route::get('/usage', [ReportsController::class, 'usage'])->name('usage');
+
+            Route::get('/export/participants', [ReportsController::class, 'exportParticipants'])->name('participants.export');
+            Route::get('/export/courses', [ReportsController::class, 'exportCourses'])->name('courses.export');
+            Route::get('/export/usage', [ReportsController::class, 'exportUsage'])->name('usage.export');
         });
     }
 );

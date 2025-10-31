@@ -63,7 +63,14 @@ class ReportsController extends Controller
         $format = $request->get('format', 'xlsx');
         if ($format === 'pdf') {
             $view = view('portal::organization.reports.exports.participants', $this->reports->participants($org->id, $request->all()))->render();
-            return Pdf::loadHTML($view)->download('participants-report.pdf');
+            return Pdf::loadHTML($view)
+                ->setPaper('A4', 'landscape')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'defaultFont' => 'DejaVu Sans',
+                ])
+                ->download('participants-report.pdf');
         }
         return Excel::download(new ParticipantsReportExport($org, $request->all()), 'participants-report.' . $format);
     }
@@ -74,7 +81,14 @@ class ReportsController extends Controller
         $format = $request->get('format', 'xlsx');
         if ($format === 'pdf') {
             $view = view('portal::organization.reports.exports.courses', $this->reports->courses($org->id, $request->all()))->render();
-            return Pdf::loadHTML($view)->download('courses-report.pdf');
+            return Pdf::loadHTML($view)
+                ->setPaper('A4', 'landscape')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'defaultFont' => 'DejaVu Sans',
+                ])
+                ->download('courses-report.pdf');
         }
         return Excel::download(new CoursesReportExport($org, $request->all()), 'courses-report.' . $format);
     }
@@ -85,7 +99,14 @@ class ReportsController extends Controller
         $format = $request->get('format', 'xlsx');
         if ($format === 'pdf') {
             $view = view('portal::organization.reports.exports.usage', $this->reports->usage($org->id, $request->all()))->render();
-            return Pdf::loadHTML($view)->download('usage-report.pdf');
+            return Pdf::loadHTML($view)
+                ->setPaper('A4', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'defaultFont' => 'DejaVu Sans',
+                ])
+                ->download('usage-report.pdf');
         }
         return Excel::download(new UsageReportExport($org, $request->all()), 'usage-report.' . $format);
     }
