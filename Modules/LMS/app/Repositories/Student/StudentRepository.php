@@ -304,7 +304,16 @@ class StudentRepository extends BaseRepository
         $model->where([
             'user_id' => authCheck()->id,
             'type' => PurchaseType::ENROLLED,
-        ]);
+        ])
+        // Masquer les cours expirés
+        ->where(function($q){
+            $q->whereNull('enrollment_status')
+              ->orWhereIn('enrollment_status', ['in_progress','grace','completed']);
+        })
+        ->where(function($q){
+            $q->whereNull('grace_due_at')
+              ->orWhere('grace_due_at', '>', now());
+        });
         $purchaseModel = $model->with('course.category', 'course.coursePrice', 'course.levels.translations', 'course.subject', 'course.courseSetting', 'course.instructors.userable', 'courseBundle.courses.instructors.userable', 'courseBundle.translations');
         return $item ? $purchaseModel->paginate($item) : $purchaseModel->get();
     }
@@ -320,7 +329,16 @@ class StudentRepository extends BaseRepository
         $purchase =  $model->where([
             'user_id' => authCheck()->id,
             'type' => PurchaseType::ENROLLED,
-        ])->count();
+        ])
+        ->where(function($q){
+            $q->whereNull('enrollment_status')
+              ->orWhereIn('enrollment_status', ['in_progress','grace','completed']);
+        })
+        ->where(function($q){
+            $q->whereNull('grace_due_at')
+              ->orWhere('grace_due_at', '>', now());
+        })
+        ->count();
 
         return $purchase;
     }
@@ -464,6 +482,11 @@ class StudentRepository extends BaseRepository
                 'status' => 'completed',
                 'organization_id' => $enrollmentLink->organization_id,
                 'enrollment_link_id' => $enrollmentLink->id,
+                // Dates d'échéance
+                'enrolled_at' => now(),
+                'course_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5)),
+                'grace_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)),
+                'enrollment_status' => 'in_progress',
             ]);
 
             // Incrémenter le compteur d'enrollments du lien

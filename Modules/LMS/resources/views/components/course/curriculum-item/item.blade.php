@@ -351,7 +351,7 @@
                                 <button onclick="closeModal()" style="padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-weight: 500;">
                                     Fermer
                                 </button>
-                                <button onclick="navigateToNextLesson()" style="padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                                <button onclick="navigateToNextLesson()" style="padding: 0.75rem 1.5rem; background: #572571; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
                                     Continuer
                                 </button>
                             </div>

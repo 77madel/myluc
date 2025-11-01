@@ -96,10 +96,26 @@ class  CourseController extends Controller
         }
         
         // ✅ VÉRIFICATION D'ACCÈS POUR LES STUDENTS
+        // On cherche d'abord une inscription valide (non expirée), sinon on prend la plus récente
         $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
             ->where('course_id', $course->id)
             ->where('type', 'enrolled')
+            ->where(function($q){
+                $q->whereNull('enrollment_status')
+                  ->orWhereIn('enrollment_status', ['in_progress','grace','completed'])
+                  ->orWhereNull('grace_due_at')
+                  ->orWhere('grace_due_at', '>', now());
+            })
+            ->orderByDesc('id')
             ->first();
+
+        if (!$purchaseDetails) {
+            $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
+                ->where('course_id', $course->id)
+                ->where('type', 'enrolled')
+                ->orderByDesc('id')
+                ->first();
+        }
 
         $data = [
             'type' => $request->type ?? null,
@@ -123,6 +139,15 @@ class  CourseController extends Controller
                 }
                 
                 return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours. Veuillez l\'acheter ou demander un accès.');
+            } else {
+                // Bloquer si expiré
+                if (($purchaseDetails->enrollment_status ?? null) === 'expired') {
+                    return redirect()->route('student.dashboard')->with('error', 'Votre accès à ce cours a expiré.');
+                }
+                // Si dates présentes, vérifier
+                if ($purchaseDetails->grace_due_at && now()->greaterThanOrEqualTo($purchaseDetails->grace_due_at)) {
+                    return redirect()->route('student.dashboard')->with('error', 'Votre accès à ce cours a expiré.');
+                }
             }
         }
 

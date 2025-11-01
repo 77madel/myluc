@@ -15,7 +15,7 @@ use Paydunya\Checkout\Invoice;
 use Paydunya\Checkout\Payline;
 use Paydunya\Checkout\Product;
 
-class CourseController extends Controller
+class CourseControllerBackup extends Controller
 {
     protected $enrollmentService;
 

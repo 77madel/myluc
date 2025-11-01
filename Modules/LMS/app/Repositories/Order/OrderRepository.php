@@ -171,6 +171,11 @@ class OrderRepository
             'type' => $itemInfo['type'],
             'status' => $itemInfo['status'],
             'purchase_type' => $itemInfo['purchase_type'],
+            // Dates d'échéance lorsqu'il s'agit d'un cours
+            'enrolled_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now() : null,
+            'course_due_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now()->copy()->addDays(config('lms.course_duration_days', 5)) : null,
+            'grace_due_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)) : null,
+            'enrollment_status' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? 'in_progress' : null,
         ]);
         return $purchaseDetail;
     }
