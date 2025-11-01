@@ -73,10 +73,7 @@
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('exam.start', ['type' => $userQuiz->exam_type, 'exam_type_id' => $userQuiz->quiz_id, 'course_id' => $userQuiz->course_id]) }}"
                                             class="btn b-solid btn-info-solid btn-sm" title="{{ translate('View Result') }}">
-<<<<<<< HEAD
                                             <i class="ri-eye-line mr-1"></i>
-=======
->>>>>>> origin/bakarydev
                                             {{ translate('View Result') }}
                                         </a>
 

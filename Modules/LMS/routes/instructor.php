@@ -23,12 +23,15 @@ use Modules\LMS\Http\Controllers\Instructor\Courses\Bundle\BundleController;
 use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizQuestionController;
 use Modules\LMS\Http\Controllers\Instructor\WebinarController;
 use Modules\LMS\Http\Controllers\Instructor\InstructorMessageController;
+use Modules\LMS\Http\Controllers\Instructor\CourseProgressController;
 
 Route::group(
     ['prefix' => 'instructor', 'as' => 'instructor.', 'middleware' => ['auth:web',  'role:Instructor', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::get('/', [InstructorController::class, 'index'])->name('dashboard');
+        // Students Progress (global across instructor's courses)
+        Route::get('students-progress', [CourseProgressController::class, 'myStudents'])->name('students.progress');
         Route::post('logout/', [InstructorController::class, 'logout'])->name('logout');
         Route::get('students/', [InstructorController::class, 'students'])->name('student.list');
         Route::get('students/profile/{id}', [InstructorController::class, 'profile'])->name('student.profile');
@@ -78,6 +81,10 @@ Route::group(
                 Route::delete('bundle/thumbnail-delete/{id}', [BundleController::class, 'thumbnailDelete'])->name('bundle.thumbnail.delete');
                 Route::resource('tag', TagController::class)->only('store');
                 Route::get('tag-search', [CourseController::class, 'tagSearch']);
+
+                // Progression des étudiants par cours (Instructeur)
+                Route::get('{course}/students', [CourseProgressController::class, 'students'])->name('course.students');
+                Route::get('{course}/students/{student}/progress', [CourseProgressController::class, 'studentProgress'])->name('course.students.progress');
             }
         );
 

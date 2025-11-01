@@ -1997,7 +1997,7 @@
                 flex-wrap: wrap;
             ">
                 <button id="course-complete-close" style="
-                    background-color: #3B82F6;
+                    background-color: #572571;
                     color: white;
                     border: none;
                     padding: 12px 24px;
@@ -2006,7 +2006,7 @@
                     font-weight: 500;
                     cursor: pointer;
                     transition: background-color 0.2s;
-                " onmouseover="this.style.backgroundColor='#2563EB'" onmouseout="this.style.backgroundColor='#3B82F6'">
+                " onmouseover="this.style.backgroundColor='#572571'" onmouseout="this.style.backgroundColor='#572571'">
                     {{ translate('Continuer') }}
                 </button>
 
@@ -2406,7 +2406,7 @@
                 </p>
 
                 <button id="modal-close" style="
-                        background-color: #3B82F6;
+                        background-color: #572571;
                         color: white;
                         border: none;
                         padding: 10px 20px;
@@ -2415,7 +2415,7 @@
                         font-weight: 500;
                         cursor: pointer;
                         transition: background-color 0.2s;
-                    " onmouseover="this.style.backgroundColor='#2563EB'" onmouseout="this.style.backgroundColor='#3B82F6'">
+                    " onmouseover="this.style.backgroundColor='#572571'" onmouseout="this.style.backgroundColor='#572571'">
                     {{ translate('Continuer') }}
                 </button>
             </div>
@@ -2745,7 +2745,7 @@
                     </p>
 
                     <button id="quiz-modal-close" style="
-                        background-color: #3B82F6;
+                        background-color: #572571;
                         color: white;
                         border: none;
                         padding: 10px 20px;
@@ -2754,7 +2754,7 @@
                         font-weight: 500;
                         cursor: pointer;
                         transition: background-color 0.2s;
-                    " onmouseover="this.style.backgroundColor='#2563EB'" onmouseout="this.style.backgroundColor='#3B82F6'">
+                    " onmouseover="this.style.backgroundColor='#572571'" onmouseout="this.style.backgroundColor='#572571'">
                         {{ translate('Continuer') }}
                     </button>
                 </div>
@@ -2854,8 +2854,7 @@
                                 <div class="flex items-center gap-2 text-green-600 bg-green-100 px-4 py-2 rounded-md">
                                     <i class="ri-check-double-line"></i>
                                     <span>{{ translate("Quiz terminé") }}</span>
-                                </div>
-                            `;
+                                </div>`;
 
                                     // Rafraîchir la page après 2 secondes
                                     setTimeout(() => {

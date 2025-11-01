@@ -634,7 +634,7 @@
             </div>
             <h3 id="lesson-modal-title" style="font-size: 22px; font-weight: 600; color: #1F2937; margin-bottom: 12px;">Leçon terminée !</h3>
             <p id="lesson-modal-message" style="font-size: 14px; color: #6B7280; margin-bottom: 25px;">Votre progression a été enregistrée.</p>
-            <button id="lesson-modal-close" style="background: #3B82F6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
+            <button id="lesson-modal-close" style="background: #572571; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#572571'" onmouseout="this.style.background='#572571'">
                 Continuer
             </button>
         </div>
@@ -649,11 +649,11 @@
             <h3 style="font-size: 26px; font-weight: 700; color: #1F2937; margin-bottom: 15px;">🎉 Félicitations !</h3>
             <p id="course-complete-message" style="font-size: 16px; color: #374151; margin-bottom: 30px; line-height: 1.6;">Vous avez terminé ce cours avec succès !</p>
             <div id="course-complete-certificate" style="display: none; margin-bottom: 25px;">
-                <a href="{{ route('student.certificate.index') }}" style="display: inline-block; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <a href="{{ route('student.certificate.index') }}" style="display: inline-block; background: linear-gradient(135deg, #5bdfe4 0%, #5bdfe4 100%); color: #090707; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <i class="ri-award-line"></i> Voir mon certificat
                 </a>
             </div>
-            <button id="course-complete-close" style="background: #E5E7EB; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#D1D5DB'" onmouseout="this.style.background='#E5E7EB'">
+            <button id="course-complete-close" style="background: #E5E7EB; color: #374151; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;" onmouseover="this.style.background='#dc1c2f'" onmouseout="this.style.background='#E5E7EB'">
                 Fermer
             </button>
         </div>
