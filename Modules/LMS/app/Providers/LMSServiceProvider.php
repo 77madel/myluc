@@ -225,6 +225,8 @@ class LMSServiceProvider extends ServiceProvider
         // CORRECTION 3 : Appliquer la même condition ici.
         if (alreadyInstalled() && checkDatabaseConnection() && !$this->app->runningInConsole()) {
             // $router->pushMiddlewareToGroup('web', PerformanceMonitor::class);
+            // Assurer l'application de la langue stockée en session en tout premier
+            $router->pushMiddlewareToGroup('web', \App\Http\Middleware\SetLocale::class);
             $router->pushMiddlewareToGroup('web', BootstrapMiddleware::class);
             $router->aliasMiddleware('checkInstaller', LicenseActivationMiddleware::class);
         }

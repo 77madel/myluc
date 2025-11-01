@@ -32,14 +32,12 @@
                 <x-dynamic-component component='{{ "{$theme}:theme::header.right-side" }}' :theme="$theme"
                     :data="$data" />
 
-                <form action="{{ route('language.set') }}" method="get">
-                    <select name="locale" onchange="this.form.submit()" class="min-w-[110px] border rounded px-2 py-1">
-                        @php $current = app()->getLocale(); @endphp
-                        <option value="fr" {{ $current === 'fr' ? 'selected' : '' }}>Français</option>
-                        <option value="en" {{ $current === 'en' ? 'selected' : '' }}>English</option>
-                        <option value="ar" {{ $current === 'ar' ? 'selected' : '' }}>العربية</option>
-                    </select>
-                </form>
+                @php $current = app()->getLocale(); @endphp
+                <select onchange="window.location.href='{{ url('language/switch') }}/'+this.value" class="min-w-[110px] border rounded px-2 py-1">
+                    <option value="fr" {{ $current === 'fr' ? 'selected' : '' }}>Français</option>
+                    <option value="en" {{ $current === 'en' ? 'selected' : '' }}>English</option>
+                    <option value="ar" {{ $current === 'ar' ? 'selected' : '' }}>العربية</option>
+                </select>
 
                   <!-- MENU BUTTON -->
                 @if (!isset($style))

@@ -30,7 +30,11 @@ class BootstrapMiddleware
     public function handle(Request $request, Closure $next)
     {
         $defaultLanguage = Language::select('code')->where('active', 1)->first();
-        $locale = session()->get('locale') ?? $defaultLanguage['code'] ?? App::getLocale();
+        // Always prioritize the session locale if present
+        if (session()->has('locale')) {
+            App::setLocale(session('locale'));
+        }
+        $locale = App::getLocale() ?: ($defaultLanguage['code'] ?? config('app.locale', 'fr'));
         $guard = null;
 
         if (Auth::check()) {
@@ -66,10 +70,11 @@ class BootstrapMiddleware
 
             if ($localization) {
                 $language = $localization->language;
-                $locale = $defaultLanguage['code'] ?? $language->code ?? $locale;
+                $locale = $language->code ?? ($defaultLanguage['code'] ?? $locale);
             }
         }
 
+        // Ensure session and app locale are aligned
         session()->put('locale', $locale);
         App::setLocale($locale);
 

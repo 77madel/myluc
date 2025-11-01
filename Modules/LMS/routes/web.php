@@ -195,6 +195,12 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
+    // Simple language switch writing locale to session
+    Route::get('language/switch/{locale}', function ($locale) {
+        $supported = ['fr','en','ar','es','bn'];
+        session(['locale' => in_array($locale, $supported) ? $locale : config('app.locale','fr')]);
+        return back();
+    })->name('language.switch');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');
 });
 
