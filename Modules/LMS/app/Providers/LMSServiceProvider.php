@@ -27,6 +27,7 @@ use Modules\LMS\Models\Resources\PerformanceMetric;
 use Modules\LMS\Services\ResourceMonitor;
 use Modules\LMS\View\Components\Frontend\AuthenticationLayout;
 use Modules\LMS\View\Components\Frontend\Layout as FrontendLayout;
+use Modules\LMS\Console\Commands\ExpireEnrollments;
 
 class LMSServiceProvider extends ServiceProvider
 {
@@ -405,7 +406,9 @@ class LMSServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            ExpireEnrollments::class,
+        ]);
     }
 
     /**

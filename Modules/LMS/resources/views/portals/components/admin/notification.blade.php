@@ -34,8 +34,8 @@
                     </div>
                     <div class="w-full ps-3">
                         <div class="text-gray-500 dark:text-dark-text text-sm mb-1.5 !font-public_sans">
-                            {{ $notification?->data['title'] }}
-                            <span class="font-semibold text-gray-900">{!! clean(isset($notification?->data['message']) ? $notification?->data['message'] : '') !!}
+                            {{ $notification?->data['title'] ?? ($notification?->data['status'] ?? ($notification?->data['course_title'] ?? 'Notification')) }}
+                            <span class="font-semibold text-gray-900">{!! clean($notification?->data['message'] ?? '') !!}
                         </div>
                         <div class="text-xs text-blue-600">
                             {{ $notification?->created_at?->diffForHumans(['options' => 0]) }}

@@ -61,24 +61,41 @@ class PurchaseRepository extends BaseRepository
         ];
         $purchase = $this->purchaseStore($data);
         foreach ($request->courses as $courseId) {
-            if (! static::$model::where(['user_id' => $userId, 'course_id' => $courseId])->exists()) {
+            // Autoriser nouvelle inscription si aucune inscription non expirée n'existe
+            $hasActive = static::$model::where(['user_id' => $userId, 'course_id' => $courseId])
+                ->where(function($q){
+                    $q->whereNull('enrollment_status')
+                      ->orWhereIn('enrollment_status', ['in_progress','grace','completed'])
+                      ->orWhereNull('grace_due_at')
+                      ->orWhere('grace_due_at', '>', now());
+                })
+                ->exists();
+
+            if (!$hasActive) {
                 $course = $this->courseGetById($courseId);
                 $response =  CartRepository::coursePrice($course);
-                $discount_price = $response['discount_price'] - ($item->coursePrice->platform_fee ??  $course->platform_fee);
+                $platformFee = $course?->coursePrice?->platform_fee ?? $course->platform_fee ?? 0;
+                $price = ($response['regular_price'] ?? 0) - $platformFee;
+                $discount_price = ($response['discount_price'] ?? 0) - $platformFee;
+
                 if ($course) {
                     $purchaseDetail = [
                         'purchase_id' => $purchase->id,
                         'course_id' => $courseId,
                         'user_id' => $userId,
                         'bundle_id' => null,
-                        'price' => $response['regular_price'] - ($item->coursePrice->platform_fee ??  $course->platform_fee),
-                        'platform_fee' => $item->coursePrice->platform_fee ??  $course->platform_fee ?? 0,
+                        'price' => $price,
+                        'platform_fee' => $platformFee,
                         'discount_price' => $discount_price,
                         'details' => $course,
                         'type' => PurchaseType::ENROLLED,
                         'purchase_type' => PurchaseType::COURSE,
-                        'status' => PurchaseStatus::PROCESSING
-
+                        'status' => PurchaseStatus::PROCESSING,
+                        // dates et statut d'échéance
+                        'enrolled_at' => now(),
+                        'course_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5)),
+                        'grace_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)),
+                        'enrollment_status' => 'in_progress',
                     ];
                     OrderRepository::purchaseDetails($purchaseDetail);
                 }
@@ -220,6 +237,10 @@ class PurchaseRepository extends BaseRepository
                     'type' => PurchaseType::ENROLLED,
                     'purchase_type' => PurchaseType::COURSE,
                     'status' => 'processing',
+                    'enrolled_at' => now(),
+                    'course_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5)),
+                    'grace_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)),
+                    'enrollment_status' => 'in_progress',
                 ]);
 
                 \Log::info("✨ Nouvel enrollment créé pour l'étudiant {$userId} au cours {$courseId}");

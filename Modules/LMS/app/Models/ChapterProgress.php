@@ -153,3 +153,4 @@ class ChapterProgress extends Model
 
 
 
+

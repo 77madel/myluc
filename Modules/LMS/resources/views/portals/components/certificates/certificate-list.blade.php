@@ -45,7 +45,7 @@
                         {{ customDateFormate($certificate->certificated_date, format: 'm D  Y') }}
                     </td>
                     <td class="px-3.5 py-4">
-                        <div class="flex items-center gap-2 flex-wrap">
+                        <div class="flex items-center gap-2 flex-nowrap">
                             <!-- 1️⃣ View (icône œil uniquement) -->
                             <a href="{{ route('student.certificate.view', $certificate->id) }}" target="_blank"
                                 class="btn-icon btn-info-icon-light size-8" 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\LMS\App\Console\Commands;
+namespace Modules\LMS\Console\Commands;
 
 use Illuminate\Console\Command;
 use Modules\LMS\Models\Courses\Topic;

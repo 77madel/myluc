@@ -22,6 +22,9 @@ class PurchaseDetails extends Model
 
     protected $casts = [
         'details' => 'array',
+        'enrolled_at' => 'datetime',
+        'course_due_at' => 'datetime',
+        'grace_due_at' => 'datetime',
     ];
 
     public function course(): BelongsTo
@@ -29,16 +32,14 @@ class PurchaseDetails extends Model
 
         return $this->belongsTo(Course::class);
     }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function courseBundle(): BelongsTo
     {
         return $this->belongsTo(CourseBundle::class, 'bundle_id', 'id');
-    }
-
-    public function user(): BelongsTo
-    {
-
-        return $this->belongsTo(User::class);
     }
 
     public function purchase(): BelongsTo

@@ -65,7 +65,26 @@
         @endif
     </td>
     <td class="px-3.5 py-4">
-        @switch($enrolled->status)
+        @php
+            $enrollStatus = $enrolled->enrollment_status ?? null;
+            $startAt = $enrolled->enrolled_at ?? null;
+            $dueAt = $enrolled->course_due_at ?? null;
+            $graceAt = $enrolled->grace_due_at ?? null;
+        @endphp
+        @if($startAt || $dueAt || $graceAt)
+            <div class="flex flex-col gap-1 mb-2 text-xs text-gray-600">
+                @if($startAt)
+                    <div><b>{{ translate('Début') }}:</b> {{ $startAt?->format('d/m/Y H:i') }}</div>
+                @endif
+                @if($dueAt)
+                    <div><b>{{ translate('Limite formation') }}:</b> {{ $dueAt?->format('d/m/Y H:i') }}</div>
+                @endif
+                @if($graceAt)
+                    <div><b>{{ translate('Dernier délai') }}:</b> {{ $graceAt?->format('d/m/Y H:i') }}</div>
+                @endif
+            </div>
+        @endif
+        @switch($enrollStatus ?? $enrolled->status)
             @case('processing')
                 <span class="badge badge-warning-outline b-outline capitalize">
                     {{ translate('Processing') }}
@@ -75,6 +94,24 @@
             @case('complete')
                 <span class="badge badge-primary-outline b-outline capitalize">
                     {{ translate('Complete') }}
+                </span>
+            @break
+
+            @case('in_progress')
+                <span class="badge badge-success-outline b-outline capitalize">
+                    {{ translate('En cours') }}
+                </span>
+            @break
+
+            @case('grace')
+                <span class="badge badge-info-outline b-outline capitalize">
+                    {{ translate('Période de grâce') }}
+                </span>
+            @break
+
+            @case('expired')
+                <span class="badge badge-danger-outline b-outline capitalize">
+                    {{ translate('Expiré') }}
                 </span>
             @break
         @endswitch
