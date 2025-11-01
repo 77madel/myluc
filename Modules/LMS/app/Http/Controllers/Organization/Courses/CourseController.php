@@ -7,13 +7,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\LMS\Http\Requests\CourseRequest;
 use Modules\LMS\Repositories\Courses\CourseRepository;
+use Modules\LMS\Repositories\Forum\ForumRepository;
 
 class CourseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function __construct(protected CourseRepository $course) {}
+    public function __construct(protected CourseRepository $course, protected ForumRepository $forum) {}
 
     /**
      * Display a listing of the resource.

@@ -603,21 +603,16 @@ class PaydunyaService
      */
     protected static function init()
     {
-        $paymentMethod = get_payment_method()->firstWhere('method_name', 'Paydunya');
+        // Utiliser directement les variables d'environnement
+        self::$masterKey = config('paydunya.master_key') ?: env('PAYDUNYA_MASTER_KEY');
+        self::$privateKey = config('paydunya.private_key') ?: env('PAYDUNYA_PRIVATE_KEY');
+        self::$token = config('paydunya.token') ?: env('PAYDUNYA_TOKEN');
+        self::$testMode = config('paydunya.test_mode', true) ?: env('PAYDUNYA_TEST_MODE', true);
 
-        if (! $paymentMethod) {
-            throw new \Exception('Paydunya payment method not configured');
+        // Vérifier que les clés sont présentes
+        if (empty(self::$masterKey) || empty(self::$privateKey) || empty(self::$token)) {
+            throw new \Exception('Clés Paydunya manquantes. Vérifiez votre fichier .env');
         }
-
-        // CORRECTION: Vérifier si keys est déjà un tableau
-        $keys = is_array($paymentMethod->keys)
-            ? $paymentMethod->keys
-            : json_decode($paymentMethod->keys, true);
-
-        self::$masterKey = $keys['master_key'] ?? '';
-        self::$privateKey = $keys['private_key'] ?? '';
-        self::$token = $keys['token'] ?? '';
-        self::$testMode = $paymentMethod->enabled_test_mode == 1;
 
         // URL de base selon le mode
         self::$baseUrl = self::$testMode
@@ -767,44 +762,70 @@ class PaydunyaService
             self::init();
 
             \Log::info('Init done. Keys:', [
-                'master' => substr(self::$masterKey, 0, 10) . '...',
-                'private' => substr(self::$privateKey, 0, 10) . '...',
-                'token' => substr(self::$token, 0, 10) . '...',
-                'baseUrl' => self::$baseUrl
+                'master' => substr(self::$masterKey, 0, 10).'...',
+                'private' => substr(self::$privateKey, 0, 10).'...',
+                'token' => substr(self::$token, 0, 10).'...',
+                'baseUrl' => self::$baseUrl,
             ]);
 
             $user = auth()->user();
 
-            if (!$user) {
+            if (! $user) {
                 \Log::error('User not authenticated');
+
                 return ['status' => 'error', 'message' => 'User not authenticated'];
             }
 
-            if (!request()->hasSession()) {
+            if (! request()->hasSession()) {
                 \Log::error('Session not available');
+
                 return ['status' => 'error', 'message' => 'Session not available'];
             }
 
             $cartType = session()->get('type', '');
-            \Log::info('Cart type: ' . $cartType);
+            \Log::info('Cart type: '.$cartType);
 
             if ($cartType === 'subscription') {
                 $totalAmount = session()->get('subscription_price', 0);
                 $description = 'Subscription Payment';
+            } elseif ($cartType === 'course_purchase') {
+                // Achat de cours par organisation
+                $totalAmount = session()->get('amount', 0);
+                $description = 'Course Purchase for Organization';
             } else {
                 $totalAmount = Cart::totalPrice() - Cart::discountAmount();
                 $description = 'Course Purchase';
 
                 if ($totalAmount <= 0) {
-                    \Log::error('Invalid amount: ' . $totalAmount);
+                    \Log::error('Invalid amount: '.$totalAmount);
+
                     return ['status' => 'error', 'message' => 'Invalid cart amount'];
                 }
             }
 
-            \Log::info('Amount: ' . $totalAmount);
+            \Log::info('Amount: '.$totalAmount);
 
             $items = [];
-            if ($cartType !== 'subscription') {
+            if ($cartType === 'subscription') {
+                $items[] = [
+                    'name' => 'Subscription Plan',
+                    'quantity' => 1,
+                    'unit_price' => $totalAmount,
+                    'total_price' => $totalAmount,
+                    'description' => $description,
+                ];
+            } elseif ($cartType === 'course_purchase') {
+                // Item pour l'achat de cours par organisation
+                $courseTitle = session()->get('course_title', 'Course');
+                $items[] = [
+                    'name' => $courseTitle,
+                    'quantity' => 1,
+                    'unit_price' => $totalAmount,
+                    'total_price' => $totalAmount,
+                    'description' => $description,
+                ];
+            } else {
+                // Panier normal
                 foreach (Cart::get() as $item) {
                     $items[] = [
                         'name' => $item['title'] ?? $item['name'] ?? 'Course',
@@ -814,15 +835,19 @@ class PaydunyaService
                         'description' => $item['description'] ?? $item['title'] ?? 'Course',
                     ];
                 }
-            } else {
-                $items[] = [
-                    'name' => 'Subscription Plan',
-                    'quantity' => 1,
-                    'unit_price' => $totalAmount,
-                    'total_price' => $totalAmount,
-                    'description' => $description,
-                ];
             }
+
+                // Déterminer les URLs selon le type de paiement
+                if ($cartType === 'course_purchase') {
+                    $courseId = session()->get('course_id');
+                    $returnUrl = route('organization.courses.purchase.success', ['course' => $courseId]);
+                    $cancelUrl = route('organization.courses.purchase.cancel', ['course' => $courseId]);
+                    $callbackUrl = route('organization.courses.purchase.callback', ['course' => $courseId]);
+                } else {
+                    $returnUrl = route('payment.success', ['method' => 'paydunya']);
+                    $cancelUrl = route('payment.cancel.web');
+                    $callbackUrl = route('payment.callback', ['method' => 'paydunya']);
+                }
 
             $invoiceData = [
                 'invoice' => [
@@ -833,19 +858,20 @@ class PaydunyaService
                     'name' => config('app.name', 'My Store'),
                 ],
                 'actions' => [
-                    'cancel_url' => route('payment.cancel'),
-                    'return_url' => route('payment.success', ['method' => 'paydunya']),
+                    'cancel_url' => $cancelUrl,
+                    'return_url' => $returnUrl,
+                    'callback_url' => $callbackUrl,
                 ],
             ];
 
             \Log::info('Invoice data:', $invoiceData);
-            \Log::info('Sending to: ' . self::$baseUrl . '/checkout-invoice/create');
+            \Log::info('Sending to: '.self::$baseUrl.'/checkout-invoice/create');
 
             $response = Http::withHeaders(self::getHeaders())
-                ->post(self::$baseUrl . '/checkout-invoice/create', $invoiceData);
+                ->post(self::$baseUrl.'/checkout-invoice/create', $invoiceData);
 
-            \Log::info('Response status: ' . $response->status());
-            \Log::info('Response body: ' . $response->body());
+            \Log::info('Response status: '.$response->status());
+            \Log::info('Response body: '.$response->body());
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -861,7 +887,7 @@ class PaydunyaService
             }
 
             $errorMsg = $response->json()['response_text'] ?? 'Payment initialization failed';
-            \Log::error('Paydunya API error: ' . $errorMsg);
+            \Log::error('Paydunya API error: '.$errorMsg);
 
             return [
                 'status' => 'error',
@@ -869,9 +895,9 @@ class PaydunyaService
             ];
 
         } catch (\Exception $e) {
-            \Log::error('Exception: ' . $e->getMessage());
-            \Log::error('Line: ' . $e->getLine());
-            \Log::error('File: ' . $e->getFile());
+            \Log::error('Exception: '.$e->getMessage());
+            \Log::error('Line: '.$e->getLine());
+            \Log::error('File: '.$e->getFile());
 
             return [
                 'status' => 'error',

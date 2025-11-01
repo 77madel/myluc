@@ -1,11 +1,48 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
+ // Capture tous les fichiers
+        "./resources/views/**/*.blade.php",
         "./Modules/LMS/resources/views/components/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/views/theme/**/*.blade.php",
         "./Modules/LMS/resources/themes/**/*.blade.php",
         "./public/lms/frontend/assets/js/*.js",
+
+        // Fichiers JS qui pourraient contenir des références
+        "./Modules/**/resources/js/**/*.js",
+        "./resources/js/**/*.js",
+    ],
+    safelist: [
+        // Ajouter les classes qui pourraient être dynamiques
+        'w-7',
+        'h-7',
+        'w-6',
+        'h-6',
+        'bg-primary-600',
+        'hover:bg-primary-500',
+        'bg-success',
+        'hover:bg-success',
+        'bg-warning',
+        'bg-disable',
+        'border-success',
+        'border-danger',
+        'bg-danger',
+        'rounded-full',
+        'inline-flex',
+        'items-center',
+        'justify-center',
+        'text-white',
+        'text-xs',
+        'font-bold',
+        'focus:outline-none',
+        'focus:ring-2',
+        'focus:ring-offset-2',
+        'focus:ring-primary-500',
+        'transition-all',
+        'duration-200',
+        'hover:scale-110',
+        'border-2',
     ],
     darkMode: "selector",
     mode: "jit",
@@ -31,19 +68,17 @@ module.exports = {
             colors: {
                 heading: "rgb(from var(--color-heading) r g b / <alpha-value>)",
                 primary: {
-                    DEFAULT:
-                        "rgb(from var(--color-primary) r g b / <alpha-value>)",
-                    50: "rgb(from var(--color-primary-50) r g b / <alpha-value>)",
-                    100: "rgb(from var(--color-primary-100) r g b / <alpha-value>)",
-                    200: "rgb(from var(--color-primary-200) r g b / <alpha-value>)",
-                    300: "rgb(from var(--color-primary-300) r g b / <alpha-value>)",
-                    400: "rgb(from var(--color-primary-400) r g b / <alpha-value>)",
-                    500: "rgb(from var(--color-primary-500) r g b / <alpha-value>)",
-                    600: "rgb(from var(--color-primary-600) r g b / <alpha-value>)",
+                    DEFAULT: "#572571",
+                    50: "#F2EAF6",
+                    100: "#E6D5ED",
+                    200: "#CDAAD9",
+                    300: "#B380C5",
+                    400: "#9A55B0",
+                    500: "#804B9A",
+                    600: "#572571",
                 },
                 secondary: {
-                    DEFAULT:
-                        "rgb(from var(--color-secondary) r g b / <alpha-value>)",
+                    DEFAULT: "#5BDFE4",
                 },
                 section: {
                     DEFAULT:
@@ -59,7 +94,7 @@ module.exports = {
                     DEFAULT: "#66CC33",
                 },
                 info: {
-                    DEFAULT: "#498CFF",
+                    DEFAULT: "#572571",
                 },
                 disable: {
                     DEFAULT: "#999",

@@ -1,13 +1,68 @@
+@php
+    // Détecter automatiquement si c'est une inscription via lien d'organisation
+    $isOrganizationEnrollment = false;
+    $enrollmentLink = null;
+
+    // Debug: Vérifier l'URL actuelle
+    $currentUrl = request()->url();
+    $currentPath = request()->path();
+    \Log::info('URL actuelle: ' . $currentUrl);
+    \Log::info('Path actuel: ' . $currentPath);
+    \Log::info('Pattern enroll/* match: ' . (request()->is('enroll/*') ? 'OUI' : 'NON'));
+
+    if (request()->is('enroll/*')) {
+        $slug = request()->route('slug');
+        \Log::info('Slug récupéré: ' . $slug);
+
+        $enrollmentLink = \Modules\LMS\Models\Auth\OrganizationEnrollmentLink::where('slug', $slug)
+            ->where('status', 'active')
+            ->with(['organization', 'course'])
+            ->first();
+
+        \Log::info('EnrollmentLink trouvé: ' . ($enrollmentLink ? 'OUI' : 'NON'));
+        if ($enrollmentLink) {
+            \Log::info('EnrollmentLink valide: ' . ($enrollmentLink->isValid() ? 'OUI' : 'NON'));
+        }
+
+        if ($enrollmentLink && $enrollmentLink->isValid()) {
+            $isOrganizationEnrollment = true;
+            \Log::info('isOrganizationEnrollment défini à TRUE');
+        }
+    }
+
+    \Log::info('isOrganizationEnrollment final: ' . ($isOrganizationEnrollment ? 'TRUE' : 'FALSE'));
+@endphp
+
 <x-auth-layout>
     <div class="min-w-full min-h-screen flex items-center">
         <div class="grow min-h-screen h-full w-full lg:w-1/2 p-3 bg-primary-50 hidden lg:flex-center">
            <!-- <img data-src="{{ asset('lms/frontend/assets/images/auth/auth-loti.svg') }}" alt="loti"> -->
         </div>
         <div class="grow min-h-screen h-full w-full lg:w-1/2 pt-32 pb-12 px-3 lg:p-3 flex-center flex-col">
-            <h2 class="area-title">{{ translate('Register') }}!</h2>
-            <p class="area-description max-w-screen-sm mx-auto text-center mt-5">
-                {{ translate('Discover, learn, and thrive with us. Experience a smooth and rewarding educational adventure.Let\'s get started') }}!
-            </p>
+            @if($isOrganizationEnrollment)
+                <!-- Header spécial pour organisation -->
+                <div class="text-center mb-8">
+                    <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-blue-100 mb-4">
+                        <i class="fas fa-graduation-cap text-blue-600 text-2xl"></i>
+                    </div>
+                    <h2 class="area-title">{{ translate('Student Registration') }}</h2>
+                    <p class="area-description max-w-screen-sm mx-auto text-center mt-5">
+                        {{ translate('Join') }} <strong>{{ $enrollmentLink->organization->name }}</strong>
+                    </p>
+                    @if($enrollmentLink->course)
+                        <p class="mt-2 text-sm text-blue-600">
+                            <i class="fas fa-book mr-1"></i>
+                            {{ translate('Course') }}: {{ $enrollmentLink->course->title }}
+                        </p>
+                    @endif
+                </div>
+            @else
+                <!-- Header normal -->
+                <h2 class="area-title">{{ translate('Register') }}!</h2>
+                <p class="area-description max-w-screen-sm mx-auto text-center mt-5">
+                    {{ translate('Discover, learn, and thrive with us. Experience a smooth and rewarding educational adventure.Let\'s get started') }}!
+                </p>
+            @endif
             <div class="dashkit-tab flex-center gap-2 flex-wrap mt-10" id="userRegisterTab">
                 <button type="button" aria-label="User registration tab for Student"
                     class="dashkit-tab-btn btn b-light btn-primary-light btn-lg h-11 !rounded-full text-[14px] sm:text-[16px] md:text-[18px] [&.active]:bg-primary [&.active]:text-white active"
@@ -26,6 +81,21 @@
                     <form action="{{ route('auth.register') }}" class="form" method="POST">
                         @csrf
                         <input type="hidden" name="user_type" value="student">
+                        @if($isOrganizationEnrollment)
+                            <!-- Champs cachés pour l'inscription via organisation -->
+                            <input type="hidden" name="organization_id" value="{{ $enrollmentLink->organization_id }}">
+                            <input type="hidden" name="enrollment_link_id" value="{{ $enrollmentLink->id }}">
+                            <!-- Debug -->
+                            <div style="display: none;">
+                                <!-- Debug: Organization ID = {{ $enrollmentLink->organization_id }} -->
+                                <!-- Debug: Enrollment Link ID = {{ $enrollmentLink->id }} -->
+                            </div>
+                        @else
+                            <!-- Debug: Pas d'inscription via organisation -->
+                            <div style="display: none;">
+                                <!-- Debug: isOrganizationEnrollment = false -->
+                            </div>
+                        @endif
                         <div class="grid grid-cols-2 gap-x-3 gap-y-5">
                             <div class="col-span-full lg:col-auto">
                                 <div class="relative">
@@ -294,4 +364,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Script pour gérer les redirections -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer les réponses AJAX pour les redirections
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+
+                    // Afficher le loading
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '{{ translate("Processing...") }}';
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            if (data.redirect) {
+                                // Redirection pour enrollment existant
+                                window.location.href = data.redirect;
+                            } else {
+                                // Redirection normale après inscription
+                                window.location.href = '{{ route("login") }}';
+                            }
+                        } else {
+                            // Afficher les erreurs
+                            if (data.errors) {
+                                Object.keys(data.errors).forEach(field => {
+                                    const errorElement = document.querySelector('.' + field + '_err');
+                                    if (errorElement) {
+                                        errorElement.textContent = data.errors[field][0];
+                                    }
+                                });
+                            } else {
+                                alert(data.message || '{{ translate("An error occurred") }}');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('{{ translate("An error occurred during registration") }}');
+                    })
+                    .finally(() => {
+                        // Réactiver le bouton
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+                });
+            });
+        });
+    </script>
 </x-auth-layout>

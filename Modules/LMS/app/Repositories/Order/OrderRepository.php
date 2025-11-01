@@ -39,6 +39,12 @@ class OrderRepository
                 session()->forget('subscription_id');
             }
 
+            // Gérer les achats d'organisation - détecter automatiquement
+            $user = auth()->user();
+            if ($user && $user->organization) {
+                self::handleOrganizationPurchase($purchase->id, $method);
+            }
+
             Cart::clear();
             DB::commit();
             return [
@@ -56,7 +62,7 @@ class OrderRepository
     /**
      * Method subscription
      *
-     * @param int $purchaseId 
+     * @param int $purchaseId
      * @param string $method
      *
      */
@@ -165,6 +171,11 @@ class OrderRepository
             'type' => $itemInfo['type'],
             'status' => $itemInfo['status'],
             'purchase_type' => $itemInfo['purchase_type'],
+            // Dates d'échéance lorsqu'il s'agit d'un cours
+            'enrolled_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now() : null,
+            'course_due_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now()->copy()->addDays(config('lms.course_duration_days', 5)) : null,
+            'grace_due_at' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)) : null,
+            'enrollment_status' => ($itemInfo['purchase_type'] ?? null) === PurchaseType::COURSE ? 'in_progress' : null,
         ]);
         return $purchaseDetail;
     }
@@ -172,8 +183,8 @@ class OrderRepository
     /**
      * Method profitShareCalculate
      *
-     * @param object $item 
-     * @param float $discountPrice 
+     * @param object $item
+     * @param float $discountPrice
      */
     public static function profitShareCalculate($item, $discountPrice, $type = null)
     {
@@ -217,7 +228,7 @@ class OrderRepository
     /**
      * Method orgProfit
      *
-     * @param float $profitBalance 
+     * @param float $profitBalance
      * @param integer $orgId
      *
      * @return void
@@ -232,8 +243,8 @@ class OrderRepository
     /**
      * Method instructorProfitShare
      *
-     * @param array $instructors 
-     * @param float $price 
+     * @param array $instructors
+     * @param float $price
      */
     public static function instructorProfitShare($instructors, $price)
     {
@@ -250,7 +261,7 @@ class OrderRepository
     /**
      * Method updateUserBalance
      *
-     * @param float $amount 
+     * @param float $amount
      * @param int $userId ;
      *
      */
@@ -263,8 +274,8 @@ class OrderRepository
     /**
      * Method paymentDocumentSave
      *
-     * @param int $purchaseId 
-     * @param string $document 
+     * @param int $purchaseId
+     * @param string $document
      */
     public static function paymentDocumentSave($purchaseId, $document)
     {
@@ -272,5 +283,66 @@ class OrderRepository
             'purchase_id' => $purchaseId,
             'document' => $document
         ]);
+    }
+
+    /**
+     * Gérer les achats d'organisation
+     */
+    public static function handleOrganizationPurchase($purchaseId, $method)
+    {
+        try {
+            $user = auth()->user();
+            if (!$user || !$user->organization) {
+                return;
+            }
+
+            $organization = $user->organization;
+
+            // Récupérer les informations du cours depuis purchase_details
+            $purchaseDetails = DB::table('purchase_details')
+                ->where('purchase_id', $purchaseId)
+                ->first();
+
+            if (!$purchaseDetails || !$purchaseDetails->course_id) {
+                return;
+            }
+
+            $courseId = $purchaseDetails->course_id;
+
+            // Créer un lien d'inscription
+            $enrollmentLink = \Modules\LMS\Models\Auth\OrganizationEnrollmentLink::create([
+                'organization_id' => $organization->id,
+                'course_id' => $courseId,
+                'name' => "Cours acheté - " . now()->format('Y-m-d H:i:s'),
+                'slug' => \Illuminate\Support\Str::random(10),
+                'description' => "Lien d'inscription généré automatiquement",
+                'valid_until' => now()->addYear(),
+                'max_enrollments' => null,
+                'current_enrollments' => 0,
+                'status' => 'active',
+            ]);
+
+            // Mettre à jour la table purchases avec les informations d'organisation
+            DB::table('purchases')
+                ->where('id', $purchaseId)
+                ->update([
+                    'organization_id' => $organization->id,
+                    'enrollment_link_id' => $enrollmentLink->id,
+                    'purchase_type' => 'organization_course',
+                    'updated_at' => now()
+                ]);
+
+            // Mettre à jour purchase_details avec les informations d'organisation
+            DB::table('purchase_details')
+                ->where('purchase_id', $purchaseId)
+                ->update([
+                    'organization_id' => $organization->id,
+                    'enrollment_link_id' => $enrollmentLink->id,
+                    'updated_at' => now()
+                ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de l\'enregistrement de l\'achat d\'organisation: ' . $e->getMessage());
+        }
     }
 }

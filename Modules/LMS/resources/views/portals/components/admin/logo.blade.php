@@ -7,12 +7,12 @@
     $mainLogo =
         $backend_logo && fileExists('lms/theme-options', $backend_logo) == true
             ? asset("storage/lms/theme-options/{$backend_logo}")
-            : asset('lms/assets/images/logo/logo.svg');
+            : asset('lms/frontend/assets/images/logo/Logo.png');
 
     $darkLogo =
         $backend_dark_logo && fileExists('lms/theme-options', $backend_dark_logo) == true
             ? asset("storage/lms/theme-options/{$backend_dark_logo}")
-            : asset('lms/assets/images/logo/dark-logo.svg');
+            : asset('lms/frontend/assets/images/logo/Logo.png');
 
     $iconLogo =
         $backend_icon_logo && fileExists('lms/theme-options', $backend_icon_logo) == true

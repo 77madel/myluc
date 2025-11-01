@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Progress System</title>
+    <meta name="csrf-token" content="test-token">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        .test-button {
+            background: #572571;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug du Système de Progression</h1>
+
+    <div class="debug-log">
+        <h3>📊 Tests Disponibles :</h3>
+        <button class="test-button" onclick="testGetCurrentTopicId()">Test getCurrentTopicId()</button>
+        <button class="test-button" onclick="testMarkAsStarted()">Test markAsStarted()</button>
+        <button class="test-button" onclick="testMarkAsCompleted()">Test markAsCompleted()</button>
+        <button class="test-button" onclick="testModal()">Test Modal</button>
+    </div>
+
+    <div class="debug-log">
+        <h3>📝 Logs de Debug :</h3>
+        <div id="debug-logs"></div>
+    </div>
+
+    <script>
+        // Fonction pour ajouter des logs
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('debug-logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            logs.appendChild(logEntry);
+            console.log(message);
+        }
+
+        // Simuler un élément avec data-topic-id
+        function createTestElement() {
+            const testDiv = document.createElement('div');
+            testDiv.setAttribute('data-topic-id', '123');
+            testDiv.setAttribute('class', 'topic-item');
+            testDiv.textContent = 'Test Topic';
+            document.body.appendChild(testDiv);
+            return testDiv;
+        }
+
+        // Test getCurrentTopicId
+        function testGetCurrentTopicId() {
+            addLog('🧪 Testing getCurrentTopicId()', 'info');
+
+            // Créer un élément de test
+            const testElement = createTestElement();
+
+            // Fonction getCurrentTopicId
+            function getCurrentTopicId() {
+                // Chercher dans l'URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const topicId = urlParams.get('topic_id') || urlParams.get('item');
+                if (topicId) return topicId;
+
+                // Chercher dans les attributs data
+                const topicElement = document.querySelector('[data-topic-id]');
+                if (topicElement) {
+                    return topicElement.getAttribute('data-topic-id');
+                }
+
+                return null;
+            }
+
+            const topicId = getCurrentTopicId();
+            addLog('🎯 Topic ID found: ' + topicId, topicId ? 'success' : 'error');
+
+            // Nettoyer l'élément de test
+            testElement.remove();
+        }
+
+        // Test markAsStarted
+        async function testMarkAsStarted() {
+            addLog('🧪 Testing markAsStarted()', 'info');
+
+            // Simuler l'URL de la route
+            const routeUrl = '/dashboard/topic-progress/start/123';
+            addLog('📡 Route URL: ' + routeUrl, 'info');
+
+            try {
+                // Simuler la requête
+                addLog('📡 Sending start request for topic: 123', 'info');
+
+                // Simuler une réponse
+                const mockResponse = {
+                    status: 'success',
+                    message: 'Topic marked as started',
+                    progress: {
+                        id: 1,
+                        user_id: 1,
+                        topic_id: 123,
+                        status: 'in_progress'
+                    }
+                };
+
+                addLog('📡 Start response: ' + JSON.stringify(mockResponse), 'success');
+                addLog('✅ Topic marked as started', 'success');
+
+            } catch (error) {
+                addLog('❌ Error starting topic: ' + error.message, 'error');
+            }
+        }
+
+        // Test markAsCompleted
+        async function testMarkAsCompleted() {
+            addLog('🧪 Testing markAsCompleted()', 'info');
+
+            const topicId = 123;
+            const routeUrl = '/dashboard/topic-progress/complete/' + topicId;
+            addLog('📡 Route URL: ' + routeUrl, 'info');
+
+            try {
+                addLog('📡 Sending complete request for topic: ' + topicId, 'info');
+
+                // Simuler une réponse
+                const mockResponse = {
+                    status: 'success',
+                    message: 'Topic marked as completed',
+                    progress: {
+                        id: 1,
+                        user_id: 1,
+                        topic_id: 123,
+                        status: 'completed'
+                    },
+                    chapter_completed: false
+                };
+
+                addLog('📡 Complete response: ' + JSON.stringify(mockResponse), 'success');
+                addLog('✅ Topic marked as completed', 'success');
+
+                // Tester le modal
+                showLessonCompletionModal();
+
+            } catch (error) {
+                addLog('❌ Error completing topic: ' + error.message, 'error');
+            }
+        }
+
+        // Test modal
+        function testModal() {
+            addLog('🧪 Testing Modal', 'info');
+            showLessonCompletionModal();
+        }
+
+        // Modal de félicitations pour la leçon
+        function showLessonCompletionModal() {
+            addLog('🎉 Showing lesson completion modal', 'success');
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Félicitations !</h3>
+                    <p class="text-gray-600 mb-6">Vous avez terminé cette leçon.</p>
+                    <button onclick="this.closest('.fixed').remove()"
+                            class="bg-purple-800 hover:bg-purple-900 text-white px-6 py-2 rounded-lg transition-colors">
+                        Continuer
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        addLog('🚀 Debug system initialized', 'success');
+        addLog('💡 Cliquez sur les boutons pour tester chaque fonction', 'info');
+    </script>
+</body>
+</html>
+

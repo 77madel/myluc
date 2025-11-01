@@ -3,10 +3,10 @@
     $mainLogo =
         $logo_name && fileExists('lms/theme-options', $logo_name) == true
             ? asset("storage/lms/theme-options/{$logo_name}")
-            : asset('lms/frontend/assets/images/logo/default-logo-dark.svg');
+            : asset('lms/frontend/assets/images/logo/Logo.png');
     $logo = $defaultLogo ?? $mainLogo;
 @endphp
 <!-- LOGO -->
 <a href="{{ route('home.index') }}" class="flex-center">
-    <img data-src="{{ $logo }}" alt="Header logo" class="max-w-24 sm:max-w-40">
+    <img data-src="{{ $logo }}" alt="LUC logo" class="max-w-24 sm:max-w-40">
 </a>

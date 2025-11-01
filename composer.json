@@ -9,10 +9,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "composer/composer": "^2.8",
         "drewm/mailchimp-api": "*",
+        "geoip2/geoip2": "~2.0",
+        "jenssegers/agent": "*",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
+        "maatwebsite/excel": "^3.1",
         "nwidart/laravel-modules": "^12.0",
         "paydunya/paydunya": "dev-master",
         "php-http/guzzle7-adapter": "^1.1",
@@ -20,6 +24,7 @@
         "stevebauman/location": "^7.4",
         "stevebauman/purify": "^6.2",
         "stripe/stripe-php": "^16.5",
+        "tecnickcom/tcpdf": "^6.10",
         "unicodeveloper/laravel-paystack": "^1.2",
         "xendit/xendit-php": "^6.1",
         "yoeunes/toastr": "*"

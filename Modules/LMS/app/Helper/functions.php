@@ -2186,6 +2186,12 @@ if (!function_exists('user_wishlist_check')) {
     function user_wishlist_check($courseId)
     {
         $user = authCheck();
+
+        // Vérifier si l'utilisateur est connecté et a une relation userable
+        if (!$user || !$user->wishlists) {
+            return false;
+        }
+
         $wishlistArray = $user->wishlists->pluck('id')->toArray();
         if (in_array($courseId,  $wishlistArray)) {
             return  true;

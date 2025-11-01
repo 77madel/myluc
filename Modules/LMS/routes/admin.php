@@ -58,12 +58,15 @@ use Modules\LMS\Http\Controllers\Admin\SupportTicket\SupportCategoryController;
 
 
 Route::group(
-    ['prefix' => 'admin', 'middleware' => ['auth:admin', 'checkInstaller']],
+    ['prefix' => 'admin', 'middleware' => ['auth:admin', 'checkInstaller', 'check.session.token']],
     function () {
 
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/profile', [DashboardController::class, 'profile'])->name('admin.profile');
         Route::post('/profile', [DashboardController::class, 'profileUpdate'])->name('admin.profile.update');
+        
+        // ✅ Analytics Dashboard
+        Route::get('/analytics', [\Modules\LMS\Http\Controllers\Admin\AnalyticsDashboardController::class, 'index'])->name('admin.analytics');
 
         Route::get('/cache-clear', [DashboardController::class, 'cacheClear'])->name('cache.clear');
         Route::get('/cache-optimize', [DashboardController::class, 'cacheOptimize'])->name('cache.optimize');
@@ -284,6 +287,7 @@ Route::group(
                 Route::get('enrolled/edit/{id}', 'edit')->name('edit');
                 Route::get('enrolled/show/{id}', 'show')->name('show');
                 Route::delete('enrolled/destroy/{id}', 'destroy')->name('destroy');
+                Route::post('re-enroll', 'reEnroll')->name('re-enroll');  // Nouvelle route pour réinscrire
             }
         );
 

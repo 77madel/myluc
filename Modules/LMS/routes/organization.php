@@ -10,7 +10,8 @@ use Modules\LMS\Http\Controllers\Admin\Courses\Topics\TopicController;
 use Modules\LMS\Http\Controllers\Admin\Localization\CountryController;
 use Modules\LMS\Http\Controllers\Admin\Localization\StateController;
 use Modules\LMS\Http\Controllers\Organization\Courses\Bundle\BundleController;
-use Modules\LMS\Http\Controllers\Organization\Courses\CourseController;
+use Modules\LMS\Http\Controllers\Organization\CourseController;
+use Modules\LMS\Http\Controllers\Organization\EnrollmentController;
 use Modules\LMS\Http\Controllers\Organization\Courses\TagController;
 use Modules\LMS\Http\Controllers\Organization\DashboardController;
 use Modules\LMS\Http\Controllers\Organization\InstructorController;
@@ -21,13 +22,14 @@ use Modules\LMS\Http\Controllers\Organization\ReviewController;
 use Modules\LMS\Http\Controllers\Organization\SaleController;
 use Modules\LMS\Http\Controllers\Organization\SettingController;
 use Modules\LMS\Http\Controllers\Organization\SupportController;
+use Modules\LMS\Http\Controllers\Organization\ReportsController;
 
 Route::group(
-    ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller']],
+    ['prefix' => 'org', 'as' => 'organization.', 'middleware' => ['auth', 'role:Organization', 'checkInstaller', 'verify-org-access', 'check.session.token']],
     function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('logout', [DashboardController::class, 'logout'])->name('logout');
-        Route::get('students', [DashboardController::class, 'students'])->name('student.list');
+        // Route::get('students', [DashboardController::class, 'students'])->name('student.list'); // Désactivé - remplacé par organizationStudents
         Route::get('students/profile/{id}', [DashboardController::class, 'profile'])->name('student.profile');
         Route::get('wishlists', [DashboardController::class, 'wishlists'])->name('wishlist');
         Route::delete('wishlists/{id}', [DashboardController::class, 'removeWishlist'])->name('remove.wishlist');
@@ -38,37 +40,63 @@ Route::group(
         Route::delete('notification/delete/{id}', [NotificationController::class, 'notificationHistoryDelete'])->name('notification.history.delete');
         Route::get('notification/read-all', [NotificationController::class, 'notificationReadAll'])->name('notification.read.all');
 
-        /* Instructor */
+        /* Course Purchase for Organizations */
+        Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
+        Route::get('courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+        Route::post('courses/{course}/purchase', [CourseController::class, 'purchase'])->name('courses.purchase');
+        Route::get('courses/{course}/purchase/success', [CourseController::class, 'purchaseSuccess'])->name('courses.purchase.success');
+        Route::get('courses/{course}/purchase/cancel', [CourseController::class, 'purchaseCancel'])->name('courses.purchase.cancel');
+        Route::get('courses/{course}/purchase/callback', [CourseController::class, 'purchaseCallback'])->name('courses.purchase.callback');
+        Route::post('courses/{course}/purchase/callback', [CourseController::class, 'purchaseCallback'])->name('courses.purchase.callback.post');
 
-        Route::resource('instructor', InstructorController::class);
-        Route::get('instructor/profile/{id}', [InstructorController::class, 'profile'])->name('instructor.profile');
-        Route::put('instructor/restore/{id}', [InstructorController::class, 'restore'])->name('instructor.restore');
-        Route::get('instructors/status-change/{id}', [InstructorController::class, 'statusChange'])->name('instructor.status');
-        Route::get('instructor/{id}/translate/{locale}', [InstructorController::class, 'edit'])->name('instructor.translate');
+        /* Enrollment Links Management - Affichage seulement */
+        Route::get('enrollment-links', [DashboardController::class, 'enrollmentLinks'])->name('enrollment-links.index');
+
+        /* Students and Progress Management */
+        Route::get('students', [DashboardController::class, 'organizationStudents'])->name('students.index');
+        Route::get('student/list', function() {
+            return redirect()->route('organization.students.index');
+        })->name('student.list'); // Alias pour compatibilité
+        Route::get('students/{student}/progress', [DashboardController::class, 'studentProgress'])->name('students.progress');
+        Route::get('students/export', [DashboardController::class, 'exportStudents'])->name('students.export');
+
+        /* Instructor - désactivé pour les organisations (pas de création/gestion) */
+        // Route::resource('instructor', InstructorController::class);
+        // Route::get('instructor/profile/{id}', [InstructorController::class, 'profile'])->name('instructor.profile');
+        // Route::put('instructor/restore/{id}', [InstructorController::class, 'restore'])->name('instructor.restore');
+        // Route::get('instructors/status-change/{id}', [InstructorController::class, 'statusChange'])->name('instructor.status');
+        // Route::get('instructor/{id}/translate/{locale}', [InstructorController::class, 'edit'])->name('instructor.translate');
 
         /* course */
+        Route::get('course', [CourseController::class, 'index'])->name('course.index');
+        Route::get('course/create', [CourseController::class, 'create'])->name('course.create');
+        Route::post('course', [CourseController::class, 'store'])->name('course.store');
+        Route::get('course/{course}/edit', [CourseController::class, 'edit'])->name('course.edit');
+        Route::put('course/{course}', [CourseController::class, 'update'])->name('course.update');
+        Route::delete('course/{course}', [CourseController::class, 'destroy'])->name('course.destroy');
 
-        Route::resource('course', CourseController::class)->except('show');
-        Route::get('course/{id}/translate/{locale}', [CourseController::class, 'translate'])->name('course.translate');
-        Route::put('course/restore/{id}', [CourseController::class, 'restore'])->name('course.restore');
-        Route::prefix('course')->group(
-            function () {
-                Route::get('delete-information', [CourseController::class, 'deleteInformation'])->name('course.delete.information');
-                Route::get('image-remove/{id}', [CourseController::class,  'deleteImage'])->name('course.multiple.image.delete');
-                Route::resource('chapter', ChapterController::class);
-                Route::get('chapter-sorted', [ChapterController::class, 'chapterSorted'])->name('chapter.sorted');
-                Route::resource('topic', TopicController::class);
-                Route::get('assignment-file-delete/{id}', [TopicController::class, 'assignmentFileDelete'])->name('assignment.file.delete');
-                Route::get('topic-sorted', [TopicController::class, 'topicSorted'])->name('topic.sorted');
-                Route::get('chapter-topic-type/{type}', [TopicController::class, 'topicType'])->name('chapter.topic.type');
-                Route::resource('bundle', BundleController::class);
-                Route::put('bundle/restore/{id}', [BundleController::class, 'restore'])->name('bundle.restore');
-                Route::delete('bundle/thumbnail-delete/{id}', [BundleController::class, 'thumbnailDelete'])->name('bundle.thumbnail.delete');
-                Route::get('bundle/{id}/translate/{locale}', [BundleController::class, 'translate'])->name('bundle.translate');
-                Route::post('tag', [TagController::class, 'store'])->name('tag.store');
-                Route::get('tag-search', [CourseController::class, 'tagSearch'])->name('tag.search');
-            }
-        );
+        /* bundle */
+        Route::get('bundle', [Bundle\BundleController::class, 'index'])->name('bundle.index');
+        Route::get('bundle/create', [Bundle\BundleController::class, 'create'])->name('bundle.create');
+        Route::post('bundle', [Bundle\BundleController::class, 'store'])->name('bundle.store');
+        Route::get('bundle/{bundle}/edit', [Bundle\BundleController::class, 'edit'])->name('bundle.edit');
+        Route::put('bundle/{bundle}', [Bundle\BundleController::class, 'update'])->name('bundle.update');
+        Route::delete('bundle/{bundle}', [Bundle\BundleController::class, 'destroy'])->name('bundle.destroy');
+
+        // Route::prefix('course')->group(
+        //     function () {
+        //         Route::get('delete-information', [CourseController::class, 'deleteInformation'])->name('course.delete.information');
+        //         Route::get('image-remove/{id}', [CourseController::class,  'deleteImage'])->name('course.multiple.image.delete');
+        //         Route::resource('chapter', ChapterController::class);
+        //         Route::get('chapter-sorted', [ChapterController::class, 'chapterSorted'])->name('chapter.sorted');
+        //         Route::resource('topic', TopicController::class);
+        //         Route::get('assignment-file-delete/{id}', [TopicController::class, 'assignmentFileDelete'])->name('assignment.file.delete');
+        //         Route::get('topic-sorted', [TopicController::class, 'topicSorted'])->name('topic.sorted');
+        //         Route::get('chapter-topic-type/{type}', [TopicController::class, 'topicType'])->name('chapter.topic.type');
+        //         Route::post('tag', [TagController::class, 'store'])->name('tag.store');
+        //         Route::get('tag-search', [CourseController::class, 'tagSearch'])->name('tag.search');
+        //     }
+        // );
 
         /* quizzes */
 
@@ -115,5 +143,19 @@ Route::group(
         Route::group(['prefix' => 'review'], function () {
             Route::resource('course-review', ReviewController::class);
         });
+
+        /* Reports & Statistics */
+        Route::group(['prefix' => 'reports', 'as' => 'reports.'], function () {
+            Route::get('/', [ReportsController::class, 'index'])->name('index');
+            Route::get('/participants', [ReportsController::class, 'participants'])->name('participants');
+            Route::get('/courses', [ReportsController::class, 'courses'])->name('courses');
+            Route::get('/usage', [ReportsController::class, 'usage'])->name('usage');
+
+            Route::get('/export/participants', [ReportsController::class, 'exportParticipants'])->name('participants.export');
+            Route::get('/export/courses', [ReportsController::class, 'exportCourses'])->name('courses.export');
+            Route::get('/export/usage', [ReportsController::class, 'exportUsage'])->name('usage.export');
+        });
     }
 );
+
+// Routes d'inscription via lien d'organisation déplacées vers web.php

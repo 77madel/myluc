@@ -16,7 +16,31 @@
     </video>
 @else
     <!-- VIMEO/YOUTUBE -->
+    @php
+        // Convertir l'URL YouTube/Vimeo en format embed
+        $embedUrl = $course->demo_url;
+        if (strpos($course->demo_url, 'youtube.com') !== false || strpos($course->demo_url, 'youtu.be') !== false) {
+            // Extraire l'ID de la vidéo YouTube
+            if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/', $course->demo_url, $matches)) {
+                $videoId = $matches[1];
+                $embedUrl = "https://www.youtube.com/embed/{$videoId}?rel=0&modestbranding=1&showinfo=0";
+            }
+        } elseif (strpos($course->demo_url, 'vimeo.com') !== false) {
+            // Extraire l'ID de la vidéo Vimeo
+            if (preg_match('/vimeo\.com\/(\d+)/', $course->demo_url, $matches)) {
+                $videoId = $matches[1];
+                $embedUrl = "https://player.vimeo.com/video/{$videoId}";
+            }
+        }
+    @endphp
     <div class="plyr__video-embed" id="course-demo">
-        <iframe src="{{ $course->demo_url }}" allowfullscreen allowtransparency allow="autoplay"></iframe>
+        <iframe src="{{ $embedUrl }}"
+                allowfullscreen
+                allowtransparency
+                allow="autoplay"
+                frameborder="0"
+                webkitallowfullscreen
+                mozallowfullscreen>
+        </iframe>
     </div>
 @endif

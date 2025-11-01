@@ -1,199 +1,141 @@
 <?php
 
-
 use Illuminate\Support\Facades\Route;
 use Modules\LMS\Http\Controllers\InstallerController;
-use Modules\LMS\Http\Controllers\Auth\LoginController;
-use Modules\LMS\Http\Controllers\Admin\ThemeController;
+use Modules\LMS\Http\Controllers\Auth\{
+    LoginController,
+    RegisterController,
+    ForgotPasswordController
+};
+use Modules\LMS\Http\Controllers\Admin\{
+    ThemeController,
+    Courses\Quizzes\QuizController,
+    WebinarController as AdminWebinarController
+};
+use Modules\LMS\Http\Controllers\Frontend\{
+    BlogController,
+    CartController,
+    CourseController,
+    BundleController,
+    ForumController,
+    ContactController,
+    HomeController,
+    ExamController,
+    InstructorController,
+    OrganizationController,
+    PaymentController,
+    CheckoutController,
+    WebinarController
+};
 use Modules\LMS\Http\Controllers\LocalizationController;
-use Modules\LMS\Http\Controllers\Auth\RegisterController;
-use Modules\LMS\Http\Controllers\Frontend\BlogController;
-use Modules\LMS\Http\Controllers\Frontend\CartController;
-use Modules\LMS\Http\Controllers\Frontend\ExamController;
-use Modules\LMS\Http\Controllers\Frontend\HomeController;
-use Modules\LMS\Http\Controllers\Frontend\ForumController;
-use Modules\LMS\Http\Controllers\Frontend\BundleController;
-use Modules\LMS\Http\Controllers\Frontend\CourseController;
-use Modules\LMS\Http\Controllers\Frontend\ContactController;
-use Modules\LMS\Http\Controllers\Frontend\PaymentController;
-use Modules\LMS\Http\Controllers\Frontend\CheckoutController;
-use Modules\LMS\Http\Controllers\Auth\ForgotPasswordController;
-use Modules\LMS\Http\Controllers\Frontend\InstructorController;
-use Modules\LMS\Http\Controllers\Frontend\OrganizationController;
-use Modules\LMS\Http\Controllers\Admin\Courses\Quizzes\QuizController;
-use Modules\LMS\Http\Controllers\Frontend\WebinarController;
-use Modules\LMS\Http\Controllers\Admin\WebinarController as AdminWebinarController;
+use Modules\LMS\Http\Controllers\CertificateControllerSimple as CertificateController;
+use Modules\LMS\Http\Controllers\SessionCheckController;
+use Modules\LMS\Http\Controllers\AnalyticsController;
+use Modules\LMS\Http\Controllers\LinkedInShareController;
 
 /*
- *--------------------------------------------------------------------------
- * API Routes
- *--------------------------------------------------------------------------
- *
- * Here is where you can register API routes for your application. These
- * routes are loaded by the RouteServiceProvider within a group which
- * is assigned the "api" middleware group. Enjoy building your API!
- *
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
 */
 
-/* ==================== */
-
 Route::group(['middleware' => ['checkInstaller']], function () {
-    // Home
-    Route::group(['controller' => HomeController::class], function () {
-        Route::get('/',  'index')->name('home.index');
-        Route::get('/about-us',  'aboutUs')->name('about.us');
-        Route::get('/category-course/{slug}',  'categoryCourse')->name('category.course');
-        Route::get('success',  'success')->name('success');
-        Route::get('verify-mail/{id}/{hash}',  'verificationMail')->name('mail.verify');
-        Route::post('subscribe',  'newsletterSubscribe')->name('newsletter.subscribe');
-        Route::get('privacy-policy',  'policyContent')->name('privacy.policy');
-        Route::get('terms-conditions',  'termsCondition')->name('terms.condition');
-        Route::get('categories',  'categoryList')->name('category.list');
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::controller(HomeController::class)->group(function () {
+        Route::get('/', 'index')->name('home.index');
+        Route::get('/about-us', 'aboutUs')->name('about.us');
+        Route::get('/category-course/{slug}', 'categoryCourse')->name('category.course');
+        Route::get('success', 'success')->name('success');
+        Route::get('verify-mail/{id}/{hash}', 'verificationMail')->name('mail.verify');
+        Route::post('subscribe', 'newsletterSubscribe')->name('newsletter.subscribe');
+        Route::get('privacy-policy', 'policyContent')->name('privacy.policy');
+        Route::get('terms-conditions', 'termsCondition')->name('terms.condition');
+        Route::get('categories', 'categoryList')->name('category.list');
+        Route::get('users/{id}/profile', 'userDetail')->name('users.detail');
     });
 
-    Route::get('blogs', [BlogController::class, 'blogs'])->name('blog.list');
-    Route::get('blogs/{slug}', [BlogController::class, 'blogDetail'])->name('blog.detail');
+    Route::controller(BlogController::class)->group(function () {
+        Route::get('blogs', 'blogs')->name('blog.list');
+        Route::get('blogs/{slug}', 'blogDetail')->name('blog.detail');
+    });
 
     Route::get('instructors', [InstructorController::class, 'index'])->name('instructor.list');
-    Route::get('users/{id}/profile', [HomeController::class, 'userDetail'])->name('users.detail');
-    Route::get('courses', [CourseController::class, 'courseList'])->name('course.list');
-    Route::get('courses/{slug}', [CourseController::class, 'courseDetail'])->name('course.detail');
-    Route::get('bundles/{slug}', [BundleController::class, 'bundleDetail'])->name('bundle.detail');
-    Route::get('bundles', [BundleController::class, 'bundleList'])->name('bundle.list');
 
-    Route::get('forums', [ForumController::class, 'forumsList']);
+    Route::controller(CourseController::class)->group(function () {
+        Route::get('courses', 'courseList')->name('course.list');
+        Route::get('courses/{slug}', 'courseDetail')->name('course.detail');
+    });
 
-    Route::group(['controller' => LoginController::class], function () {
+    Route::controller(BundleController::class)->group(function () {
+        Route::get('bundles', 'bundleList')->name('bundle.list');
+        Route::get('bundles/{slug}', 'bundleDetail')->name('bundle.detail');
+    });
+
+    Route::controller(ForumController::class)->group(function () {
+        Route::get('forums', 'forumsList')->name('forums.list');
+        Route::get('forums/{slug}', 'forumDetail')->name('forum.detail');
+        Route::get('forums/topic/{slug}', 'topicDetail')->name('forum.topic.detail');
+    });
+
+    // Authentication
+    Route::controller(LoginController::class)->group(function () {
         Route::get('login', 'showForm')->name('login');
-        Route::post('login',  'login')->name('auth.login');
+        Route::post('login', 'login')->name('auth.login');
     });
 
-    // Register
-    Route::group(['controller' => RegisterController::class], function () {
+    Route::controller(RegisterController::class)->group(function () {
+        Route::get('register', 'registerForm')->name('register.page');
+        Route::post('register', 'register')->name('auth.register');
 
-        Route::get('register',  'registerForm')->name('register.page');
-        Route::post('register',  'register')->name('auth.register');
+        Route::get('enroll/{slug}', 'registerForm')->name('organization.enrollment.form');
+        Route::post('enroll/{slug}', 'register')->name('organization.enrollment.process');
+        Route::get('enroll/{slug}/success', 'enrollmentSuccess')->name('organization.enrollment.success');
     });
 
-    //============== Forgot Password
-
-    Route::group(['controller' => ForgotPasswordController::class], function () {
+    Route::controller(ForgotPasswordController::class)->group(function () {
         Route::get('forgot-password', 'showForm')->name('password.request');
         Route::post('forgot-password', 'forgotPassword')->name('forgot.password');
         Route::get('reset-password/{token}', 'passwordReset')->name('password.reset');
         Route::post('reset-password', 'passwordUpdate')->name('password.update');
     });
 
-    //========= Cart
-
-    Route::group(['controller' => CartController::class], function () {
-        Route::get('add-to-cart',  'addToCart')->name('add.to.cart');
-        Route::get('remove-cart',  'removeCart')->name('remove.cart');
-        Route::get('cart',  'cartCourseList')->name('cart.page');
+    Route::controller(CartController::class)->group(function () {
+        Route::get('cart', 'cartCourseList')->name('cart.page');
+        Route::get('add-to-cart', 'addToCart')->name('add.to.cart');
+        Route::get('remove-cart', 'removeCart')->name('remove.cart');
         Route::get('apply-coupon', 'applyCoupon')->name('apply.coupon');
     });
 
-    Route::group(['controller' => ContactController::class], function () {
+    Route::controller(ContactController::class)->group(function () {
         Route::get('contact', 'index')->name('contact.page');
         Route::post('contact', 'store')->name('contact.store');
     });
 
     Route::get('organizations', [OrganizationController::class, 'index'])->name('organization.list');
 
-    // Webinars - Public viewing only
-    Route::get('webinars', [WebinarController::class, 'index'])->name('webinar.list');
-    Route::get('webinars/{slug}', [WebinarController::class, 'show'])->name('webinar.detail');
+    // ✅ Session & Analytics
+    Route::post('session/check', [SessionCheckController::class, 'check'])->name('session.check');
+    Route::post('analytics/track', [AnalyticsController::class, 'track'])->name('analytics.track');
+    Route::post('analytics/conversion', [AnalyticsController::class, 'trackConversion'])->name('analytics.conversion');
 
-    //Route::get('checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
-    Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
-    Route::group(['middleware' => 'auth'], function () {
-        Route::post('forum-post', [ForumController::class, 'forumPost']);
-        Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');
+    // ✅ Public course access
+    Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
+    Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
 
-        Route::group(['controller' => CheckoutController::class], function () {
-            /*Route::post('checkout', 'checkout')->name('checkout');
-            Route::get('success', 'transactionSuccess')->name('transaction.success');
-            Route::get('payment-form', 'paymentFormRender')->name('payment.form');
-            Route::post('enrolled',  'courseEnrolled')->name('course.enrolled');
-            Route::post('subscription/payment', 'subscriptionPayment')->name('subscription.payment');*/
-            // Page de checkout
-
-            // Page de checkout (avec vérification du panier)
-            Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])
-                ->name('checkout.page')
-                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
-
-            // Traitement du checkout
-            Route::post('/checkout/process', [CheckoutController::class, 'checkout'])
-                ->name('checkout.process')
-                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
-
-            // Formulaire de paiement
-            Route::post('/payment/form', [CheckoutController::class, 'paymentFormRender'])
-                ->name('payment.form')
-                ->middleware(['auth', \Modules\LMS\Http\Middleware\CheckCartNotEmpty::class]);
-
-            // Succès du paiement
-            Route::get('/payment/success/{method}', [PaymentController::class, 'success'])
-                ->name('payment.success');
-
-            // Callback Paydunya (webhook)
-            Route::post('/payment/callback/{method}', [PaymentController::class, 'callback'])
-                ->name('payment.callback');
-
-            // Annulation du paiement
-            Route::get('/payment/cancel', [PaymentController::class, 'cancel'])
-                ->name('payment.cancel');
-
-            // Page de succès de transaction
-            Route::get('/transaction/success/{id?}', [CheckoutController::class, 'transactionSuccess'])
-                ->name('transaction.success')
-                ->middleware('auth');
-
-            // Inscription à un cours
-            Route::post('/course/enroll', [CheckoutController::class, 'courseEnrolled'])
-                ->name('course.enroll')
-                ->middleware('auth');
-
-            // Paiement d'abonnement
-            Route::post('/subscription/payment', [CheckoutController::class, 'subscriptionPayment'])
-                ->name('subscription.payment')
-                ->middleware('auth');
-
-            // Inscription à un cours
-            Route::post('/course/enroll', [CheckoutController::class, 'courseEnrolled'])
-                ->name('course.enroll')
-                ->middleware('auth');
-
-            // Paiement d'abonnement
-            Route::post('/subscription/payment', [CheckoutController::class, 'subscriptionPayment'])
-                ->name('subscription.payment')
-                ->middleware('auth');
-        });
-        Route::group(['controller' => PaymentController::class], function () {
-            Route::get('payment/success/{method}', 'success')->name('payment.success');
-            Route::get('cancel', 'cancel')->name('payment.cancel');
-        });
-
-        Route::get('learn/course/{slug}', [CourseController::class, 'courseVideoPlayer'])->name('play.course');
-        Route::get('learn/course-topic', [CourseController::class, 'leanCourseTopic'])->name('learn.course.topic');
-        Route::post('course-review', [CourseController::class, 'review'])->name('review');
-        Route::post('quiz/{id}/store', [QuizController::class, 'quizStoreResult'])->name('quiz.store.result');
-        Route::post('user/submit-quiz-answer/{quiz_id}/{type}', [QuizController::class, 'submitQuizAnswer'])->name('user.submit.quiz.answer');
-        Route::get('exam/{type}/{exam_type_id}/{course_id}', [ExamController::class, 'examStart'])->name('exam.start');
-        Route::post('exam-store', [ExamController::class, 'store'])->name('exam.store');
-        Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');
-
-        // Webinar authenticated routes
-        Route::post('webinars/{id}/enroll', [WebinarController::class, 'enroll'])->name('webinar.enroll');
-        Route::post('webinars/{id}/cancel', [WebinarController::class, 'cancelEnrollment'])->name('webinar.cancel');
-        Route::get('my-webinars', [WebinarController::class, 'myWebinars'])->name('webinar.my');
-        Route::get('webinars/{id}/join', [WebinarController::class, 'join'])->name('webinar.join');
-        Route::post('webinars/{id}/attendance', [WebinarController::class, 'markAttendance'])->name('webinar.attendance');
-
-        // Logout route
-        Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    // ✅ Webinars
+    Route::controller(WebinarController::class)->group(function () {
+        Route::get('webinars', 'index')->name('webinar.list');
+        Route::get('webinars/{slug}', 'show')->name('webinar.detail');
+        Route::post('webinars/{id}/register', 'register')->name('webinar.register')->middleware('auth');
+        Route::post('webinars/{id}/cancel', 'cancelRegistration')->name('webinar.cancel')->middleware('auth');
     });
+
+    // ✅ Localization & Themes
     Route::get('language', [LocalizationController::class, 'setLanguage'])->name('language.set');
     // Simple language switch writing locale to session
     Route::get('language/switch/{locale}', function ($locale) {
@@ -202,18 +144,95 @@ Route::group(['middleware' => ['checkInstaller']], function () {
         return back();
     })->name('language.switch');
     Route::get('theme/activation/{slug}/{uuid}', [ThemeController::class, 'activationByUrl'])->name('theme.activation_by_uuid');
-});
 
-// install.
-Route::controller(InstallerController::class)->group(
-    function () {
+    /*
+    |--------------------------------------------------------------------------
+    | AUTHENTICATED ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('auth')->group(function () {
+
+        // Forum (auth)
+        Route::controller(ForumController::class)->group(function () {
+            Route::post('forum-post', 'forumPost');
+            Route::post('forums/reply', 'storeReply')->name('forum.reply.store');
+            Route::get('forums/{forum_slug}/create-topic', 'createTopic')->name('forum.topic.create');
+            Route::post('forums/{forum_slug}/store-topic', 'storeTopic')->name('forum.topic.store');
+        });
+
+        // Blog
+        Route::post('blog/store', [BlogController::class, 'store'])->name('blog.comment');
+
+        // Checkout & Payment
+        Route::middleware(\Modules\LMS\Http\Middleware\CheckCartNotEmpty::class)->group(function () {
+            Route::get('/checkout', [CheckoutController::class, 'checkoutPage'])->name('checkout.page');
+            Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
+            Route::post('/payment/form', [CheckoutController::class, 'paymentFormRender'])->name('payment.form');
+        });
+
+        Route::controller(PaymentController::class)->group(function () {
+            Route::get('/payment/success/{method}', 'success')->name('payment.success');
+            Route::post('/payment/callback/{method}', 'callback')->name('payment.callback');
+            Route::get('/payment/cancel', 'cancel')->name('payment.cancel');
+            // Alias requis par certains services de paiement tiers
+            Route::get('/payment/cancel', 'cancel')->name('payment.cancel.web');
+        });
+
+        Route::controller(CheckoutController::class)->group(function () {
+            Route::get('/transaction/success/{id?}', 'transactionSuccess')->name('transaction.success');
+            Route::post('/course/enroll', 'courseEnrolled')->name('course.enroll');
+            Route::post('/subscription/payment', 'subscriptionPayment')->name('subscription.payment');
+        });
+
+        // Learning
+        Route::controller(CourseController::class)->group(function () {
+            Route::post('course-review', 'review')->name('review');
+        });
+
+        // Quiz
+        Route::controller(QuizController::class)->group(function () {
+            Route::post('quiz/{id}/store', 'quizStoreResult')->name('quiz.store.result');
+            Route::post('user/submit-quiz-answer/{quiz_id}/{type}', 'submitQuizAnswer')->name('user.submit.quiz.answer');
+            Route::get('quiz/score/{quiz_id}', 'getQuizScore')->name('quiz.score');
+        });
+
+        // Exam
+        Route::controller(ExamController::class)->group(function () {
+            Route::get('exam/{type}/{exam_type_id}/{course_id}', 'examStart')->name('exam.start');
+            Route::post('exam-store', 'store')->name('exam.store');
+        });
+
+        // Wishlist
+        Route::get('add-wishlist', [HomeController::class, 'addWishlist'])->name('add.wishlist');
+
+        // Certificates
+        Route::controller(CertificateController::class)->group(function () {
+            Route::get('certificate/{id}/download', 'downloadPdf')->name('certificate.download');
+            Route::get('certificate/{id}/view', 'viewPdf')->name('certificate.view');
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC CERTIFICATE & LINKEDIN
+    |--------------------------------------------------------------------------
+    */
+    Route::get('certificate/public/{uuid}', [CertificateController::class, 'showPublic'])->name('certificate.public');
+    Route::get('certificate/public/{uuid}/image', [CertificateController::class, 'getPublicImage'])->name('certificate.public.image');
+    Route::get('linkedin/callback', [LinkedInShareController::class, 'callback'])->name('linkedin.callback');
+
+    /*
+    |--------------------------------------------------------------------------
+    | INSTALLER ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::controller(InstallerController::class)->group(function () {
         Route::get('install', 'installContent')->name('install');
         Route::get('install/requirements', 'requirement')->name('install.requirement');
         Route::get('install/permission', 'permission')->name('install.permission');
         Route::get('install/environment', 'environmentForm')->name('install.environment.form');
         Route::post('install/environment', 'environment')->name('install.environment');
         Route::get('install/database', 'databaseForm')->name('install.database.form');
-
         Route::post('install/database', 'database')->name('install.database');
         Route::get('install/import-demo', 'importDemo')->name('install.import-demo');
         Route::get('install/license', 'licenseForm')->name('license.form');
@@ -222,5 +241,5 @@ Route::controller(InstallerController::class)->group(
         Route::get('install/final', 'finish')->name('install.final');
         Route::get('license', 'licenseVerifyForm')->name('license.verify.form');
         Route::post('license', 'licenseVerify')->name('license.verify');
-    }
-);
+    });
+});

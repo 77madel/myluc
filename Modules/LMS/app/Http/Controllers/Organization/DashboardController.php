@@ -1,5 +1,4 @@
 <?php
-/*
 namespace Modules\LMS\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
@@ -10,12 +9,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Modules\LMS\Repositories\Auth\UserRepository;
 use Modules\LMS\Repositories\SearchSuggestionRepository;
+use Modules\LMS\Models\Auth\OrganizationEnrollmentLink;
+// use Modules\LMS\Models\Auth\OrganizationParticipant; // Supprimé - utilise le système unifié
+use Modules\LMS\Services\OrganizationEnrollmentService;
+use Modules\LMS\Models\Courses\Course;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller implements HasMiddleware
 {
     public function __construct(
         protected SearchSuggestionRepository $suggestion,
-        protected UserRepository $user
+        protected UserRepository $user,
+        protected OrganizationEnrollmentService $enrollmentService
     ) {}
 
     public static function middleware(): array
@@ -25,13 +30,26 @@ class DashboardController extends Controller implements HasMiddleware
         ];
     }
 
-
-     //Display a listing of the resource.
-
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $data = $this->user->dashboardInfoOrganization();
+        try {
+            $data = $this->user->dashboardInfoOrganization();
+        } catch (\Exception $e) {
+            // Log l'erreur complète pour debug
+            \Log::error('Error in dashboardInfoOrganization: ' . $e->getMessage());
+            \Log::error('SQL: ' . $e->getSql() ?? 'No SQL');
 
+            // Données par défaut en cas d'erreur
+            $data = [
+                'total_amount' => 0,
+                'total_course' => 0,
+                'total_platform_fee' => 0,
+                'total_bundle' => 0,
+            ];
+        }
         return view('portal::organization.index', compact('data'));
     }
 
@@ -51,20 +69,18 @@ class DashboardController extends Controller implements HasMiddleware
     {
         Auth::logout();
         Session::flush();
-
         return redirect('/');
     }
 
     public function students()
     {
         $students = $this->user->enrolledStudents();
-
         return view('portal::organization.student.student-list', compact('students'));
     }
 
-
-     // View Student Profile.
-
+    /**
+     *  View Student Profile.
+     */
     public function profile($id)
     {
         $user = $this->user->studentProfileView($id);
@@ -87,473 +103,194 @@ class DashboardController extends Controller implements HasMiddleware
 
         return response()->json($response);
     }
-}*/
-
-
-namespace Modules\LMS\Http\Controllers\Organization;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
-use App\Models\OrganizationEnrollmentLink;
-use App\Models\OrganizationParticipant;
-use App\Models\OrganizationParticipantProgress;
-use App\Models\OrganizationActivityLog;
-use App\Services\OrganizationEnrollmentService;
-use Modules\LMS\Repositories\SearchSuggestionRepository;
-
-class DashboardController extends Controller implements HasMiddleware
-{
-    public function __construct(
-        protected SearchSuggestionRepository    $suggestion,
-        protected OrganizationEnrollmentService $enrollmentService
-    )
-    {
-    }
-
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('auth', except: ['register']),
-        ];
-    }
 
     /**
-     * Tableau de bord principal de l'organisation
-     * Remplace le système de création de cours
-     */
-    public function index()
-    {
-        $organization = auth()->user()->organization;
-
-        // Liens d'inscription actifs
-        $activeLinks = $organization->enrollmentLinks()
-            ->where('status', 'active')
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
-
-        // Modules assignés
-        $modules = $this->enrollmentService->getOrganizationModules($organization);
-
-        // Statistiques globales
-        $stats = [
-            'total_participants' => $organization->organizationParticipants()->count(),
-            'active_participants' => $organization->organizationParticipants()
-                ->where('status', 'active')
-                ->count(),
-            'this_month_enrollments' => $organization->organizationParticipants()
-                ->whereMonth('enrolled_at', now()->month)
-                ->count(),
-            'total_modules' => $modules->count(),
-            'average_completion' => $this->calculateAverageCompletion($organization),
-            'recent_activity' => OrganizationActivityLog::where('organization_id', $organization->id)
-                ->orderByDesc('performed_at')
-                ->limit(8)
-                ->get()
-        ];
-
-        return view('portal::organization.dashboard', compact('organization', 'activeLinks', 'modules', 'stats'));
-    }
-
-    /**
-     * Gestion des liens d'inscription
+     * Afficher les liens d'inscription de l'organisation
      */
     public function enrollmentLinks()
     {
-        $organization = auth()->user()->organization;
-        $links = $organization->enrollmentLinks()
-            ->with('participants')
-            ->orderByDesc('created_at')
+        $organization = Auth::user()->organization;
+
+        if (!$organization) {
+            abort(403, 'Aucune organisation associée à ce compte');
+        }
+
+        $enrollmentLinks = $organization->enrollmentLinks()
+            ->with(['course', 'participants'])
+            ->latest()
             ->paginate(10);
 
-        return view('portal::organization.enrollment.links.index', compact('links'));
+        return view('portal::organization.enrollment.links.index', compact('enrollmentLinks'));
     }
 
-    /**
-     * Créer un nouveau lien d'inscription
-     */
-    public function createLink()
-    {
-        return view('portal::organization.enrollment.links.create');
-    }
 
     /**
-     * Sauvegarder le lien d'inscription
+     * Afficher les étudiants de l'organisation
      */
-    public function storeLink(Request $request)
+    public function organizationStudents()
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'valid_until' => 'nullable|date|after:today',
-            'max_enrollments' => 'nullable|integer|min:1'
-        ]);
+        $organization = Auth::user()->organization;
 
-        $organization = auth()->user()->organization;
+        if (!$organization) {
+            abort(403, 'Aucune organisation associée à ce compte');
+        }
 
-        $link = $this->enrollmentService->createEnrollmentLink(
-            $organization,
-            $request->input('name'),
-            [
-                'description' => $request->input('description'),
-                'valid_until' => $request->input('valid_until'),
-                'max_enrollments' => $request->input('max_enrollments')
-            ]
-        );
-
-        return redirect()
-            ->route('organization.enrollment-links.show', $link->id)
-            ->with('success', 'Lien d\'inscription créé avec succès');
-    }
-
-    /**
-     * Afficher un lien d'inscription
-     */
-    public function showLink($linkId)
-    {
-        $link = OrganizationEnrollmentLink::findOrFail($linkId);
-        $this->authorizeOrganization($link->organization);
-
-        // Formater le lien public
-        $publicLink = route('public.enrollment.show', $link->slug);
-
-        $participants = $link->participants()
-            ->with('user', 'progress')
+        // Utiliser le système unifié avec users + students
+        $students = \Modules\LMS\Models\User::where('organization_id', $organization->id)
+            ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
+            ->with(['userable', 'enrollments.course'])
+            ->latest()
             ->paginate(15);
 
-        return view('portal::organization.enrollment.links.show', compact('link', 'publicLink', 'participants'));
-    }
-
-    /**
-     * Gestion des modules assignés
-     */
-    public function modules()
-    {
-        $organization = auth()->user()->organization;
-        $modules = $this->enrollmentService->getOrganizationModules($organization);
-
-        // Pour la sélection, obtenir tous les cours disponibles
-        $availableCourses = \App\Models\Course::where('status', 'published')
-            ->orderBy('title')
-            ->get();
-
-        $assignedCourseIds = $modules->pluck('moduleable_id');
-
-        return view('portal::organization.modules.index', compact(
-            'modules',
-            'availableCourses',
-            'assignedCourseIds'
-        ));
-    }
-
-    /**
-     * Assigner un module
-     */
-    public function assignModule(Request $request)
-    {
-        $request->validate([
-            'course_id' => 'required|exists:courses,id',
-            'order' => 'nullable|integer',
-            'is_mandatory' => 'boolean'
-        ]);
-
-        $organization = auth()->user()->organization;
-        $course = \App\Models\Course::findOrFail($request->input('course_id'));
-
-        // Vérifier que le module n'est pas déjà assigné
-        $exists = $organization->organizationModules()
-            ->where('moduleable_id', $course->id)
-            ->where('moduleable_type', get_class($course))
-            ->exists();
-
-        if ($exists) {
-            return response()->json([
-                'message' => 'Ce cours est déjà assigné à votre organisation'
-            ], 422);
+        // Précharger les données de progression pour chaque étudiant
+        foreach ($students as $student) {
+            $this->loadStudentProgressData($student);
         }
 
-        $this->enrollmentService->assignModule($organization, $course, [
-            'order' => $request->input('order', 0),
-            'is_mandatory' => $request->boolean('is_mandatory', true)
-        ]);
-
-        return response()->json(['message' => 'Module assigné avec succès']);
+        return view('portal::organization.student.student-list', compact('students'));
     }
 
     /**
-     * Supprimer une assignation de module
+     * Charger les données de progression pour un étudiant
      */
-    public function removeModule($moduleId)
+    private function loadStudentProgressData($student)
     {
-        $module = \App\Models\OrganizationModule::findOrFail($moduleId);
-        $this->authorizeOrganization($module->organization);
+        $enrolledCourses = $student->enrollments()->with('course')->get();
+        $totalProgress = 0;
+        $courseCount = 0;
+        $totalTimeSpent = 0;
 
-        $module->delete();
+        foreach ($enrolledCourses as $enrollment) {
+            if ($enrollment->course) {
+                $courseId = $enrollment->course->id;
 
-        return response()->json(['message' => 'Module supprimé']);
+                // Récupérer le nombre total de leçons
+                $totalTopics = \Modules\LMS\Models\Courses\Topic::whereHas('chapter', function($query) use ($courseId) {
+                    $query->where('course_id', $courseId);
+                })->count();
+
+                // Récupérer le nombre de leçons terminées
+                $completedTopics = \Modules\LMS\Models\TopicProgress::where('user_id', $student->id)
+                    ->where('course_id', $courseId)
+                    ->where('status', 'completed')
+                    ->count();
+
+                // Récupérer le temps passé sur ce cours
+                $courseTimeSpent = \Modules\LMS\Models\ChapterProgress::where('user_id', $student->id)
+                    ->where('course_id', $courseId)
+                    ->sum('time_spent');
+
+                $totalTimeSpent += $courseTimeSpent;
+
+                if ($totalTopics > 0) {
+                    $courseProgress = round(($completedTopics / $totalTopics) * 100, 2);
+                    $totalProgress += $courseProgress;
+                    $courseCount++;
+                }
+            }
+        }
+
+        $student->average_progress = $courseCount > 0 ? round($totalProgress / $courseCount, 2) : 0;
+        $student->enrolled_courses_count = $enrolledCourses->count();
+        $student->total_time_spent = $totalTimeSpent;
+        $student->total_time_spent_formatted = \App\Helpers\TimeHelper::formatTimeSpent($totalTimeSpent);
     }
 
     /**
-     * Afficher les participants
+     * Afficher la progression d'un étudiant
      */
-    public function participants()
+    public function studentProgress($studentId)
     {
-        $organization = auth()->user()->organization;
+        $organization = Auth::user()->organization;
 
-        $participants = $organization->organizationParticipants()
-            ->with('user', 'progress', 'enrollmentLink')
-            ->orderByDesc('enrolled_at')
-            ->paginate(20);
+        if (!$organization) {
+            abort(403, 'Aucune organisation associée à ce compte');
+        }
 
-        return view('portal::organization.participants.index', compact('participants'));
-    }
+        // Utiliser le système unifié
+        $student = \Modules\LMS\Models\User::where('id', $studentId)
+            ->where('organization_id', $organization->id)
+            ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
+            ->with(['userable'])
+            ->firstOrFail();
 
-    /**
-     * Vue détaillée d'un participant
-     */
-    public function participantDetail($participantId)
-    {
-        $participant = OrganizationParticipant::findOrFail($participantId);
-        $this->authorizeOrganization($participant->organization);
-
-        $progress = $participant->progress()
+        // Récupérer les cours auxquels l'étudiant est inscrit
+        $enrolledCourses = $student->enrollments()
             ->with('course')
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'course' => $p->course,
-                    'completion_percentage' => $p->completion_percentage,
-                    'status' => $p->status,
-                    'started_at' => $p->started_at,
-                    'completed_at' => $p->completed_at,
-                    'duration' => $p->completed_at && $p->started_at
-                        ? $p->completed_at->diffInDays($p->started_at) . ' jours'
-                        : null
-                ];
-            });
-
-        $activityLogs = OrganizationActivityLog::where('organization_participant_id', $participant->id)
-            ->orderByDesc('performed_at')
-            ->limit(20)
             ->get();
 
-        return view('portal::organization.participants.detail', compact('participant', 'progress', 'activityLogs'));
+        // Récupérer la progression détaillée pour chaque cours
+        $progress = [];
+        foreach ($enrolledCourses as $enrollment) {
+            $course = $enrollment->course;
+            if ($course) {
+                // Récupérer la progression des chapitres
+                $chapterProgress = \Modules\LMS\Models\ChapterProgress::getCourseProgress($studentId, $course->id);
+
+                // Récupérer la progression des leçons (topics)
+                $topicProgress = \Modules\LMS\Models\TopicProgress::where('user_id', $studentId)
+                    ->where('course_id', $course->id)
+                    ->get();
+
+                $completedTopics = $topicProgress->where('status', 'completed')->count();
+                $totalTopics = \Modules\LMS\Models\Courses\Topic::whereHas('chapter', function($query) use ($course) {
+                    $query->where('course_id', $course->id);
+                })->count();
+
+                $topicCompletionPercentage = $totalTopics > 0 ? round(($completedTopics / $totalTopics) * 100, 2) : 0;
+
+                // Récupérer les détails de progression des chapitres depuis la table chapter_progress
+                $chapterProgressDetails = \Modules\LMS\Models\ChapterProgress::where('user_id', $studentId)
+                    ->where('course_id', $course->id)
+                    ->with('chapter')
+                    ->get();
+
+                // Calculer le temps total passé sur le cours
+                $totalTimeSpent = $chapterProgressDetails->sum('time_spent');
+                $totalTimeSpentFormatted = \App\Helpers\TimeHelper::formatTimeSpent($totalTimeSpent);
+
+                // Récupérer les chapitres avec leur statut détaillé
+                $chaptersWithProgress = \Modules\LMS\Models\Courses\Chapter::where('course_id', $course->id)
+                    ->with(['progress' => function($query) use ($studentId) {
+                        $query->where('user_id', $studentId);
+                    }])
+                    ->orderBy('order')
+                    ->get();
+
+                $progress[] = [
+                    'course' => $course,
+                    'enrollment' => $enrollment,
+                    'chapter_progress' => $chapterProgress,
+                    'chapter_progress_details' => $chapterProgressDetails,
+                    'chapters_with_progress' => $chaptersWithProgress,
+                    'topic_progress' => $topicProgress,
+                    'topic_completion_percentage' => $topicCompletionPercentage,
+                    'total_topics' => $totalTopics,
+                    'completed_topics' => $completedTopics,
+                    'total_time_spent' => $totalTimeSpent,
+                    'total_time_spent_formatted' => $totalTimeSpentFormatted,
+                ];
+            }
+        }
+
+        return view('portal::organization.student.progress', compact('student', 'progress'));
     }
 
     /**
-     * Rapport de progression
+     * Exporter les étudiants
      */
-    public function progressionReport()
+    public function exportStudents()
     {
-        $organization = auth()->user()->organization;
-        $report = $this->enrollmentService->getProgressionReport($organization);
+        $organization = Auth::user()->organization;
 
-        return view('portal::organization.reports.progression', compact('report'));
-    }
-
-    /**
-     * Tableau de bord statistiques
-     */
-    public function reportsDashboard()
-    {
-        $organization = auth()->user()->organization;
-
-        $stats = [
-            'total_participants' => $organization->organizationParticipants()->count(),
-            'active_participants' => $organization->organizationParticipants()
-                ->where('status', 'active')
-                ->count(),
-            'total_courses' => $organization->organizationModules()
-                ->where('moduleable_type', 'App\Models\Course')
-                ->count(),
-            'this_month_enrollments' => $organization->organizationParticipants()
-                ->whereMonth('enrolled_at', now()->month)
-                ->count(),
-            'completion_rate' => $this->calculateCompletionRate($organization),
-            'recent_activity' => OrganizationActivityLog::where('organization_id', $organization->id)
-                ->orderByDesc('performed_at')
-                ->limit(10)
-                ->get(),
-            'top_performers' => $this->getTopPerformers($organization, 5),
-            'by_department' => $this->getStatsByDepartment($organization)
-        ];
-
-        return view('portal::organization.reports.dashboard', compact('stats'));
-    }
-
-    /**
-     * Logs d'activité avec filtres
-     */
-    public function activityLogs(Request $request)
-    {
-        $organization = auth()->user()->organization;
-
-        $query = OrganizationActivityLog::where('organization_id', $organization->id);
-
-        if ($request->filled('participant_id')) {
-            $query->where('organization_participant_id', $request->input('participant_id'));
+        if (!$organization) {
+            abort(403, 'Aucune organisation associée à ce compte');
         }
-
-        if ($request->filled('action')) {
-            $query->where('action', $request->input('action'));
-        }
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('performed_at', '>=', $request->input('start_date'));
-        }
-
-        if ($request->filled('end_date')) {
-            $query->whereDate('performed_at', '<=', $request->input('end_date'));
-        }
-
-        $logs = $query->orderByDesc('performed_at')->paginate(50);
-
-        return view('portal::organization.reports.activity-logs', compact('logs'));
-    }
-
-    /**
-     * Exporter les participants en Excel
-     */
-    public function exportParticipants()
-    {
-        $organization = auth()->user()->organization;
 
         return Excel::download(
-            new \App\Exports\OrganizationParticipantsExport($organization),
-            "participants-{$organization->slug}-" . now()->format('Y-m-d') . '.xlsx'
+            new \Modules\LMS\Exports\OrganizationStudentsExport($organization),
+            "etudiants-{$organization->name}-" . now()->format('Y-m-d') . '.xlsx'
         );
     }
 
-    /**
-     * Exporter l'activité en Excel
-     */
-    public function exportActivity(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date'
-        ]);
-
-        $organization = auth()->user()->organization;
-
-        return Excel::download(
-            new \App\Exports\OrganizationActivityExport($organization, $request->all()),
-            "activity-{$organization->slug}-" . now()->format('Y-m-d') . '.xlsx'
-        );
-    }
-
-    /**
-     * Générer un PDF de rapport
-     */
-    public function generatePdf()
-    {
-        $organization = auth()->user()->organization;
-        $participants = $organization->organizationParticipants()
-            ->with('user', 'progress')
-            ->get();
-
-        $stats = $this->enrollmentService->getProgressionReport($organization);
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('portal::organization.reports.pdf', [
-            'organization' => $organization,
-            'participants' => $participants,
-            'stats' => $stats,
-            'generated_at' => now()
-        ]);
-
-        return $pdf->download("rapport-{$organization->slug}-" . now()->format('Y-m-d') . '.pdf');
-    }
-
-    /**
-     * Recherche de suggestions
-     */
-    public function searchingSuggestion(Request $request)
-    {
-        $results = $this->suggestion->searchSuggestion($request);
-        return response()->json($results);
-    }
-
-    /**
-     * Déconnexion
-     */
-    public function logout()
-    {
-        Auth::logout();
-        Session::flush();
-        return redirect('/');
-    }
-
-    /**
-     * Méthodes utilitaires privées
-     */
-
-    private function calculateAverageCompletion($organization): float
-    {
-        $participants = $organization->organizationParticipants()->count();
-
-        if ($participants === 0) {
-            return 0;
-        }
-
-        $totalCompletion = OrganizationParticipantProgress::whereHas(
-            'participant',
-            fn($q) => $q->where('organization_id', $organization->id)
-        )->sum('completion_percentage');
-
-        return round($totalCompletion / ($participants * 100) * 100, 2);
-    }
-
-    private function calculateCompletionRate($organization): float
-    {
-        $participants = $organization->organizationParticipants()->count();
-
-        if ($participants === 0) {
-            return 0;
-        }
-
-        $completed = $organization->organizationParticipants()
-            ->whereHas('progress', function ($query) {
-                $query->where('status', 'completed');
-            })
-            ->distinct('user_id')
-            ->count();
-
-        return round(($completed / $participants) * 100, 2);
-    }
-
-    private function getTopPerformers($organization, $limit = 5)
-    {
-        return $organization->organizationParticipants()
-            ->with('user', 'progress')
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'participant' => $p,
-                    'average_score' => $p->progress()->avg('score') ?? 0,
-                    'completion' => $p->progress()->avg('completion_percentage') ?? 0
-                ];
-            })
-            ->sortByDesc('completion')
-            ->take($limit)
-            ->values();
-    }
-
-    private function getStatsByDepartment($organization)
-    {
-        return $organization->organizationParticipants()
-            ->groupBy('department')
-            ->selectRaw('department, count(*) as total')
-            ->get();
-    }
-
-    private function authorizeOrganization($organization)
-    {
-        if (auth()->user()->organization_id !== $organization->id) {
-            abort(403, 'Accès refusé');
-        }
-    }
 }

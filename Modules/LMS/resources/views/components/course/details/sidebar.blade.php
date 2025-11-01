@@ -174,7 +174,7 @@
             </tbody>
         </table>
 
-        @if ($purchaseCheck !== true)
+        @if ($purchaseCheck !== true && !isAdmin() && !isInstructor())
             @if (is_free($course->id, 'course'))
                 <form action="{{ route('course.enrolled') }}" class="form" method="POST">
                     @csrf
@@ -222,7 +222,15 @@
                 @endif
 
             @endif
+        @elseif(isAdmin() || isInstructor())
+            {{-- Admin et Instructeur ont accès libre --}}
+            <a class="btn b-solid btn-primary-solid btn-xl font-medium !rounded-full w-full h-12"
+                aria-label="Go to Course video" href="{{ route('play.course', $course?->slug) }}">
+                {{ translate('Go to Learn') }}
+                <i class="ri-arrow-right-line rtl:before:content-['\ea60'] text-inherit"></i>
+            </a>
         @else
+            {{-- Student ou Organization avec enrollment --}}
             <a class="btn b-solid btn-primary-solid btn-xl font-medium !rounded-full w-full h-12"
                 aria-label="Go to Course video" href="{{ route('play.course', $course?->slug) }}">
                 {{ translate('Go to Learn') }}

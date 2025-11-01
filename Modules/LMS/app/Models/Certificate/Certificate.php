@@ -12,7 +12,13 @@ class Certificate extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'title',
+        'certificate_content',
+        'input_content',
+        'type',
+        'status'
+    ];
 
     protected $casts = [
         'input_content' => 'array',

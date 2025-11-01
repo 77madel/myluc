@@ -28,6 +28,7 @@ use Modules\LMS\Models\Resources\PerformanceMetric;
 use Modules\LMS\Services\ResourceMonitor;
 use Modules\LMS\View\Components\Frontend\AuthenticationLayout;
 use Modules\LMS\View\Components\Frontend\Layout as FrontendLayout;
+use Modules\LMS\Console\Commands\ExpireEnrollments;
 
 class LMSServiceProvider extends ServiceProvider
 {
@@ -143,7 +144,11 @@ class LMSServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerGurads();
-
+        // Enregistrer les namespaces
+        $this->registerPortalNamespace();
+        $this->registerThemeNamespace();
+        // Enregistrer les singletons nécessaires
+        $this->registerRequiredSingletons();
         // CORRECTION 2 : Conditionner les appels DB dans alreadyInstalled().
         if (alreadyInstalled() && !$this->app->runningInConsole()) {
             // Ces méthodes appellent get_theme_option() et PaymentMethod::first()
@@ -229,6 +234,7 @@ class LMSServiceProvider extends ServiceProvider
             $router->pushMiddlewareToGroup('web', \App\Http\Middleware\SetLocale::class);
             $router->pushMiddlewareToGroup('web', BootstrapMiddleware::class);
             $router->aliasMiddleware('checkInstaller', LicenseActivationMiddleware::class);
+            $router->aliasMiddleware('verify-org-access', \Modules\LMS\Http\Middleware\VerifyOrganizationAccess::class);
         }
     }
 
@@ -341,6 +347,70 @@ class LMSServiceProvider extends ServiceProvider
     }
 
     /**
+     * Enregistrer le namespace portal
+     */
+    protected function registerPortalNamespace(): void
+    {
+        $sourcePortalPath = module_path($this->moduleName, 'resources/views/portals');
+        if (file_exists($sourcePortalPath)) {
+            $this->app['view']->addNamespace('portal', $sourcePortalPath);
+        }
+
+        $adminPortalComponentPath = module_path($this->moduleName, 'resources/views/portals/components/');
+        if (file_exists($adminPortalComponentPath)) {
+            Blade::anonymousComponentPath($adminPortalComponentPath, 'portal');
+        }
+    }
+
+    /**
+     * Enregistrer le namespace theme
+     */
+    protected function registerThemeNamespace(): void
+    {
+        $sourceThemePath = module_path($this->moduleName, 'resources/views/theme');
+        if (file_exists($sourceThemePath)) {
+            $this->app['view']->addNamespace('theme', $sourceThemePath);
+        }
+
+        $sourceComponentsPath = module_path($this->moduleName, 'resources/views/components');
+        if (file_exists($sourceComponentsPath)) {
+            $this->app['view']->addNamespace('theme', $sourceComponentsPath);
+            Blade::anonymousComponentPath($sourceComponentsPath, 'theme');
+        }
+    }
+
+    /**
+     * Enregistrer les singletons nécessaires
+     */
+    protected function registerRequiredSingletons(): void
+    {
+        // Enregistrer default_language avec une valeur par défaut
+        $this->app->singleton('default_language', function () {
+            return config('app.locale', 'en');
+        });
+
+        // Enregistrer user_role_list avec une valeur par défaut
+        $this->app->singleton('user_role_list', function () {
+            return [];
+        });
+
+        // Enregistrer languages avec une valeur par défaut
+        $this->app->singleton('languages', function () {
+            return collect([]);
+        });
+
+        // Enregistrer translations avec une valeur par défaut
+        $this->app->singleton('translations', function () {
+            return [];
+        });
+
+        // Enregistrer options avec une valeur par défaut
+        $this->app->singleton('options', function () {
+            return [];
+        });
+    }
+
+    /**
      * Register views.
      */
     public function registerViews(): void
@@ -437,7 +507,9 @@ class LMSServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            ExpireEnrollments::class,
+        ]);
     }
 
     /**

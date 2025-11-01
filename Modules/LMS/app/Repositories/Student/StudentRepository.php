@@ -3,6 +3,7 @@
 namespace Modules\LMS\Repositories\Student;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Modules\LMS\Classes\EmailFormat;
 use Modules\LMS\Classes\NotificationFormat;
 use Modules\LMS\Enums\EnrollmentStatus;
@@ -26,7 +27,7 @@ class StudentRepository extends BaseRepository
         'save' => [
             'first_name' => 'required|string',
             'last_name' => 'required|string',
-            'email' => 'required|email|unique:users,email,guard',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|max:12|confirmed',
             'phone' => 'required|unique:students,phone',
         ],
@@ -57,23 +58,58 @@ class StudentRepository extends BaseRepository
                 $request->merge(['profile_img' => $imagePath]);
             }
 
+            // Filtrer les données pour ne pas inclure les champs d'organisation dans la table students
+            $studentData = $request->except(['organization_id', 'enrollment_link_id']);
+
             // Attempt to save the student data from the request.
-            $response = parent::save($request->all());
+            $response = parent::save($studentData);
 
             // Check if the student save operation was successful.
             if ($response['status'] === 'success') {
                 $studentData = $response['data'];
 
                 // Create a new user associated with the student.
-                $user = $studentData->user()->create([
+                $userData = [
                     'email' => $request->email,
                     'password' => Hash::make($request->password), // Securely hash the password.
                     'guard' => 'student',
                     'is_verify' => 0, // Set initial verification status.
-                ]);
+                    'userable_id' => $studentData->id, // Ajouter l'ID de l'étudiant
+                    'userable_type' => 'Modules\LMS\Models\Auth\Student', // Ajouter le type
+                ];
+
+                // Debug: Vérifier ce qui est dans la requête
+                \Log::info('Données de la requête: ' . json_encode($request->all()));
+                \Log::info('Organization ID dans request: ' . ($request->has('organization_id') ? $request->organization_id : 'NON PRÉSENT'));
+                \Log::info('Enrollment Link ID dans request: ' . ($request->has('enrollment_link_id') ? $request->enrollment_link_id : 'NON PRÉSENT'));
+
+                // Ajouter organization_id si présent (inscription via lien d'organisation)
+                if ($request->has('organization_id')) {
+                    $userData['organization_id'] = $request->organization_id;
+                    \Log::info('Organization ID ajouté: ' . $request->organization_id);
+                } else {
+                    \Log::warning('Organization ID non présent dans la requête');
+                }
+
+                // Ajouter enrollment_link_id si présent
+                if ($request->has('enrollment_link_id')) {
+                    $userData['enrollment_link_id'] = $request->enrollment_link_id;
+                    \Log::info('Enrollment Link ID ajouté: ' . $request->enrollment_link_id);
+                } else {
+                    \Log::warning('Enrollment Link ID non présent dans la requête');
+                }
+
+                \Log::info('UserData avant création: ' . json_encode($userData));
+                $user = $studentData->user()->create($userData);
+                \Log::info('Utilisateur créé avec ID: ' . $user->id . ', Organization ID: ' . $user->organization_id . ', Enrollment Link ID: ' . $user->enrollment_link_id);
 
                 // Assign the 'Student' role to the newly created user.
                 $user->assignRole('Student');
+
+                // Enrollment automatique si inscription via lien d'organisation
+                if ($request->has('enrollment_link_id') && $request->has('organization_id')) {
+                    static::handleOrganizationEnrollment($user, $request);
+                }
 
                 $setting = get_theme_option('backend_general') ?? null;
                 // Prepare data for registration notification and email.
@@ -268,7 +304,16 @@ class StudentRepository extends BaseRepository
         $model->where([
             'user_id' => authCheck()->id,
             'type' => PurchaseType::ENROLLED,
-        ]);
+        ])
+        // Masquer les cours expirés
+        ->where(function($q){
+            $q->whereNull('enrollment_status')
+              ->orWhereIn('enrollment_status', ['in_progress','grace','completed']);
+        })
+        ->where(function($q){
+            $q->whereNull('grace_due_at')
+              ->orWhere('grace_due_at', '>', now());
+        });
         $purchaseModel = $model->with('course.category', 'course.coursePrice', 'course.levels.translations', 'course.subject', 'course.courseSetting', 'course.instructors.userable', 'courseBundle.courses.instructors.userable', 'courseBundle.translations');
         return $item ? $purchaseModel->paginate($item) : $purchaseModel->get();
     }
@@ -284,7 +329,16 @@ class StudentRepository extends BaseRepository
         $purchase =  $model->where([
             'user_id' => authCheck()->id,
             'type' => PurchaseType::ENROLLED,
-        ])->count();
+        ])
+        ->where(function($q){
+            $q->whereNull('enrollment_status')
+              ->orWhereIn('enrollment_status', ['in_progress','grace','completed']);
+        })
+        ->where(function($q){
+            $q->whereNull('grace_due_at')
+              ->orWhere('grace_due_at', '>', now());
+        })
+        ->count();
 
         return $purchase;
     }
@@ -385,5 +439,61 @@ class StudentRepository extends BaseRepository
             'locale' => $locale,
             'data' => $data
         ]);
+    }
+
+    /**
+     * Gérer l'enrollment automatique pour les organisations
+     */
+    protected static function handleOrganizationEnrollment($user, $request)
+    {
+        try {
+            // Récupérer le lien d'inscription
+            $enrollmentLink = \Modules\LMS\Models\Auth\OrganizationEnrollmentLink::find($request->enrollment_link_id);
+
+            if (!$enrollmentLink || !$enrollmentLink->course_id) {
+                return;
+            }
+
+            // Récupérer le cours
+            $course = \Modules\LMS\Models\Courses\Course::find($enrollmentLink->course_id);
+
+            if (!$course) {
+                return;
+            }
+
+            // Créer une entrée dans PurchaseDetails pour que l'étudiant puisse voir ses cours
+            \Modules\LMS\Models\Purchase\PurchaseDetails::create([
+                'purchase_number' => 'ORG-' . time() . '-' . $user->id,
+                'purchase_id' => 0, // Pas de purchase_id pour les enrollments d'organisation
+                'course_id' => $course->id,
+                'user_id' => $user->id,
+                'platform_fee' => 0,
+                'price' => 0, // Gratuit pour les enrollments d'organisation
+                'discount_price' => 0,
+                'details' => json_encode([
+                    'enrollment_type' => 'organization',
+                    'enrollment_link_id' => $enrollmentLink->id,
+                    'organization_id' => $enrollmentLink->organization_id,
+                    'course_title' => $course->title,
+                    'enrollment_date' => now()->toISOString()
+                ]),
+                'type' => \Modules\LMS\Enums\PurchaseType::ENROLLED, // Utiliser l'enum au lieu de string
+                'purchase_type' => 'course',
+                'status' => 'completed',
+                'organization_id' => $enrollmentLink->organization_id,
+                'enrollment_link_id' => $enrollmentLink->id,
+                // Dates d'échéance
+                'enrolled_at' => now(),
+                'course_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5)),
+                'grace_due_at' => now()->copy()->addDays(config('lms.course_duration_days', 5) + config('lms.grace_period_days', 30)),
+                'enrollment_status' => 'in_progress',
+            ]);
+
+            // Incrémenter le compteur d'enrollments du lien
+            $enrollmentLink->incrementEnrollments();
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'enrollment automatique: ' . $e->getMessage());
+        }
     }
 }

@@ -128,22 +128,42 @@
                                 </td>
 
                                 <td class="px-2 py-4">
-                                    {{ $enrollment?->purchase->payment_method }}
+                                    @if($enrollment->purchase && $enrollment->purchase->payment_method)
+                                        {{ $enrollment->purchase->payment_method }}
+                                    @elseif($enrollment->organization_id)
+                                        <span class="badge b-solid badge-info-solid">
+                                            {{ translate('Organization Enrollment') }}
+                                        </span>
+                                    @else
+                                        <span class="badge b-solid badge-secondary-solid">
+                                            {{ translate('Free Enrollment') }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-2 py-4">
-                                    @switch($enrollment?->purchase->status)
-                                        @case('success')
-                                            <span class="badge b-solid badge-warning-solid capitalize">
-                                                {{ translate('success') }}
-                                            </span>
-                                        @break
+                                    @if($enrollment->purchase && $enrollment->purchase->status)
+                                        @switch($enrollment->purchase->status)
+                                            @case('success')
+                                                <span class="badge b-solid badge-warning-solid capitalize">
+                                                    {{ translate('success') }}
+                                                </span>
+                                            @break
 
-                                        @case('fail')
-                                            <span class="badge b-solid badge-danger-solid capitalize">
-                                                {{ translate('fail') }}
-                                            </span>
-                                        @break
-                                    @endswitch
+                                            @case('fail')
+                                                <span class="badge b-solid badge-danger-solid capitalize">
+                                                    {{ translate('fail') }}
+                                                </span>
+                                            @break
+                                        @endswitch
+                                    @elseif($enrollment->organization_id)
+                                        <span class="badge b-solid badge-success-solid capitalize">
+                                            {{ translate('Completed') }}
+                                        </span>
+                                    @else
+                                        <span class="badge b-solid badge-info-solid capitalize">
+                                            {{ translate('Processing') }}
+                                        </span>
+                                    @endif
                                 </td>
 
                                 <td>

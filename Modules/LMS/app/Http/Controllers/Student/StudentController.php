@@ -26,7 +26,8 @@ class StudentController extends Controller
     public function dashboard()
     {
         $data = $this->student->dashboardReport();
-        return view('portal::student.index', compact('data'));
+        $notifications = Auth::user()->unreadNotifications;
+        return view('portal::student.index', compact('data', 'notifications'));
     }
 
     /**
@@ -89,6 +90,54 @@ class StudentController extends Controller
         return view('portal::student.quiz.quiz-result-list', compact('userQuizzes'));
     }
 
+    /**
+     * Afficher les détails d'un quiz spécifique
+     */
+    public function quizDetails($userQuizId)
+    {
+        try {
+            $userQuiz = \Modules\LMS\Models\Auth\UserCourseExam::with([
+                'quiz.questions.questionAnswers.answer',
+                'quiz.questions.question',
+                'course'
+            ])->where('id', $userQuizId)
+              ->where('user_id', authCheck()->id)
+              ->first();
+
+            if (!$userQuiz) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quiz non trouvé'
+                ]);
+            }
+
+            // Récupérer les réponses de l'utilisateur
+            $takeAnswers = \Modules\LMS\Models\TakeAnswer::where('user_course_exam_id', $userQuizId)
+                ->with(['quizQuestion.question'])
+                ->get()
+                ->keyBy('quiz_question_id');
+
+            // Récupérer les scores des questions
+            $questionScores = \Modules\LMS\Models\QuestionScore::where('quiz_id', $userQuiz->quiz_id)
+                ->get()
+                ->keyBy('question_id');
+
+            $html = view('portal::student.quiz.quiz-details', compact('userQuiz', 'takeAnswers', 'questionScores'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in quizDetails: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du chargement des détails'
+            ]);
+        }
+    }
+
     public function assignmentList()
     {
 
@@ -102,10 +151,72 @@ class StudentController extends Controller
         return  back();
     }
 
+    public function certificateView($id)
+    {
+        $certificate = UserCertificate::where(['user_id' => authCheck()->id, 'id' => $id])->first();
+
+        if (!$certificate) {
+            abort(404, 'Certificat non trouvé');
+        }
+
+        // Récupérer l'utilisateur et l'instructeur
+        $user = authCheck();
+        $instructor_name = 'Instructeur';
+
+        // Essayer de récupérer l'instructeur du cours
+        \Log::info('Debug certificat - quiz_id:', ['quiz_id' => $certificate->quiz_id]);
+
+        if ($certificate->quiz_id) {
+            try {
+                $quiz = \Modules\LMS\Models\Courses\Topics\Quiz::find($certificate->quiz_id);
+                \Log::info('Debug certificat - quiz trouvé:', ['quiz' => $quiz ? 'oui' : 'non']);
+
+                if ($quiz && $quiz->chapter && $quiz->chapter->course) {
+                    $course = $quiz->chapter->course;
+                    \Log::info('Debug certificat - cours trouvé:', ['course_id' => $course->id, 'course_title' => $course->title]);
+
+                    $instructor = $course->instructors()->first();
+                    \Log::info('Debug certificat - instructeur trouvé:', ['instructor' => $instructor ? 'oui' : 'non']);
+
+                    if ($instructor && $instructor->userable) {
+                        $instructor_name = ($instructor->userable->first_name ?? '') . ' ' . ($instructor->userable->last_name ?? '');
+                        \Log::info('Debug certificat - nom instructeur:', ['instructor_name' => $instructor_name]);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Erreur lors de la récupération de l\'instructeur', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return view('portal::certificate.download', compact('certificate', 'user', 'instructor_name'));
+    }
+
     public function certificateDownload($id)
     {
         $certificate = UserCertificate::where(['user_id' => authCheck()->id, 'id' => $id])->first();
-        return view('portal::certificate.download', compact('certificate'));
+
+        if (!$certificate) {
+            abort(404, 'Certificat non trouvé');
+        }
+
+        // Vérifier si le certificat a déjà été téléchargé
+        if ($certificate->isDownloaded()) {
+            return view('portal::certificate.already-downloaded', compact('certificate'));
+        }
+
+        // Marquer le certificat comme téléchargé
+        $certificate->markAsDownloaded();
+
+        // Générer le nom du fichier
+        $fileName = 'Certificat_' . $certificate->certificate_id . '_' . now()->format('Y-m-d') . '.html';
+
+        // Retourner le fichier en téléchargement
+        return response($certificate->certificate_content)
+            ->header('Content-Type', 'text/html; charset=utf-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
 
@@ -131,5 +242,11 @@ class StudentController extends Controller
             ->orderBy('id', 'DESC')
             ->paginate(15);
         return view('portal::student.payment.offline.index', compact('offlinePayments'));
+    }
+
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+        return back();
     }
 }

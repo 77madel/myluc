@@ -64,8 +64,14 @@
             @csrf
 
             @php
-                $user = $auth->userable;
-                $name = $user->name ?? $user->first_name . ' ' . $user->last_name;
+                // Pour Admin : utiliser directement les propriétés de l'admin
+                // Pour autres : utiliser userable
+                if (isAdmin() && $auth) {
+                    $name = $auth->name ?? $auth->first_name ?? 'Admin';
+                } else {
+                    $user = $auth->userable ?? null;
+                    $name = $user ? ($user->name ?? $user->first_name . ' ' . $user->last_name) : 'Utilisateur';
+                }
             @endphp
 
             <input type="hidden" value="{{ $course->id }}" name="course_id">

@@ -110,6 +110,20 @@ class AdminController extends Controller
                     'message' => translate('Credential Wrong')
                 ]);
             }
+            
+            // ✅ GÉNÉRATION DU SESSION TOKEN (SESSION UNIQUE) - AJAX
+            $admin = Auth::guard('admin')->user();
+            $sessionToken = \Illuminate\Support\Str::random(60);
+            
+            $admin->update(['session_token' => $sessionToken]);
+            session(['session_token_admin' => $sessionToken]);
+            
+            \Log::info('🔐 [Session Unique] Token généré pour admin (AJAX)', [
+                'admin_id' => $admin->id,
+                'email' => $admin->email,
+                'token_preview' => substr($sessionToken, 0, 10) . '...'
+            ]);
+            
             return response()->json([
                 'status' => 'success',
                 'message' => translate('Login successfully'),
@@ -121,6 +135,20 @@ class AdminController extends Controller
             toastr()->error(translate('Credential Wrong'));
             return redirect()->back();
         }
+        
+        // ✅ GÉNÉRATION DU SESSION TOKEN (SESSION UNIQUE) - NORMAL
+        $admin = Auth::guard('admin')->user();
+        $sessionToken = \Illuminate\Support\Str::random(60);
+        
+        $admin->update(['session_token' => $sessionToken]);
+        session(['session_token_admin' => $sessionToken]);
+        
+        \Log::info('🔐 [Session Unique] Token généré pour admin', [
+            'admin_id' => $admin->id,
+            'email' => $admin->email,
+            'token_preview' => substr($sessionToken, 0, 10) . '...'
+        ]);
+        
         toastr()->success(translate('Login successfully!'));
         return redirect()->route('admin.dashboard');
     }

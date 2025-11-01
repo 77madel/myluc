@@ -39,10 +39,10 @@
             <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
                 @foreach ($notifications as $notification)
                     <tr>
-                        <td class="px-4 py-4">{{ $notification?->data['title'] }}</td>
+                        <td class="px-4 py-4">{{ $notification?->data['title'] ?? ($notification?->data['status'] ?? ($notification?->data['course_title'] ?? 'Notification')) }}</td>
                         <td class="px-4 py-4">
                             <div class="text-gray-500 dark:text-dark-text">
-                                {!! clean(isset($notification?->data['message']) ? $notification?->data['message'] : '') !!}
+                                {!! clean($notification?->data['message'] ?? '') !!}
                             </div>
                         </td>
                         <td class="px-4 py-4"> {{ $notification?->created_at?->diffForHumans(['options' => 0]) }}

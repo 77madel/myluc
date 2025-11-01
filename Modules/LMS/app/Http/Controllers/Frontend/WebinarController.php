@@ -211,7 +211,7 @@ class WebinarController extends Controller
     /**
      * Cancel enrollment.
      */
-    public function cancelEnrollment($id)
+    public function cancelRegistration($id)
     {
         $webinar = Webinar::findOrFail($id);
 

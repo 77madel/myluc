@@ -1,5 +1,6 @@
 (function ($) {
     "use strict";
+    // FORCE CACHE BUST - Version 2025-10-23
     $(".cancel-button").hide();
     $(document).on("submit", ".form", function (e) {
         e.preventDefault();
@@ -22,7 +23,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
                         <path fill="currentColor" d="M304 48a48 48 0 1 0-96 0a48 48 0 1 0 96 0m0 416a48 48 0 1 0-96 0a48 48 0 1 0 96 0M48 304a48 48 0 1 0 0-96a48 48 0 1 0 0 96m464-48a48 48 0 1 0-96 0a48 48 0 1 0 96 0M142.9 437A48 48 0 1 0 75 369.1a48 48 0 1 0 67.9 67.9m0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437a48 48 0 1 0 67.9-67.9a48 48 0 1 0-67.9 67.9"/>
                         </svg>
-                        
                     </div> ${btnText}`);
                 submitButton.attr("disabled", true);
             },
@@ -32,7 +32,7 @@
                     submitButton.attr("disabled", false);
                     submitButton.html(`${btnText}`);
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["error"](`${data.message}`);
+                        toastr.error(`${data.message}`);
                     }
                     if (data.errors !== "") {
                         logErrorMsg(data.errors);
@@ -55,7 +55,7 @@
                         $(".fixed.inset-0").addClass("hidden");
                     }
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["success"](`${data.message}`);
+                        toastr.success(`${data.message}`);
                     }
                     if (data.hasOwnProperty("type")) {
                         location.reload();
@@ -172,12 +172,55 @@
         let type = self.data("type");
         let id = self.data("id");
         let action = self.data("action");
-        let dataFormat = { type: type, id: id };
+
+        // Extraire les paramètres de l'URL data-action
+        let urlParams = {};
+        if (action && action.includes('?')) {
+            const queryString = action.split('?')[1];
+            const params = new URLSearchParams(queryString);
+            params.forEach((value, key) => {
+                urlParams[key] = value;
+            });
+        }
+
+        // ⚠️ ATTENTION:
+        // - 'id' (data-id) = topic_id réel (ex: 256) pour la progression
+        // - On a besoin du topicable_id pour charger la vidéo
+        // - Dans l'URL data-action, topic_id est aussi présent
+
+        console.log('🔍 [custom.js] Debug:', {
+            'data-id': id,
+            'data-topicable-id': self.data("topicableId"),
+            'data-topic-id': self.data("topicId"),
+            'urlParams': urlParams
+        });
+
+        // ✅ CORRECTION:
+        // - data-id = topic_id (256) maintenant corrigé
+        // - data-topicable-id = topicable_id (144) pour charger la vidéo
+        // - urlParams.topic_id = topic_id (256) depuis l'URL
+
+        const realTopicId = urlParams.topic_id || id;  // Topic ID (256)
+        const topicableId = self.data("topicableId");  // Topicable ID (144)
+
+        // Si topicableId n'existe pas, utiliser 'id' comme fallback
+        const contentId = topicableId || id;
+
+        let dataFormat = {
+            type: type,
+            id: contentId,         // topicable_id pour charger le contenu (ex: 144 = video_id)
+            course_id: urlParams.course_id,
+            chapter_id: urlParams.chapter_id,
+            topic_id: realTopicId  // vrai topic_id pour la progression (ex: 256)
+        };
+
+        console.log('🎯 [custom.js] Données envoyées:', dataFormat);
+
         getAjaxRequest(action, dataFormat);
     });
 
     $(document).on("click", ".auth-login", function () {
-        Command: toastr["error"](`Please Login`);
+        toastr.warning(`Please Login`);
     });
     /** Get Ajax Request
      *
@@ -191,11 +234,11 @@
             success: function (data) {
                 if (data.status == "error") {
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["error"](`${data.message}`);
+                        toastr.error(`${data.message}`);
                     }
                 } else if (data.status == "success") {
                     if (data.hasOwnProperty("message")) {
-                        Command: toastr["success"](`${data.message}`);
+                        toastr.success(`${data.message}`);
                     }
                     if (data.hasOwnProperty("coupon")) {
                         couponInformation(data);
@@ -241,7 +284,10 @@
             cache: false,
             contentType: false,
             processData: false,
-            success: function (data) {},
+            success: function (data) {
+                // Score mis à jour seulement après soumission finale
+                // Pas d'affichage en temps réel
+            },
         });
     });
 
@@ -266,6 +312,10 @@
             cache: false,
             contentType: false,
             processData: false,
+            success: function (data) {
+                // Score mis à jour seulement après soumission finale
+                // Pas d'affichage en temps réel
+            },
         });
     });
 
@@ -294,6 +344,9 @@
     let resetForm = (form) => {
         $(form).trigger("reset");
     };
+
+    // Fonction fetchQuizTotalScore supprimée
+    // Le score s'affiche maintenant seulement après soumission finale
 })(jQuery);
 
 /**

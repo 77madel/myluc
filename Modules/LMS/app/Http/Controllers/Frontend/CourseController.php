@@ -70,11 +70,52 @@ class  CourseController extends Controller
      */
     public function courseVideoPlayer($slug, Request $request)
     {
-        $course = $this->course->courseDetail($slug);
-        $purchase = PurchaseRepository::getByUserId([
-            'user_id' => authCheck()->id,
-            'course_id' => $course->id
+        \Log::info('🎬 [courseVideoPlayer] Accès demandé', [
+            'slug' => $slug,
+            'user_guard' => auth()->check() ? auth()->user()->guard : 'guest',
+            'isAdmin' => isAdmin(),
+            'isInstructor' => isInstructor(),
+            'isStudent' => isStudent()
         ]);
+        
+        $course = $this->course->courseDetail($slug);
+        
+        // ✅ ACCÈS LIBRE POUR ADMIN ET INSTRUCTEUR
+        if (isAdmin() || isInstructor()) {
+            \Log::info('✅ [courseVideoPlayer] Admin/Instructeur détecté - Accès libre');
+            
+            $data = [
+                'type' => $request->type ?? null,
+                'topic_id' => $request->topic_id ?? null,
+                'chapter_id' => $request->chapter_id ?? null,
+            ];
+            
+            $assignments = TopicRepository::getTopicByCourse($course->id,  TopicTypes::ASSIGNMENT);
+            
+            return view('theme::course.course-video', compact('course', 'assignments', 'data'));
+        }
+        
+        // ✅ VÉRIFICATION D'ACCÈS POUR LES STUDENTS
+        // On cherche d'abord une inscription valide (non expirée), sinon on prend la plus récente
+        $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
+            ->where('course_id', $course->id)
+            ->where('type', 'enrolled')
+            ->where(function($q){
+                $q->whereNull('enrollment_status')
+                  ->orWhereIn('enrollment_status', ['in_progress','grace','completed'])
+                  ->orWhereNull('grace_due_at')
+                  ->orWhere('grace_due_at', '>', now());
+            })
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$purchaseDetails) {
+            $purchaseDetails = \Modules\LMS\Models\Purchase\PurchaseDetails::where('user_id', authCheck()->id)
+                ->where('course_id', $course->id)
+                ->where('type', 'enrolled')
+                ->orderByDesc('id')
+                ->first();
+        }
 
         $data = [
             'type' => $request->type ?? null,
@@ -84,9 +125,32 @@ class  CourseController extends Controller
 
         $assignments = TopicRepository::getTopicByCourse($course->id,  TopicTypes::ASSIGNMENT);
 
-        if (!$purchase  && isStudent()) {
-            return redirect()->back();
+        if (isStudent()) {
+            if (!$purchaseDetails) {
+                // Vérifier si l'étudiant a obtenu un certificat pour ce cours
+                $hasCertificate = \Modules\LMS\Models\Certificate\UserCertificate::where('user_id', authCheck()->id)
+                    ->where('course_id', $course->id)
+                    ->where('type', 'course')
+                    ->exists();
+
+                if ($hasCertificate) {
+                    return redirect()->route('student.dashboard')
+                        ->with('warning', 'Vous avez déjà obtenu le certificat pour ce cours. Contactez un administrateur pour une réinscription si nécessaire.');
+                }
+                
+                return redirect()->back()->with('error', 'Vous n\'êtes pas inscrit à ce cours. Veuillez l\'acheter ou demander un accès.');
+            } else {
+                // Bloquer si expiré
+                if (($purchaseDetails->enrollment_status ?? null) === 'expired') {
+                    return redirect()->route('student.dashboard')->with('error', 'Votre accès à ce cours a expiré.');
+                }
+                // Si dates présentes, vérifier
+                if ($purchaseDetails->grace_due_at && now()->greaterThanOrEqualTo($purchaseDetails->grace_due_at)) {
+                    return redirect()->route('student.dashboard')->with('error', 'Votre accès à ce cours a expiré.');
+                }
+            }
         }
+
         return view('theme::course.course-video', compact('course', 'assignments', 'data'));
     }
     /**

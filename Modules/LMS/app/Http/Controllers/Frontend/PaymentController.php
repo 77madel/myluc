@@ -14,7 +14,20 @@ class PaymentController extends Controller
 
     public function success($method, Request $request)
     {
-        PaymentService::success($method, $request->all());
+        // Traitement normal pour tous les types de paiement
+        $result = PaymentService::success($method, $request->all());
+
+        // Vérifier si c'est un achat d'organisation après le traitement normal
+        $cartType = session()->get('type');
+        if ($cartType === 'course_purchase') {
+            // Appeler notre méthode pour gérer l'achat d'organisation
+            \Modules\LMS\Repositories\Order\OrderRepository::handleOrganizationPurchase($result['order_id'], $method);
+
+            // Rediriger vers le dashboard organisation
+            return redirect()->route('organization.dashboard')
+                ->with('success', 'Cours acheté avec succès ! Un lien d\'inscription a été généré automatiquement.');
+        }
+
         return redirect()->route('transaction.success');
     }
 
@@ -90,6 +103,19 @@ class PaymentController extends Controller
                     'custom_data' => $verification['custom_data'] ?? []
                 ]);
 
+                // Associer l'achat aux données organisation si utilisateur org
+                if (auth()->check() && auth()->user()->organization) {
+                    $lastPurchaseId = \DB::table('purchases')
+                        ->where('user_id', auth()->id())
+                        ->orderByDesc('id')
+                        ->value('id');
+                    if ($lastPurchaseId) {
+                        \Modules\LMS\Repositories\Order\OrderRepository::handleOrganizationPurchase($lastPurchaseId, $method);
+                    }
+                    return redirect()->route('organization.courses.my')
+                        ->with('success', translate('Course purchased successfully. An enrollment link was generated.'));
+                }
+
                 return redirect()->route('transaction.success');
             }
 
@@ -99,6 +125,20 @@ class PaymentController extends Controller
 
         // Pour les autres méthodes de paiement
         PaymentService::success($method, $request->all());
+
+        // Associer l'achat aux données organisation si utilisateur org (autres méthodes)
+        if (auth()->check() && auth()->user()->organization) {
+            $lastPurchaseId = \DB::table('purchases')
+                ->where('user_id', auth()->id())
+                ->orderByDesc('id')
+                ->value('id');
+            if ($lastPurchaseId) {
+                \Modules\LMS\Repositories\Order\OrderRepository::handleOrganizationPurchase($lastPurchaseId, $method);
+            }
+            return redirect()->route('organization.courses.my')
+                ->with('success', translate('Course purchased successfully. An enrollment link was generated.'));
+        }
+
         return redirect()->route('transaction.success');
     }
 

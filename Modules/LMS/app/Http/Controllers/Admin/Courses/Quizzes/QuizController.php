@@ -59,7 +59,7 @@ class QuizController extends Controller
     /**
      *  quizStoreResult
      *
-     * @param int $id 
+     * @param int $id
      * @param Request $request
      *
      */
@@ -79,6 +79,35 @@ class QuizController extends Controller
     public function submitQuizAnswer($quizId, $type, Request $request)
     {
         return $this->quiz->submitQuizAnswer($quizId, $type, $request);
+    }
+
+    /**
+     * Récupérer le score actuel du quiz pour l'utilisateur
+     */
+    public function getQuizScore($quizId)
+    {
+        try {
+            $userQuiz = \Modules\LMS\Models\Auth\UserCourseExam::where('quiz_id', $quizId)
+                ->where('user_id', authCheck()->id)
+                ->first();
+
+            if ($userQuiz) {
+                return response()->json([
+                    'status' => 'success',
+                    'score' => $userQuiz->score ?? 0
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Quiz non trouvé'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors de la récupération du score'
+            ]);
+        }
     }
 
     /**

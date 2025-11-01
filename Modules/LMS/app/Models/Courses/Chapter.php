@@ -28,4 +28,12 @@ class Chapter extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    /**
+     * Relation avec la progression des chapitres
+     */
+    public function progress(): HasMany
+    {
+        return $this->hasMany(\Modules\LMS\Models\ChapterProgress::class);
+    }
 }

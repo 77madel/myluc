@@ -8,13 +8,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\LMS\Http\Requests\CourseRequest;
 use Modules\LMS\Repositories\Courses\CourseRepository;
+use Modules\LMS\Repositories\Forum\ForumRepository;
 
 class CourseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function __construct(protected CourseRepository $course) {}
+    public function __construct(protected CourseRepository $course, protected ForumRepository $forum) {}
 
     public function index(Request $request)
     {
@@ -63,13 +64,19 @@ class CourseController extends Controller
      */
     public function store(CourseRequest $request)
     {
-        $course = $this->course->store($request);
-        $courseId = $course['course_id'];
-        if (empty($request->course_id)) {
-            $course['url'] = route('instructor.course.edit', $courseId);
+        $courseResponse = $this->course->store($request);
+
+        if (isset($courseResponse['data']) && empty($request->course_id)) {
+            $course = $courseResponse['data'];
+            $this->forum->createForCourse($course);
         }
-        $course['message'] = translate('Update Successfully');
-        return response()->json($course);
+
+        $courseId = $courseResponse['course_id'];
+        if (empty($request->course_id)) {
+            $courseResponse['url'] = route('instructor.course.edit', $courseId);
+        }
+        $courseResponse['message'] = translate('Update Successfully');
+        return response()->json($courseResponse);
     }
 
     /**

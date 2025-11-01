@@ -1,3 +1,9 @@
+{{-- Session Monitor - Vérification automatique de session unique --}}
+@include('theme::components.layouts.session-monitor')
+
+{{-- Analytics Tracker - Tracking des utilisateurs --}}
+<script src="{{ asset('lms/frontend/assets/js/analytics-tracker.js') }}"></script>
+
 <script src="{{ asset('lms/frontend/assets/vendor/js/jquery-3.7.1.min.js') }}"></script>
 <!-- VENDOR JS -->
 <script src="{{ asset('lms/frontend/assets/vendor/js/swiper-bundle.min.js') }}"></script>
@@ -40,8 +46,8 @@
 @endif
 
 @stack('js')
-<script src="{{ edulab_asset('lms/frontend/assets/js/main.js') }}"></script>
-<script src="{{ edulab_asset('lms/frontend/assets/js/custom.js') }}"></script>
+<script src="{{ edulab_asset('lms/frontend/assets/js/main.js') }}?v={{ time() }}"></script>
+<script src="{{ edulab_asset('lms/frontend/assets/js/custom.js') }}?v={{ time() }}"></script>
 
 @if ($customJs)
     <script>
@@ -51,4 +57,17 @@
         })(jQuery);
     </script>
 @endif
+
+<script>
+    tinymce.init({
+        selector: 'textarea.tinymce-editor',
+        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        height: 300,
+        menubar: false,
+        branding: false,
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+    });
+</script>
+
 <p class="d-none cookie"></p>

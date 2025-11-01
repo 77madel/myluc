@@ -280,7 +280,7 @@ class UserRepository  extends BaseRepository
     /**
      * getUserById
      *
-     * 
+     *
      */
     public function getUserById($id)
     {
@@ -564,21 +564,25 @@ class UserRepository  extends BaseRepository
      */
     public function dashboardInfoOrganization(): array
     {
-        $user = User::where('id', authCheck()->id)
-            ->withWhereHas(
-                'organizationCourses',
-                function ($query) {
-                    $query->saleCountNumber()->orderBy('sale_count_number', 'DESC')
-                        ->with('coursePrice', 'instructors.userable', 'levels');
-                }
-            )
-            ->with('userBundles')
-            ->first();
+        $user = User::where('id', authCheck()->id)->with('userBundles', 'userable')->first();
+        $orgId = $user?->organization?->id;
 
-        $coursesId = $user?->organizationCourses?->pluck('id')->toArray() ?? [];
-        $data['total_amount'] =   PurchaseDetails::whereIn('course_id', $coursesId)->sum('price');
-        $data['total_course'] = $user?->organizationCourses?->count() ?? 0;
+        // Cours achetés par l'organisation (priorité org_id), fallback sur user_id du compte org
+        $coursesId = [];
+        if ($orgId) {
+            $coursesId = PurchaseDetails::whereNotNull('course_id')
+                ->where(function($q) use ($orgId) {
+                    $q->where('organization_id', $orgId)
+                      ->orWhere('user_id', authCheck()->id);
+                })
+                ->distinct()
+                ->pluck('course_id')
+                ->toArray();
+        }
+
+        $data['total_amount'] =  PurchaseDetails::whereIn('course_id', $coursesId)->sum('price');
         $data['total_platform_fee'] =  PurchaseDetails::whereIn('course_id', $coursesId)->sum('platform_fee');
+        $data['total_course'] = count($coursesId);
         $data['total_bundle'] = $user?->userBundles?->count() ?? 0;
 
         return $data;
@@ -1026,9 +1030,21 @@ class UserRepository  extends BaseRepository
         ];
         // If the user exists, proceed with verification checks
         if (!$user) {
-            // Check if the email is verified
             return $message;
         }
+
+        // Vérifier le rôle sélectionné
+        $selectedRole = $request->selected_role ?? 'student';
+        $userRole = $user->guard;
+
+        // Vérifier si le rôle de l'utilisateur correspond au rôle sélectionné
+        if ($userRole !== $selectedRole) {
+            return [
+                'status' => 'error',
+                'message' => 'Vous ne pouvez pas vous connecter avec ce rôle. Veuillez sélectionner le bon rôle.',
+            ];
+        }
+
         // Return the error message if conditions are not met
         if ($user->is_verify != 1) {
             return [
@@ -1050,6 +1066,22 @@ class UserRepository  extends BaseRepository
                     'remember_me' => Hash::make(random_string())
                 ]);
             }
+
+            // ✅ GÉNÉRATION DU SESSION TOKEN (SESSION UNIQUE)
+            $sessionToken = \Illuminate\Support\Str::random(60);
+            
+            // Sauvegarder le token dans la base de données
+            $user->update(['session_token' => $sessionToken]);
+            
+            // Stocker le token dans la session actuelle
+            session(['session_token_web' => $sessionToken]);
+            
+            \Log::info('🔐 [Session Unique] Token généré pour utilisateur', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'guard' => $user->guard,
+                'token_preview' => substr($sessionToken, 0, 10) . '...'
+            ]);
 
             // Retrieve the authenticated user's guard type and match to route
             $userGuard = Auth::user()->guard;

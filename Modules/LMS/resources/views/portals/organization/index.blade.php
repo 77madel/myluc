@@ -1,14 +1,43 @@
 @php
     $user = authCheck()?->userable;
     $translations = parse_translation($user);
+    $organization = Auth::user()->organization;
 
     $backendSetting = get_theme_option(key: 'backend_general') ?? null;
     $currency = $backendSetting['currency'] ?? 'USD-$';
     $currencySymbol = get_currency_symbol($currency);
+
+    // Statistiques pour l'organisation
+    // Nombre de cours achetés: distinct course_id reliés à l'organisation (ou via user org)
+    $totalPurchasedCourses = $organization ? DB::table('purchase_details')
+        ->where('organization_id', $organization->id)
+        ->whereNotNull('course_id')
+        ->distinct()
+        ->count('course_id') : 0;
+
+    $totalStudents = $organization ? \Modules\LMS\Models\User::where('organization_id', $organization->id)
+        ->where('userable_type', 'Modules\LMS\Models\Auth\Student')
+        ->count() : 0;
+    $totalEnrollmentLinks = $organization ? $organization->enrollmentLinks()->count() : 0;
+
+    // Récupérer les cours achetés avec leurs détails
+    $purchasedCourses = $organization ? DB::table('purchase_details')
+        ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+        ->join('courses', 'purchase_details.course_id', '=', 'courses.id')
+        ->where('purchase_details.organization_id', $organization->id)
+        ->where('purchase_details.purchase_type', 'organization_course')
+        ->select('purchases.*', 'courses.title as course_title', 'courses.thumbnail', 'courses.id as course_id', 'purchase_details.price')
+        ->latest('purchases.created_at')
+        ->take(5)
+        ->get() : collect();
+
+    $recentEnrollmentLinks = $organization ? $organization->enrollmentLinks()->with('course')->latest()->take(5)->get() : collect();
 @endphp
 
 <x-dashboard-layout>
     <x-slot:title> {{ translate('dashboard') }} </x-slot:title>
+
+
     <div class="grid grid-cols-12 gap-x-4">
         <!-- Start Instructor Profile -->
         <div class="col-span-full lg:col-span-4 card p-0">
@@ -28,16 +57,9 @@
                                     fill="#795DED" />
                             </svg>
                             <div class="text-sm leading-none text-gray-500 dark:text-dark-text">
-                                {{ $data['total_course'] }} {{ translate('Courses') }}
+                                {{ $totalPurchasedCourses }} {{ translate('Cours Achetés') }}
                             </div>
                         </div>
-                    </div>
-                    <div class="flex-center gap-2 mt-6 flex-wrap">
-                        <a href="{{ route('organization.course.create') }}"
-                            class="btn b-solid btn-primary-solid dk-theme-card-square">
-                            <i class="ri-add-circle-line text-inherit"></i>
-                            {{ translate('New course') }}
-                        </a>
                     </div>
                 </div>
             </div>
@@ -49,85 +71,14 @@
 
         <div class="col-span-full lg:col-span-8 card">
             <div class="grid grid-cols-12 gap-4 mb-4">
-                <!-- Instructor Revenue Chart -->
+                <!-- Statistiques pour l'organisation -->
                 <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Purchase Amount') }} </h6>
-                    </div>
-                    <div
-                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
-                        <div class="pb-8 shrink-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="card-title text-2xl">
-                                    {{ $currencySymbol }}<span class="counter-value"
-                                        data-value="{{ $data['total_amount'] }}">{{ translate('0') }}</span>
-                                </div>
-
-                            </div>
+                            {{ translate('Total Étudiants') }} </h6>
+                        <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full">
+                            <i class="ri-group-line text-xl text-blue-600 dark:text-blue-400"></i>
                         </div>
-                    </div>
-                </div>
-
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
-                    <div class="flex-center-between">
-                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('PlatForm Fee') }} </h6>
-                    </div>
-                    <div
-                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
-                        <div class="pb-8 shrink-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="card-title text-2xl">
-                                    {{ $currencySymbol }}<span class="counter-value"
-                                        data-value="{{ $data['total_platform_fee'] }}">{{ translate('0') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
-                    <div class="flex-center-between">
-                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Total Profit') }} </h6>
-                    </div>
-                    <div
-                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
-                        <div class="pb-8 shrink-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="card-title text-2xl">
-                                    {{ $currencySymbol }}<span class="counter-value"
-                                        data-value="{{ $data['total_amount'] - $data['total_platform_fee'] }}">{{ translate('0') }}</span>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
-                    <div class="flex-center-between">
-                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Available Balance') }} </h6>
-                    </div>
-                    <div
-                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
-                        <div class="pb-8 shrink-0">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="card-title text-2xl">
-                                    {{ $currencySymbol }}<span class="counter-value"
-                                        data-value="{{ $user->user_balance ?? 0 }}">{{ translate('0') }}</span>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Instructor Course -->
-                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
-                    <div class="flex-center-between">
-                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Total Course') }} </h6>
                     </div>
                     <div
                         class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
@@ -135,17 +86,20 @@
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="card-title text-2xl">
                                     <span class="counter-value"
-                                        data-value="{{ $data['total_course'] }}">{{ translate('0') }}</span>
+                                        data-value="{{ $totalStudents }}">{{ translate('0') }}</span>
                                 </div>
-
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
-                            {{ translate('Total Bundles') }} </h6>
+                            {{ translate('Cours Achetés') }} </h6>
+                        <div class="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full">
+                            <i class="ri-book-2-line text-xl text-green-600 dark:text-green-400"></i>
+                        </div>
                     </div>
                     <div
                         class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
@@ -153,26 +107,124 @@
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="card-title text-2xl">
                                     <span class="counter-value"
-                                        data-value="{{ $data['total_bundle'] }}">{{ translate('0') }}</span>
+                                        data-value="{{ $totalPurchasedCourses }}">{{ translate('0') }}</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
 
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Liens d\'Inscription') }} </h6>
+                        <div class="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full">
+                            <i class="ri-links-line text-xl text-purple-600 dark:text-purple-400"></i>
+                        </div>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    <span class="counter-value"
+                                        data-value="{{ $totalEnrollmentLinks }}">{{ translate('0') }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        @if (isset($topCourses) && !empty($topCourses))
+        <!-- Liens d'inscription récents -->
+        @if($recentEnrollmentLinks->count() > 0)
             <div class="col-span-full card">
                 <div class="flex-center-between mb-6">
-                    <h6 class="card-title"> {{ translate('Top performing courses') }} </h6>
-                    <a href="{{ route('organization.course.index') }}"
-                        class="btn b-solid btn-primary-solid btn-sm dk-theme-card-square">
-                        {{ translate('See all') }}
+                    <h6 class="card-title">{{ translate('Liens d\'Inscription Récents') }}</h6>
+                    <a href="{{ route('organization.enrollment-links.index') }}" class="btn b-solid btn-primary-solid btn-sm">
+                        {{ translate('Voir Tous') }}
                     </a>
                 </div>
-                <x-portal::admin.admin.top-course :topCourses="$data['best_total_course']" sales="true" />
+                <div class="overflow-x-auto scrollbar-table">
+                    <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
+                        <thead>
+                            <tr class="text-primary-500">
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Nom') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Cours') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Lien') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
+                            @foreach($recentEnrollmentLinks as $link)
+                                <tr>
+                                    <td class="px-4 py-4">{{ $link->name }}</td>
+                                    <td class="px-4 py-4">{{ $link->course->title ?? 'N/A' }}</td>
+                                    <td class="px-4 py-4">
+                                        <input type="text" value="{{ url('/enroll/' . $link->slug) }}" readonly
+                                            class="form-input text-sm w-48  dark:bg-gray-700 border-none">
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $link->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ ucfirst($link->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
+        <!-- Cours Achetés Récents -->
+        @if($purchasedCourses->count() > 0)
+            <div class="col-span-full card">
+                <div class="flex-center-between mb-6">
+                    <h6 class="card-title">{{ translate('Cours Achetés Récents') }}</h6>
+                    <a href="{{ route('organization.courses.index') }}" class="btn b-solid btn-primary-solid btn-sm">
+                        {{ translate('Acheter Plus') }}
+                    </a>
+                </div>
+                <div class="overflow-x-auto scrollbar-table">
+                    <table class="table-auto border-collapse w-full whitespace-nowrap text-left text-gray-500 dark:text-dark-text">
+                        <thead>
+                            <tr class="text-primary-500">
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Cours') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Prix') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Date d\'Achat') }}</th>
+                                <th class="px-3.5 py-4 bg-[#F2F4F9] dark:bg-dark-card-two first:rounded-l-lg last:rounded-r-lg first:dk-theme-card-square-left last:dk-theme-card-square-right">{{ translate('Statut') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-dark-border-three">
+                            @foreach($purchasedCourses as $purchase)
+                                <tr>
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center gap-3.5">
+                                            <img src="{{ fileExists('lms/courses/thumbnails', $purchase->thumbnail) ? asset('storage/lms/courses/thumbnails/' . $purchase->thumbnail) : asset('lms/assets/images/placeholder/thumbnail612.jpg') }}"
+                                                alt="{{ $purchase->course_title }}" class="w-10 h-10 rounded-md object-cover">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $purchase->course_title }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                                        {{ $currencySymbol }}{{ number_format($purchase->price, 0) }}
+                                    </td>
+                                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                        {{ \Carbon\Carbon::parse($purchase->created_at)->format('d/m/Y H:i') }}
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $purchase->status === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }}">
+                                            {{ ucfirst($purchase->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         @endif
     </div>

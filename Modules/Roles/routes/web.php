@@ -26,7 +26,7 @@ Route::group(
             }
         );
         Route::group(
-            ['middleware' => ['auth:admin']],
+            ['middleware' => ['auth:admin', 'check.session.token']],
             function () {
                 Route::resource('staff', AdminController::class);
                 Route::resource('permission', PermissionController::class);

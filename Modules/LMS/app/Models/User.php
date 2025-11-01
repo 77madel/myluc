@@ -25,7 +25,7 @@ class User extends Authenticatable
 
     public $guard_name = 'web';
 
-    protected $fillable = ['id', 'userable_type', 'userable_id', 'guard',  'username', 'email', 'password', 'organization_id', 'is_verify', 'remember_me'];
+    protected $fillable = ['id', 'userable_type', 'userable_id', 'guard',  'username', 'email', 'password', 'organization_id', 'enrollment_link_id', 'is_verify', 'remember_me', 'session_token'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -88,6 +88,22 @@ class User extends Authenticatable
     public function userBundles(): HasMany
     {
         return $this->hasMany(CourseBundle::class);
+    }
+
+    /**
+     * Relation avec la progression des chapitres
+     */
+    public function chapterProgress(): HasMany
+    {
+        return $this->hasMany(\Modules\LMS\Models\ChapterProgress::class);
+    }
+
+    /**
+     * Relation avec la progression des leçons
+     */
+    public function topicProgress(): HasMany
+    {
+        return $this->hasMany(\Modules\LMS\Models\TopicProgress::class);
     }
 
     // public function
@@ -158,5 +174,16 @@ class User extends Authenticatable
     public function wishlists(): BelongsToMany
     {
         return $this->belongsToMany(Course::class, 'wishlists', 'user_id', 'course_id', 'id', 'id')->withTimestamps();
+    }
+
+    /**
+     * Accessor pour obtenir l'organisation si l'utilisateur est de type Organization
+     */
+    public function getOrganizationAttribute()
+    {
+        if ($this->userable_type === 'Modules\LMS\Models\Auth\Organization') {
+            return $this->userable;
+        }
+        return null;
     }
 }

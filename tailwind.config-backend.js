@@ -1,56 +1,95 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
     content: [
         "./Modules/LMS/resources/views/**/*.blade.php",
         "./Modules/LMS/resources/views/*/*.blade.php",
-        "/Modules/LMS/resources/",
-        "/Modules/Roles/resources/",
+        "./Modules/LMS/resources/themes/**/*.blade.php",
         "./Modules/Roles/resources/views/**/*.blade.php",
         "./Modules/Roles/resources/views/*/*.blade.php",
-        "/Modules/ModuleManager/resources/",
         "./Modules/ModuleManager/resources/views/**/*.blade.php",
         "./Modules/ModuleManager/resources/views/*/*.blade.php",
+        "./resources/views/**/*.blade.php",
         "./resources/**/*.vue",
+        "./app/View/Components/**/*.php",
+        "./public/lms/frontend/assets/js/*.js",
         "./public/lms/assets/js/layout.js",
     ],
+    safelist: [
+        'w-7',
+        'h-7',
+        'bg-primary-600',
+        'hover:bg-primary-500',
+        'bg-success',
+        'hover:bg-success',
+        'border-success',
+        'border-danger',
+        'bg-danger',
+        'rounded-full',
+        'inline-flex',
+        'items-center',
+        'justify-center',
+        'text-white',
+        'focus:outline-none',
+        'focus:ring-2',
+        'focus:ring-offset-2',
+        'focus:ring-primary-500',
+        'transition-all',
+        'duration-200',
+        'hover:scale-110',
+        'border-2',
+    ],
     darkMode: "selector",
+    mode: "jit",
     theme: {
         container: {
             center: true,
+            padding: {
+                DEFAULT: "12px",
+            },
         },
         fontFamily: {
+            mulish: "var(--font-primary)",
+            secondary: "var(--font-secondary)",
             urbanist: ["Urbanist", "sans-serif"],
             spline_sans: ["Spline Sans", "sans-serif"],
             public_sans: ["Public Sans", "sans-serif"],
             remix: ["remixicon"],
         },
+        screens: {
+            "3xl": "1536px",
+            "2xl": "1440px",
+            xl: "1320px",
+            lg: "1024px",
+            md: "768px",
+            sm: "640px",
+        },
         extend: {
-            screens: {
-                "3xl": "1536px",
-                "2xl": "1440px",
-            },
-            gridTemplateColumns: {
-                13: "repeat(13, minmax(0, 1fr))",
-            },
             colors: {
-                "body-light": "#F3F3F3",
-                heading: "#251F47",
+                heading: {
+                    DEFAULT: "#251F47",
+                    custom: "rgb(from var(--color-heading) r g b / <alpha-value>)",
+                },
                 primary: {
-                    DEFAULT: "#5F71FA",
-                    100: "#E5DEFF",
-                    200: "#DFE3FE",
-                    300: "#B39EF9",
-                    400: "#9C84F4",
-                    500: "#5F71FA",
-                    600: "#5B43CB",
+                    DEFAULT: "#572571",
+                    50: "#F2EAF6",
+                    100: "#E6D5ED",
+                    200: "#CDAAD9",
+                    300: "#B380C5",
+                    400: "#9A55B0",
+                    500: "#804B9A",
+                    600: "#572571",
                 },
                 secondary: {
-                    DEFAULT: "#76D466",
+                    DEFAULT: "#5BDFE4",
+                    custom: "rgb(from var(--color-secondary) r g b / <alpha-value>)",
+                },
+                section: {
+                    DEFAULT: "rgb(from var(--color-section) r g b / <alpha-value>)",
                 },
                 gray: {
                     200: "#EEE",
-                    900: "#999",
                     500: "#555",
+                    900: "#999",
                 },
                 danger: {
                     DEFAULT: "#FF4626",
@@ -69,6 +108,9 @@ export default {
                 disable: {
                     DEFAULT: "#999",
                 },
+                border: {
+                    DEFAULT: "#1118271A",
+                },
                 light: {
                     DEFAULT: "#19213D",
                 },
@@ -86,6 +128,7 @@ export default {
                 orange: "#EC8B00",
                 "star-mail": "#FDBF20",
                 "form-inputs": "#D1D4E3",
+                "body-light": "#F3F3F3",
                 dark: {
                     body: "#000011",
                     card: {
@@ -117,20 +160,29 @@ export default {
                     },
                 },
             },
-            borderRadius: {
-                10: "10px",
-                15: "15px",
-                20: "20px",
-                25: "25px",
-                30: "30px",
-                50: "50%",
+            gridTemplateColumns: {
+                13: "repeat(13, minmax(0, 1fr))",
+            },
+            spacing: {
+                header: "80px",
+                "app-menu": "290px",
+                "app-menu-sm": "70px",
+                "ins-pro-img": "85px",
+                13: "3.25rem",
+                15: "3.75rem",
             },
             backgroundImage: {
+                "text-highlighter": "url('../../assets/images/icons/text-highlighter.svg')",
+                video: "linear-gradient(90deg, #44FF9A -0.55%, #44B0FF 22.86%, #8B44FF 48.36%, #F64 73.33%, #EBFF70 99.34%)",
+                header: "linear-gradient(90deg, #F7F4FF 50%, #fff 50%)",
+                "overlay-gradient": "linear-gradient(180deg, rgba(17, 24, 39, 0.00) 0%, #111827 100%)",
+                "banner-four": "linear-gradient(90deg, #3C5F3F 0%, #16413B 100%)",
+                "video-overlay": "linear-gradient(91deg, rgba(0, 162, 100, 0.60) 0.45%, rgba(0, 162, 100, 0.20) 83.84%)",
+                "pricing-three": "linear-gradient(180deg, rgba(239, 244, 224, 0.00) 0%, #EFF4E0 100%)",
+                "pricing-five": "linear-gradient(90deg, #FDFFEA 0%, #E4FAEC 100%)",
                 checked: "url(../images/icons/checked.svg)",
-                "progress-bar-bg":
-                    "linear-gradient(to bottom, #BCABFF 0.01%, #DDFFD8 100%)",
-                "progress-bar":
-                    "linear-gradient(160.44deg, #7D5DFE 0.01%, #76D466 100%)",
+                "progress-bar-bg": "linear-gradient(to bottom, #BCABFF 0.01%, #DDFFD8 100%)",
+                "progress-bar": "linear-gradient(160.44deg, #7D5DFE 0.01%, #76D466 100%)",
                 "doc-hero": "url(../images/doc-hero-graphical-element.png)",
             },
             backgroundSize: {
@@ -140,12 +192,37 @@ export default {
                 "right-center": "right 10% center",
             },
             boxShadow: {
+                secondary: "30px 30px var(--color-secondary)",
+                "pricing-four": "0px 0px 1px 1px rgba(3, 6, 17, 0.12)",
+                "pricing-five": "0px 1px 2px 0px rgba(14, 27, 46, 0.10)",
+                "pricing-five-hover": "0px 2px 40px 0px rgba(3, 6, 17, 0.14)",
                 header: "4px -2px 25px #11111129",
                 progress_card_sm_1: "8px 8px 20px 0px rgba(13, 0, 65, 0.05)",
                 "menu-dropdown": "5px 5px 8px -2px rgba(0, 0, 0,0.2)",
                 "paginate-shadow": "0px 4px 12px 0px rgba(27,10,97,0.08)",
             },
+            borderRadius: {
+                10: "10px",
+                15: "15px",
+                20: "20px",
+                25: "25px",
+                30: "30px",
+                50: "50%",
+            },
             keyframes: {
+                fade: {
+                    "0%, 50%": { opacity: "0" },
+                    "100%": { opacity: "1" },
+                },
+                pulse: {
+                    "0%": { transform: "scale(0.32)", opacity: ".8" },
+                    "50%": { opacity: "1" },
+                    "85%, 100%": { transform: "scale(1)", opacity: "0" },
+                },
+                reset: {
+                    "0%": { top: "-5px", opacity: "0" },
+                    "100%": { top: "0", opacity: "1" },
+                },
                 "hand-wave": {
                     "0%": { transform: "rotate(0.0deg)" },
                     "10%": { transform: "rotate(14.0deg)" },
@@ -158,16 +235,11 @@ export default {
                 },
             },
             animation: {
+                fade: "fade 0.5s ease forwards",
+                pulse: "pulse 2s ease-in-out infinite",
+                reset: "reset 0.3s ease forwards",
                 "spin-slow": "spin 3.5s linear infinite",
                 "hand-wave": "hand-wave 2.5s linear infinite",
-            },
-            spacing: {
-                header: "80px",
-                "app-menu": "290px",
-                "app-menu-sm": "70px",
-                "ins-pro-img": "85px",
-                13: "3.25rem",
-                15: "3.75rem",
             },
             height: {
                 screen: "100vh",

@@ -46,11 +46,85 @@
         </div>
         <!-- End Instructor Profile -->
 
-        <!-- Start Instructor Overview -->
+        <!-- Start Instructor Earning Overview -->
         <div class="col-span-full lg:col-span-8 card">
             <div class="grid grid-cols-12 gap-4 mb-4">
+                <!-- Instructor Revenue Chart -->
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Purchase Amount') }} </h6>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    {{ $currencySymbol }}<span class="counter-value"
+                                        data-value="{{ $data['total_amount'] }}">{{ translate('0') }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('PlatForm Fee') }} </h6>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    {{ $currencySymbol }}<span class="counter-value"
+                                        data-value="{{ $data['total_platform_fee'] }}">{{ translate('0') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Total Profit') }} </h6>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    {{ $currencySymbol }}<span class="counter-value"
+                                        data-value="{{ $data['total_amount'] - $data['total_platform_fee'] }}">{{ translate('0') }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                    <div class="flex-center-between">
+                        <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
+                            {{ translate('Available Balance') }} </h6>
+                    </div>
+                    <div
+                        class="pt-3 bg-[url('../../assets/images/card/pattern.png')] dark:bg-[url('../../assets/images/card/pattern-dark.png')] bg-no-repeat bg-100% flex gap-4 mt-3">
+                        <div class="pb-8 shrink-0">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="card-title text-2xl">
+                                    {{ $currencySymbol }}<span class="counter-value"
+                                        data-value="{{ $user->user_balance ?? 0 }}">{{ translate('0') }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Instructor Course -->
-                <div class="col-span-full sm:col-span-6 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
+                <div class="col-span-full sm:col-span-4 p-4 dk-border-one rounded-xl h-full dk-theme-card-square">
                     <div class="flex-center-between">
                         <h6 class="leading-none text-gray-500 dark:text-dark-text font-semibold">
                             {{ translate('Total Course') }} </h6>

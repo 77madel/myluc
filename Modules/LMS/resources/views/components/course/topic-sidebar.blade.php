@@ -16,12 +16,12 @@
         <div class="border border-border h-full overflow-y-auto">
             <div class="overflow-hidden">
                 <div class="space-y-0 overflow-y-auto">
-                    <x-theme::course.curriculum-list 
-                        :course="$course" 
-                        sideBarShow="video-play" 
-                        :data="$data" 
-                        :auth="$auth" 
-                        purchaseCheck="{{ $purchaseCheck ?? false }}" 
+                    <x-theme::course.curriculum-list
+                        :course="$course"
+                        sideBarShow="video-play"
+                        :data="$data"
+                        :auth="$auth"
+                        purchaseCheck="{{ $purchaseCheck ?? false }}"
                     />
                 </div>
             </div>

@@ -60,64 +60,20 @@ class Organization extends Model
     }
 
     /**
-     * Liens d'inscription personnalisés
+     * Relation avec les liens d'inscription
      */
     public function enrollmentLinks(): HasMany
     {
         return $this->hasMany(OrganizationEnrollmentLink::class);
     }
 
-    /**
-     * Modules assignés à cette organisation
-     */
-    public function organizationModules(): HasMany
-    {
-        return $this->hasMany(OrganizationModule::class);
-    }
+    // Relation organizationParticipants supprimée - utilise le système unifié avec users
 
     /**
-     * Participants de cette organisation
+     * Relation avec les cours achetés
      */
-    public function organizationParticipants(): HasMany
+    public function purchasedCourses(): HasMany
     {
-        return $this->hasMany(OrganizationParticipant::class);
-    }
-
-    /**
-     * Logs d'activité
-     */
-    public function activityLogs(): HasMany
-    {
-        return $this->hasMany(OrganizationActivityLog::class);
-    }
-
-    /**
-     * Récupérer le nombre de participants actifs
-     */
-    public function getActiveParticipantsCount(): int
-    {
-        return $this->organizationParticipants()
-            ->where('status', 'active')
-            ->count();
-    }
-
-    /**
-     * Récupérer les statistiques globales
-     */
-    public function getStatistics(): array
-    {
-        return [
-            'total_participants' => $this->organizationParticipants()->count(),
-            'active_participants' => $this->getActiveParticipantsCount(),
-            'total_modules' => $this->organizationModules()
-                ->where('status', 'active')
-                ->count(),
-            'enrollment_links' => $this->enrollmentLinks()
-                ->where('status', 'active')
-                ->count(),
-            'this_month_enrollments' => $this->organizationParticipants()
-                ->whereMonth('enrolled_at', now()->month)
-                ->count()
-        ];
+        return $this->hasMany(OrganizationCoursePurchase::class);
     }
 }
